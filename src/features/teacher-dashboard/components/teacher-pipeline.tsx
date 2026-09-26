@@ -1,7 +1,12 @@
+import Link from "next/link";
 import { COURSE_PIPELINE } from "../data/mock-teacher-data";
 import { Layers, Plus } from "lucide-react";
 
-export function TeacherPipeline() {
+interface TeacherPipelineProps {
+  onNewCourse?: () => void;
+}
+
+export function TeacherPipeline({ onNewCourse }: TeacherPipelineProps) {
   return (
     <div className="p-5 rounded-2xl bg-card border border-border-default space-y-4 shadow-sm">
       <div className="flex items-center justify-between">
@@ -14,11 +19,13 @@ export function TeacherPipeline() {
       <div className="space-y-2.5">
         {COURSE_PIPELINE.map((course) => {
           const isAmber = course.badgeVariant === "amber";
+          const href = isAmber ? "/teacher/approvals" : "/teacher/builder";
 
           return (
-            <div
+            <Link
               key={course.id}
-              className={`p-3 rounded-xl bg-canvas border flex items-center justify-between cursor-pointer transition-colors ${
+              href={href}
+              className={`p-3 rounded-xl bg-canvas border flex items-center justify-between cursor-pointer transition-colors block ${
                 isAmber
                   ? "border-amber-500/30 hover:border-amber-500"
                   : "border-border-default hover:border-emerald-brand/40"
@@ -44,21 +51,22 @@ export function TeacherPipeline() {
               >
                 {course.badge}
               </span>
-            </div>
+            </Link>
           );
         })}
       </div>
 
       <div className="grid grid-cols-2 gap-2 pt-1">
-        <button
-          type="button"
-          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-brand to-mint-brand text-canvas font-bold text-xs flex items-center justify-center gap-1.5 shadow-glow-emerald hover:opacity-95 transition-opacity cursor-pointer"
+        <Link
+          href="/teacher/builder"
+          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-brand to-mint-brand text-canvas font-bold text-xs flex items-center justify-center gap-1.5 shadow-glow-emerald hover:opacity-95 transition-opacity cursor-pointer text-center"
         >
           <Layers className="w-3.5 h-3.5" />
           <span>Abrir Creador</span>
-        </button>
+        </Link>
         <button
           type="button"
+          onClick={onNewCourse}
           className="w-full py-2.5 px-3 rounded-xl bg-card border border-emerald-brand/40 text-emerald-brand font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-emerald-brand/10 transition-colors cursor-pointer shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -68,3 +76,4 @@ export function TeacherPipeline() {
     </div>
   );
 }
+

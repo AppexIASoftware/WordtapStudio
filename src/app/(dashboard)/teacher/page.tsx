@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { TeacherKpiGrid } from "@/features/teacher-dashboard/components/teacher-kpi-grid";
 import { TeacherDifficultyHeatmap } from "@/features/teacher-dashboard/components/teacher-difficulty-heatmap";
 import { TeacherPipeline } from "@/features/teacher-dashboard/components/teacher-pipeline";
 
 export default function TeacherDashboardPage() {
   const [period, setPeriod] = useState<"today" | "7d" | "30d" | "year">("7d");
+  const router = useRouter();
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
@@ -79,9 +81,10 @@ export default function TeacherDashboardPage() {
           <TeacherDifficultyHeatmap />
         </div>
         <div className="lg:col-span-4">
-          <TeacherPipeline />
+          <TeacherPipeline onNewCourse={() => router.push("/teacher/builder")} />
         </div>
       </div>
     </div>
   );
 }
+

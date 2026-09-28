@@ -1,45 +1,47 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useSyncExternalStore, useCallback } from "react";
+
+const THEME_CHANGE_EVENT = "wordtap-theme-change";
+
+function subscribe(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(THEME_CHANGE_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(THEME_CHANGE_EVENT, callback);
+  };
+}
+
+function getSnapshot(): "light" | "dark" {
+  const saved = localStorage.getItem("wordtap_theme");
+  if (saved === "light" || saved === "dark") return saved;
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
+function getServerSnapshot(): "light" | "dark" {
+  return "light";
+}
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "dark";
-    const saved = localStorage.getItem("wordtap_theme") as "light" | "dark" | null;
-    return saved || (document.documentElement.classList.contains("dark") ? "dark" : "light");
-  });
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const setTheme = useCallback((next: "light" | "dark") => {
-    setThemeState(next);
-    if (typeof document !== "undefined") {
-      const html = document.documentElement;
-      if (next === "dark") {
-        html.classList.remove("light");
-        html.classList.add("dark");
-      } else {
-        html.classList.remove("dark");
-        html.classList.add("light");
-      }
-      localStorage.setItem("wordtap_theme", next);
-    }
+    localStorage.setItem("wordtap_theme", next);
+    const html = document.documentElement;
+    html.classList.toggle("dark", next === "dark");
+    html.classList.toggle("light", next === "light");
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => {
-      const next = prev === "light" ? "dark" : "light";
-      if (typeof document !== "undefined") {
-        const html = document.documentElement;
-        if (next === "dark") {
-          html.classList.remove("light");
-          html.classList.add("dark");
-        } else {
-          html.classList.remove("dark");
-          html.classList.add("light");
-        }
-        localStorage.setItem("wordtap_theme", next);
-      }
-      return next;
-    });
+    const current = getSnapshot();
+    const next = current === "light" ? "dark" : "light";
+    localStorage.setItem("wordtap_theme", next);
+    const html = document.documentElement;
+    html.classList.toggle("dark", next === "dark");
+    html.classList.toggle("light", next === "light");
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }, []);
 
   return {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/auth-context";
+import { useTheme } from "@/hooks/use-theme";
 import { checkApiHealth } from "@/lib/api-client";
 import { Search, Sun, Moon, Menu } from "lucide-react";
 
@@ -12,7 +13,7 @@ interface TopbarProps {
 
 export function Topbar({ onOpenDemoModal, onToggleMobileMenu }: TopbarProps) {
   const { currentRole } = useAuth();
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, toggleTheme } = useTheme();
   const [apiConnected, setApiConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -21,21 +22,6 @@ export function Topbar({ onOpenDemoModal, onToggleMobileMenu }: TopbarProps) {
       setApiConnected(res.connected);
     });
   }, []);
-
-  const toggleTheme = () => {
-    const html = document.documentElement;
-    if (html.classList.contains("light")) {
-      html.classList.remove("light");
-      html.classList.add("dark");
-      setIsDark(true);
-      localStorage.setItem("wordtap_theme", "dark");
-    } else {
-      html.classList.remove("dark");
-      html.classList.add("light");
-      setIsDark(false);
-      localStorage.setItem("wordtap_theme", "light");
-    }
-  };
 
   const roleBadgeStyle = () => {
     if (currentRole === "instructor") {
@@ -113,7 +99,7 @@ export function Topbar({ onOpenDemoModal, onToggleMobileMenu }: TopbarProps) {
           title="Cambiar Tema (Claro / Oscuro)"
         >
           {isDark ? <Sun size={14} /> : <Moon size={14} />}
-          <span className="hidden md:inline">{isDark ? "Oscuro" : "Claro"}</span>
+          <span className="hidden md:inline">{isDark ? "Claro" : "Oscuro"}</span>
         </button>
       </div>
     </header>

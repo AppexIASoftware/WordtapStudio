@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Search, Menu, Smartphone, LogIn } from "lucide-react";
 
 interface AppTopbarProps {
@@ -8,6 +9,9 @@ interface AppTopbarProps {
 }
 
 export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
+  const pathname = usePathname();
+  const isModerator = pathname.startsWith("/moderator");
+
   return (
     <header className="h-14 bg-card/80 backdrop-blur border-b border-border-default flex items-center justify-between px-3 md:px-6 z-20 flex-shrink-0 gap-2">
       {/* Izquierda: Menú móvil y buscador omnibox */}
@@ -27,7 +31,11 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
           <div className="w-full pl-9 pr-3 md:pr-8 py-1.5 bg-canvas rounded-xl border border-border-default text-xs text-slate-subtle flex items-center justify-between hover:border-border-subtle transition-colors truncate">
             <span className="flex items-center gap-2 truncate">
               <Search className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="truncate">Buscar lecciones o alumnos...</span>
+              <span className="truncate">
+                {isModerator
+                  ? "Buscar en cola de PRs, reportes o vault..."
+                  : "Buscar lecciones, cursos o alumnos..."}
+              </span>
             </span>
             <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-card border border-border-default text-[10px] font-mono text-slate-muted flex-shrink-0">
               ⌘K
@@ -39,31 +47,50 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
       {/* Derecha: Estado, indicador de rol y acciones */}
       <div className="flex items-center gap-3">
         <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-subtle font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-brand" />
-          <span>Autoguardado activo</span>
+          <span
+            className={`w-2 h-2 rounded-full ${
+              isModerator ? "bg-blue-400" : "bg-emerald-brand"
+            }`}
+          />
+          <span>{isModerator ? "SLA < 24h activo" : "Autoguardado activo"}</span>
         </div>
 
         {/* Indicador de rol en barra superior */}
         <div
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/20 font-mono text-xs font-bold"
-          title="Modo Docente Activo"
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-mono text-xs font-bold ${
+            isModerator
+              ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+              : "bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/20"
+          }`}
+          title={isModerator ? "Consola de Moderación Activa" : "Portal Docente Activo"}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-brand animate-pulse" />
-          <span>Modo Docente</span>
+          <span
+            className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+              isModerator ? "bg-blue-400" : "bg-emerald-brand"
+            }`}
+          />
+          <span>{isModerator ? "Consola Moderación" : "Modo Docente"}</span>
         </div>
 
         <div className="h-4 w-px bg-border-default hidden sm:block" />
 
         {/* Acceso rápido a simulador móvil */}
-        <button
-          type="button"
-          onClick={() => alert("Simulador Playtest Móvil (Mock)")}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-emerald-brand/40 text-xs font-semibold text-emerald-brand hover:bg-emerald-brand/10 transition-colors shadow-sm cursor-pointer"
-          title="Abrir Simulador de Playtest Móvil (ADR-09, ADR-10)"
+        <Link
+          href={isModerator ? "/moderator/courses" : "/teacher/builder"}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border text-xs font-semibold transition-colors shadow-sm cursor-pointer ${
+            isModerator
+              ? "border-blue-500/40 text-blue-300 hover:bg-blue-500/10"
+              : "border-emerald-brand/40 text-emerald-brand hover:bg-emerald-brand/10"
+          }`}
+          title="Abrir Simulador de Playtest Móvil"
         >
-          <Smartphone className="w-3.5 h-3.5 text-emerald-brand" />
+          <Smartphone
+            className={`w-3.5 h-3.5 ${
+              isModerator ? "text-blue-400" : "text-emerald-brand"
+            }`}
+          />
           <span className="hidden md:inline">Playtest Móvil</span>
-        </button>
+        </Link>
 
         {/* Enlace a pantalla de inicio de sesión */}
         <Link

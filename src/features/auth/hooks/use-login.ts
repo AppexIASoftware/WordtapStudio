@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { DemoAccount, LoginCredentials, UserRole } from "../types";
+import { useState, useEffect, useCallback } from "react";
+import { DemoAccount, UserRole } from "../types";
 import { useAuth } from "../auth-context";
 
 export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
@@ -10,8 +10,7 @@ export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
     label: "Docente",
     name: "Prof. Mateo Silva",
     email: "mateo.silva@wordtap.app",
-    password: "ProfMateo2026!",
-    roleHint: "Rol: Docente Autorizado • Autoría de cursos, cohortes y bancos propios",
+    roleHint: "Docente Autorizado • Autoría de cursos, cohortes y bancos propios",
     title: "Docente Autorizado",
     avatarInitials: "MS",
     scope: "Portal Docente: studio.wordtap.app",
@@ -21,8 +20,7 @@ export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
     label: "Moderadora",
     name: "Lic. Elena Ramos",
     email: "elena.ramos@wordtap.app",
-    password: "ModElena2026!",
-    roleHint: "Rol: Moderadora de Contenidos • Cola de aprobación, reportes y revisión pedagógica",
+    roleHint: "Moderadora Oficial • Cola de aprobación, auditoría y calidad",
     title: "Moderadora Oficial (Calidad)",
     avatarInitials: "ER",
     scope: "Consola de Revisión: approvals.wordtap.app",
@@ -32,8 +30,7 @@ export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
     label: "Admin",
     name: "Carlos Morales",
     email: "admin@wordtap.app",
-    password: "AdminMaster2026!",
-    roleHint: "Rol: Super Administrador • Gobernanza, Stripe, AdMob y RBAC",
+    roleHint: "Super Administrador • Gobernanza, Stripe, AdMob y RBAC",
     title: "Super Administrador",
     avatarInitials: "CM",
     scope: "Consola de Gobernanza: admin.wordtap.app",
@@ -43,57 +40,19 @@ export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
 export function useLogin() {
   const auth = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole>("instructor");
-  const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: DEMO_ACCOUNTS.instructor.email,
-    password: DEMO_ACCOUNTS.instructor.password,
-    rememberMe: true,
-  });
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [googleClientReady, setGoogleClientReady] = useState(false);
 
   const selectRole = (role: UserRole) => {
     setSelectedRole(role);
-    const demo = DEMO_ACCOUNTS[role];
-    setCredentials((prev) => ({
-      ...prev,
-      email: demo.email,
-      password: demo.password,
-    }));
+    setStatusMessage(null);
   };
 
-  const handleEmailChange = (email: string) => {
-    setCredentials((prev) => ({ ...prev, email }));
-  };
-
-  const handlePasswordChange = (password: string) => {
-    setCredentials((prev) => ({ ...prev, password }));
-  };
-
-  const handleRememberMeChange = (rememberMe: boolean) => {
-    setCredentials((prev) => ({ ...prev, rememberMe }));
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const handleSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!credentials.email.trim()) {
-      setStatusMessage("Por favor ingresá tu correo institucional.");
-      return;
-    }
-
+  const loginWithDemo = (roleOverride?: UserRole) => {
+    const role = roleOverride || selectedRole;
     setIsLoading(true);
-    setStatusMessage("Validando credenciales...");
-
-    let role = selectedRole || "instructor";
-    if (credentials.email.includes("elena") || credentials.email.includes("moderator")) {
-      role = "moderator";
-    } else if (credentials.email.includes("admin")) {
-      role = "admin";
-    }
+    setStatusMessage(`Iniciando sesión en sandbox como ${DEMO_ACCOUNTS[role].label}...`);
 
     setTimeout(() => {
       setIsLoading(false);
@@ -102,32 +61,105 @@ export function useLogin() {
   };
 
   const handleGoogleSso = () => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      setStatusMessage("Falta configurar NEXT_PUBLIC_GOOGLE_CLIENT_ID en .env.local.");
+      return;
+    }
+
+    if (typeof window === "undefined" || !window.google?.accounts?.id) {
+      setStatusMessage("Cargando servicios de Google, reintenta en unos segundos...");
+      return;
+    }
+
     setIsLoading(true);
-    setStatusMessage("Conectando con Google Workspace...");
-    setTimeout(() => {
-      setIsLoading(false);
-      auth.login("instructor");
-    }, 200);
+    setStatusMessage("Abriendo diálogo de Google Workspace...");
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        if (response.credential) {
+          setStatusMessage("Validando credenciales con WordtapAPI...");
+          const res = await auth.loginWithGoogleToken(response.credential);
+          setIsLoading(false);
+          if (!res.success) {
+            setStatusMessage(`Error: ${res.error}`);
+          }
+        }
+      },
+    });
+
+    window.google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        setIsLoading(false);
+        setStatusMessage(
+          "El navegador bloqueó el prompt de Google. Permití ventanas emergentes para continuar."
+        );
+      }
+    });
   };
 
-  const bypassToDashboard = () => {
-    auth.login(selectedRole);
-  };
+  const renderGoogleButton = useCallback(() => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId || typeof window === "undefined" || !window.google?.accounts?.id) return;
+
+    setGoogleClientReady(true);
+    const container = document.getElementById("google-signin-container");
+    if (!container) return;
+
+    container.innerHTML = "";
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        if (response.credential) {
+          setIsLoading(true);
+          setStatusMessage("Validando credenciales con WordtapAPI...");
+          const res = await auth.loginWithGoogleToken(response.credential);
+          setIsLoading(false);
+          if (!res.success) {
+            setStatusMessage(`Error: ${res.error}`);
+          }
+        }
+      },
+    });
+
+    window.google.accounts.id.renderButton(container, {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "continue_with",
+      shape: "rectangular",
+      width: "100%",
+    });
+  }, [auth]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (window.google?.accounts?.id) {
+      renderGoogleButton();
+      return;
+    }
+
+    const script = document.querySelector<HTMLScriptElement>(
+      'script[src*="accounts.google.com/gsi/client"]'
+    );
+    if (script) {
+      const handleLoad = () => renderGoogleButton();
+      script.addEventListener("load", handleLoad);
+      return () => script.removeEventListener("load", handleLoad);
+    }
+  }, [renderGoogleButton]);
 
   return {
     selectedRole,
-    credentials,
-    showPassword,
     isLoading,
     statusMessage,
+    googleClientReady,
     currentDemo: DEMO_ACCOUNTS[selectedRole],
     selectRole,
-    handleEmailChange,
-    handlePasswordChange,
-    handleRememberMeChange,
-    togglePasswordVisibility,
-    handleSubmit,
+    loginWithDemo,
     handleGoogleSso,
-    bypassToDashboard,
   };
 }

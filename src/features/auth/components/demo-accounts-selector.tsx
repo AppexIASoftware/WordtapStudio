@@ -16,8 +16,8 @@ export function DemoAccountsSelector({
 
   return (
     <div className="space-y-1.5">
-      <label className="text-[11px] font-semibold text-slate-subtle uppercase tracking-wider font-mono">
-        Perfiles Demo de Prueba (1-Clic)
+      <label className="text-[10px] font-semibold text-slate-subtle uppercase tracking-wider font-mono">
+        Perfil a Simular:
       </label>
       <div className="grid grid-cols-3 gap-1.5 p-1 bg-canvas rounded-2xl border border-border-default text-center">
         {roles.map((role) => {

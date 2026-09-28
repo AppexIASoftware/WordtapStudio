@@ -8,6 +8,7 @@ export interface UserProfile {
   title: string;
   avatarInitials: string;
   scope: string;
+  avatarUrl?: string | null;
 }
 
 export interface DemoAccount {
@@ -15,7 +16,7 @@ export interface DemoAccount {
   label: string;
   name: string;
   email: string;
-  password: string;
+  password?: string;
   roleHint: string;
   title: string;
   avatarInitials: string;
@@ -34,5 +35,6 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   switchRole: (role: UserRole) => void;
   login: (role?: UserRole) => void;
+  loginWithGoogleToken: (idToken: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { DemoAccount, UserRole } from "../types";
 import { useAuth } from "../auth-context";
 
@@ -39,6 +39,12 @@ export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
 
 export function useLogin() {
   const auth = useAuth();
+  const authRef = useRef(auth);
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
+
+  const isGoogleInitialized = useRef(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>("instructor");
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -60,7 +66,30 @@ export function useLogin() {
     }, 200);
   };
 
+  const initGoogleIdentity = useCallback((clientId: string) => {
+    if (isGoogleInitialized.current) return;
+    if (typeof window === "undefined" || !window.google?.accounts?.id) return;
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        if (response.credential) {
+          setIsLoading(true);
+          setStatusMessage("Validando credenciales con WordtapAPI...");
+          const res = await authRef.current.loginWithGoogleToken(response.credential);
+          setIsLoading(false);
+          if (!res.success) {
+            setStatusMessage(`Error: ${res.error}`);
+          }
+        }
+      },
+    });
+    isGoogleInitialized.current = true;
+  }, []);
+
   const handleGoogleSso = () => {
+    if (isLoading) return;
+
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
@@ -73,26 +102,14 @@ export function useLogin() {
       return;
     }
 
+    initGoogleIdentity(clientId);
+
     setIsLoading(true);
     setStatusMessage("Abriendo diálogo de Google Workspace...");
 
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response) => {
-        if (response.credential) {
-          setStatusMessage("Validando credenciales con WordtapAPI...");
-          const res = await auth.loginWithGoogleToken(response.credential);
-          setIsLoading(false);
-          if (!res.success) {
-            setStatusMessage(`Error: ${res.error}`);
-          }
-        }
-      },
-    });
-
     window.google.accounts.id.prompt((notification) => {
+      setIsLoading(false);
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        setIsLoading(false);
         setStatusMessage(
           "El navegador bloqueó el prompt de Google. Permití ventanas emergentes para continuar."
         );
@@ -104,35 +121,24 @@ export function useLogin() {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId || typeof window === "undefined" || !window.google?.accounts?.id) return;
 
-    setGoogleClientReady(true);
+    initGoogleIdentity(clientId);
+
     const container = document.getElementById("google-signin-container");
     if (!container) return;
 
-    container.innerHTML = "";
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response) => {
-        if (response.credential) {
-          setIsLoading(true);
-          setStatusMessage("Validando credenciales con WordtapAPI...");
-          const res = await auth.loginWithGoogleToken(response.credential);
-          setIsLoading(false);
-          if (!res.success) {
-            setStatusMessage(`Error: ${res.error}`);
-          }
-        }
-      },
-    });
+    if (container.childElementCount === 0) {
+      window.google.accounts.id.renderButton(container, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        width: 360,
+      });
+    }
 
-    window.google.accounts.id.renderButton(container, {
-      type: "standard",
-      theme: "outline",
-      size: "large",
-      text: "continue_with",
-      shape: "rectangular",
-      width: "100%",
-    });
-  }, [auth]);
+    setGoogleClientReady(true);
+  }, [initGoogleIdentity]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

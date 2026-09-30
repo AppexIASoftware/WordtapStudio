@@ -6,9 +6,8 @@ if (!RAW_API_URL && typeof window !== "undefined") {
   console.error("Missing required environment variable: NEXT_PUBLIC_API_URL in .env");
 }
 
-export const API_HOST = RAW_API_URL ? RAW_API_URL.replace(/\/api\/(services\/)?v1\/?$/, "") : "";
-export const API_V1_URL = API_HOST ? `${API_HOST}/api/v1` : "";
-export const API_SERVICES_V1_URL = API_HOST ? `${API_HOST}/api/services/v1` : "";
+export const API_HOST = RAW_API_URL ? RAW_API_URL.replace(/\/api\/v1\/?$/, "") : "";
+export const API_V1_URL = API_HOST ? `${API_HOST}/api/v1` : (RAW_API_URL || "http://localhost:8080/api/v1");
 
 const TOKEN_KEY = "wordtap_studio_access_token";
 const REFRESH_TOKEN_KEY = "wordtap_studio_refresh_token";
@@ -25,6 +24,7 @@ export interface BackendUser {
   email: string;
   name: string;
   avatar_url?: string | null;
+  role: string;
   access_tier: string;
   preferred_language: string;
   learning_level: string;
@@ -98,11 +98,11 @@ export async function checkApiHealth(): Promise<{
   data?: ApiHealthResponse;
   error?: string;
 }> {
-  if (!API_SERVICES_V1_URL) {
+  if (!API_V1_URL) {
     return { connected: false, error: "NEXT_PUBLIC_API_URL no configurado" };
   }
 
-  const { data, error } = await apiRequest<ApiHealthResponse>(`${API_SERVICES_V1_URL}/health`, {
+  const { data, error } = await apiRequest<ApiHealthResponse>(`${API_V1_URL}/health`, {
     cache: "no-store",
   });
   return { connected: !!data, data: data || undefined, error: error || undefined };
@@ -144,5 +144,5 @@ export async function fetchApi<T>(
   options?: RequestInit
 ): Promise<{ data: T | null; error: string | null }> {
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
-  return apiRequest<T>(`${API_SERVICES_V1_URL}${cleanEndpoint}`, options);
+  return apiRequest<T>(`${API_V1_URL}${cleanEndpoint}`, options);
 }

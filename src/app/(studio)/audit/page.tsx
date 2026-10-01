@@ -1,3 +1,5 @@
+import { AuditView } from "@/features/admin-audit/views/audit-view";
+
 export default function AuditPage() {
-  return <div className="min-h-[400px]" />;
+  return <AuditView />;
 }

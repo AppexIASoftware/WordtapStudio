@@ -1,3 +1,5 @@
+import { MonetizationView } from "@/features/admin-monetization/views/monetization-view";
+
 export default function MonetizationPage() {
-  return <div className="min-h-[400px]" />;
+  return <MonetizationView />;
 }

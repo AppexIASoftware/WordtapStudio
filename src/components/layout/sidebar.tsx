@@ -12,12 +12,13 @@ import {
   GitPullRequest,
   Shield,
   Activity,
-  CircleDollarSign,
+  CreditCard,
   ChevronLeft,
   ChevronRight,
   LogOut,
   UserCheck,
   CheckCircle2,
+  Layers,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -40,6 +41,13 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
     `w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all cursor-pointer ${
       isActive(path)
         ? "bg-emerald-dark/30 text-emerald-brand border border-emerald-brand/30 font-semibold"
+        : "text-slate-muted hover:bg-card-hover hover:text-slate-100 font-medium"
+    }`;
+
+  const navItemAdminClass = (path: string) =>
+    `w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all cursor-pointer ${
+      isActive(path)
+        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold shadow-sm"
         : "text-slate-muted hover:bg-card-hover hover:text-slate-100 font-medium"
     }`;
 
@@ -294,41 +302,18 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
             </>
           )}
 
-          {/* GRUPO 3: NAVEGACIÓN DE SUPER ADMIN */}
+          {/* GRUPO 3: NAVEGACIÓN DE SUPER ADMIN (OPEN-DESIGN) */}
           {currentRole === "admin" && (
-            <>
+            <div className="space-y-5">
+              {/* 1. SUPERVISIÓN GLOBAL */}
               <div>
                 {!collapsed && (
                   <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-purple-400 mb-1.5 font-mono">
-                    Gobernanza & Seguridad
+                    Supervisión Global (Admin)
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/roles" className={navItemClass("/roles")}>
-                    <div className="flex items-center gap-3">
-                      <Shield size={18} />
-                      {!collapsed && <span>Roles & Permisos (RBAC)</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300">
-                        Total
-                      </span>
-                    )}
-                  </Link>
-
-                  <Link href="/audit" className={navItemClass("/audit")}>
-                    <div className="flex items-center gap-3">
-                      <Activity size={18} />
-                      {!collapsed && <span>Auditoría & Logs</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-                        Live
-                      </span>
-                    )}
-                  </Link>
-
-                  <Link href="/dashboard" className={navItemClass("/dashboard")}>
+                  <Link href="/dashboard" className={navItemAdminClass("/dashboard")}>
                     <div className="flex items-center gap-3">
                       <LayoutDashboard size={18} />
                       {!collapsed && <span>Dashboard Ejecutivo</span>}
@@ -337,6 +322,70 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                 </nav>
               </div>
 
+              {/* 2. CENTRO DE MODERACIÓN */}
+              <div>
+                <div className="flex items-center justify-between px-3 mb-1.5">
+                  {!collapsed && (
+                    <>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-subtle font-mono">
+                        Centro de Moderación
+                      </span>
+                      <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded font-mono font-bold">
+                        2 Pendientes
+                      </span>
+                    </>
+                  )}
+                </div>
+                <nav className="space-y-0.5">
+                  <Link href="/approvals" className={navItemAdminClass("/approvals")}>
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 size={18} />
+                      {!collapsed && <span>Aprobación de Cursos</span>}
+                    </div>
+                    {!collapsed && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-bold font-mono">
+                        Diff #108
+                      </span>
+                    )}
+                  </Link>
+                </nav>
+              </div>
+
+              {/* 3. GOBERNANZA & RBAC */}
+              <div>
+                {!collapsed && (
+                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+                    Gobernanza & Seguridad
+                  </p>
+                )}
+                <nav className="space-y-0.5">
+                  <Link href="/roles" className={navItemAdminClass("/roles")}>
+                    <div className="flex items-center gap-3">
+                      <Shield size={18} />
+                      {!collapsed && <span>Roles & Permisos (RBAC)</span>}
+                    </div>
+                    {!collapsed && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
+                        Total
+                      </span>
+                    )}
+                  </Link>
+
+                  <Link href="/audit" className={navItemAdminClass("/audit")}>
+                    <div className="flex items-center gap-3">
+                      <Activity size={18} />
+                      {!collapsed && <span>Auditoría & Trazabilidad</span>}
+                    </div>
+                    {!collapsed && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
+                        Logs Live
+                      </span>
+                    )}
+                  </Link>
+                </nav>
+              </div>
+
+              {/* 4. MONETIZACIÓN & STRIPE */}
               <div>
                 {!collapsed && (
                   <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
@@ -344,34 +393,54 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/monetization" className={navItemClass("/monetization")}>
+                  <Link href="/monetization" className={navItemAdminClass("/monetization")}>
                     <div className="flex items-center gap-3">
-                      <CircleDollarSign size={18} />
+                      <CreditCard size={18} />
                       {!collapsed && <span>Marketplace & Stripe</span>}
                     </div>
                     {!collapsed && (
                       <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand font-bold">
-                        70/30
+                        25% / 75%
                       </span>
                     )}
                   </Link>
+                </nav>
+              </div>
 
-                  <Link href="/vault" className={navItemClass("/vault")}>
+              {/* 5. CATÁLOGO GLOBAL */}
+              <div>
+                {!collapsed && (
+                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+                    Catálogo Global
+                  </p>
+                )}
+                <nav className="space-y-0.5">
+                  <Link href="/vault" className={navItemAdminClass("/vault")}>
                     <div className="flex items-center gap-3">
                       <Boxes size={18} />
                       {!collapsed && <span>Content Vault Maestro</span>}
                     </div>
+                    {!collapsed && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">
+                        Global
+                      </span>
+                    )}
                   </Link>
 
-                  <Link href="/courses" className={navItemClass("/courses")}>
+                  <Link href="/courses" className={navItemAdminClass("/courses")}>
                     <div className="flex items-center gap-3">
-                      <BookOpen size={18} />
-                      {!collapsed && <span>Catálogo Global</span>}
+                      <Layers size={18} />
+                      {!collapsed && <span>Todos los Cursos</span>}
                     </div>
+                    {!collapsed && (
+                      <span className="text-[9px] font-mono text-slate-subtle font-bold">
+                        Supervisar
+                      </span>
+                    )}
                   </Link>
                 </nav>
               </div>
-            </>
+            </div>
           )}
         </div>
 

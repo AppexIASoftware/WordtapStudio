@@ -1,3 +1,5 @@
+import { RolesView } from "@/features/admin-roles/views/roles-view";
+
 export default function RolesPage() {
-  return <div className="min-h-[400px]" />;
+  return <RolesView />;
 }

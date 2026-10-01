@@ -40,7 +40,7 @@ export interface ApiCourse {
   created_by?: string | null;
   created_at: string;
   updated_at: string;
-  lessons?: unknown[];
+  lessons?: ApiLesson[];
 }
 
 export interface CreateCoursePayload {

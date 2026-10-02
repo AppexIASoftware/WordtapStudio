@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { X, DollarSign, Check, Info } from "lucide-react";
 import { TeacherCoursePricing } from "../types";
 
@@ -19,15 +19,15 @@ export function CoursePricingModal({
   onClose,
   onSave,
 }: CoursePricingModalProps) {
+  const [prevCourseId, setPrevCourseId] = useState<string | null>(null);
   const [standaloneEnabled, setStandaloneEnabled] = useState(true);
   const [price, setPrice] = useState("19.99");
 
-  useEffect(() => {
-    if (course) {
-      setPrice(course.price > 0 ? course.price.toFixed(2) : "19.99");
-      setStandaloneEnabled(course.price > 0);
-    }
-  }, [course]);
+  if (course && course.id !== prevCourseId) {
+    setPrevCourseId(course.id);
+    setPrice(course.price > 0 ? course.price.toFixed(2) : "19.99");
+    setStandaloneEnabled(course.price > 0);
+  }
 
   if (!isOpen || !course) return null;
 

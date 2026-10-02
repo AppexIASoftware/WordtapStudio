@@ -9,6 +9,18 @@ export const API_V1_URL = API_HOST ? `${API_HOST}/api/v1` : (RAW_API_URL || "htt
 
 const TOKEN_KEY = "wordtap_studio_access_token";
 const REFRESH_TOKEN_KEY = "wordtap_studio_refresh_token";
+const ROLE_KEY = "wordtap_studio_role";
+
+function setCookie(name: string, value: string, days = 7) {
+  if (typeof document === "undefined") return;
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+
+function deleteCookie(name: string) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+}
 
 export function getStoredAccessToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -18,15 +30,30 @@ export function getStoredAccessToken(): string | null {
 export function setStoredTokens(accessToken: string, refreshToken?: string): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(TOKEN_KEY, accessToken);
+  setCookie(TOKEN_KEY, accessToken);
   if (refreshToken) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
+}
+
+export function getStoredRole(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ROLE_KEY);
+}
+
+export function setStoredRole(role: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ROLE_KEY, role);
+  setCookie(ROLE_KEY, role);
 }
 
 export function clearStoredTokens(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(ROLE_KEY);
+  deleteCookie(TOKEN_KEY);
+  deleteCookie(ROLE_KEY);
 }
 
 export async function apiRequest<T>(

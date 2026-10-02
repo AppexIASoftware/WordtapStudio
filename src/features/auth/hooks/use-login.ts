@@ -144,7 +144,7 @@ export function useLogin() {
     if (typeof window === "undefined") return;
 
     if (window.google?.accounts?.id) {
-      renderGoogleButton();
+      queueMicrotask(() => renderGoogleButton());
       return;
     }
 

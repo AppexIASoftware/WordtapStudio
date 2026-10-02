@@ -11,6 +11,8 @@ import {
   Users,
   GitPullRequest,
   Shield,
+  GraduationCap,
+  ShieldCheck,
   Activity,
   CreditCard,
   ChevronLeft,
@@ -29,7 +31,7 @@ interface SidebarProps {
 
 export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
-  const { user, currentRole, switchRole, logout } = useAuth();
+  const { user, currentRole, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (path: string) => {
@@ -100,42 +102,27 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
             </button>
           </div>
 
-          {/* Botones de cambio rápido de rol */}
+          {/* Role badge */}
           {!collapsed && (
-            <div className="grid grid-cols-3 gap-1 p-1 bg-canvas rounded-xl border border-border-default text-center text-xs">
-              <button
-                type="button"
-                onClick={() => switchRole("instructor")}
-                className={`py-1 rounded-lg transition-colors font-medium cursor-pointer ${
-                  currentRole === "instructor"
-                    ? "bg-card text-emerald-brand shadow-sm font-bold border border-border-default"
-                    : "text-slate-subtle hover:text-white"
-                }`}
-              >
-                Docente
-              </button>
-              <button
-                type="button"
-                onClick={() => switchRole("moderator")}
-                className={`py-1 rounded-lg transition-colors font-medium cursor-pointer ${
-                  currentRole === "moderator"
-                    ? "bg-card text-blue-400 shadow-sm font-bold border border-border-default"
-                    : "text-slate-subtle hover:text-white"
-                }`}
-              >
-                Mod
-              </button>
-              <button
-                type="button"
-                onClick={() => switchRole("admin")}
-                className={`py-1 rounded-lg transition-colors font-medium cursor-pointer ${
-                  currentRole === "admin"
-                    ? "bg-card text-purple-400 shadow-sm font-bold border border-border-default"
-                    : "text-slate-subtle hover:text-white"
-                }`}
-              >
-                Admin
-              </button>
+            <div className="p-1 bg-canvas rounded-xl border border-border-default text-xs font-medium">
+              {currentRole === "instructor" && (
+                <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-emerald-brand shadow-sm font-semibold border border-border-default">
+                  <GraduationCap size={14} className="flex-shrink-0" />
+                  <span className="truncate">Docente</span>
+                </div>
+              )}
+              {currentRole === "moderator" && (
+                <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-blue-400 shadow-sm font-semibold border border-border-default">
+                  <ShieldCheck size={14} className="flex-shrink-0" />
+                  <span className="truncate">Mod</span>
+                </div>
+              )}
+              {currentRole === "admin" && (
+                <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-purple-400 shadow-sm font-semibold border border-border-default">
+                  <Shield size={14} className="flex-shrink-0" />
+                  <span className="truncate">Admin</span>
+                </div>
+              )}
             </div>
           )}
         </div>

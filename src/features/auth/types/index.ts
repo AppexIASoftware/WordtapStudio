@@ -33,6 +33,7 @@ export interface AuthContextValue {
   user: UserProfile;
   currentRole: UserRole;
   isAuthenticated: boolean;
+  isLoading: boolean;
   switchRole: (role: UserRole) => void;
   login: (role?: UserRole) => void;
   loginWithGoogleToken: (idToken: string) => Promise<{ success: boolean; error?: string }>;

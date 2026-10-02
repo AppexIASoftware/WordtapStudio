@@ -9,6 +9,9 @@ import {
   getMeApi,
   clearStoredTokens,
   getStoredAccessToken,
+  setStoredTokens,
+  getStoredRole,
+  setStoredRole,
   BackendUser,
 } from "@/lib/api-client";
 
@@ -56,8 +59,21 @@ function mapBackendUserToProfile(backendUser: BackendUser): UserProfile {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [currentRole, setCurrentRole] = useState<UserRole>("instructor");
+  const [currentRole, setCurrentRole] = useState<UserRole>(() => {
+    if (typeof window !== "undefined") {
+      const saved = getStoredRole() as UserRole | null;
+      if (saved && (saved === "instructor" || saved === "moderator" || saved === "admin")) {
+        return saved;
+      }
+    }
+    return "instructor";
+  });
+
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return typeof window !== "undefined" && !!getStoredAccessToken();
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
     return typeof window !== "undefined" && !!getStoredAccessToken();
   });
 
@@ -74,17 +90,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
-  const [user, setUser] = useState<UserProfile>(() => getProfile("instructor"));
+  const [user, setUser] = useState<UserProfile>(() => {
+    if (typeof window !== "undefined") {
+      const saved = getStoredRole() as UserRole | null;
+      if (saved && (saved === "instructor" || saved === "moderator" || saved === "admin")) {
+        return getProfile(saved);
+      }
+    }
+    return getProfile("instructor");
+  });
 
-  // Sincronizar sesión al iniciar si existe token guardado
+  // Sync session on mount when token exists
   useEffect(() => {
     const token = getStoredAccessToken();
     if (token) {
       getMeApi().then(({ data, error }) => {
+        setIsLoading(false);
         if (data?.user) {
           const profile = mapBackendUserToProfile(data.user);
           setUser(profile);
           setCurrentRole(profile.role);
+          setStoredRole(profile.role);
           setIsAuthenticated(true);
         } else if (error) {
           clearStoredTokens();
@@ -97,12 +123,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const switchRole = (role: UserRole) => {
     setCurrentRole(role);
     setUser(getProfile(role));
+    setStoredRole(role);
   };
 
   const login = (role: UserRole = "instructor") => {
     setIsAuthenticated(true);
+    setStoredTokens(`demo-session-${role}`);
     switchRole(role);
-    router.push(role === "instructor" ? "/teacher" : "/dashboard");
+    router.push(role === "instructor" ? "/teacher" : role === "moderator" ? "/moderator" : "/dashboard");
   };
 
   const loginWithGoogleToken = async (idToken: string) => {
@@ -112,11 +140,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const profile = mapBackendUserToProfile(data.user);
+    setStoredTokens(data.access_token, data.refresh_token);
+    setStoredRole(profile.role);
     setUser(profile);
     setCurrentRole(profile.role);
     setIsAuthenticated(true);
 
-    router.push(profile.role === "instructor" ? "/teacher" : "/dashboard");
+    router.push(profile.role === "instructor" ? "/teacher" : profile.role === "moderator" ? "/moderator" : "/dashboard");
     return { success: true };
   };
 
@@ -132,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         currentRole,
         isAuthenticated,
+        isLoading,
         switchRole,
         login,
         loginWithGoogleToken,

@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Search, Menu, Smartphone, LogIn } from "lucide-react";
+import { useAuth } from "@/features/auth/auth-context";
+import { Search, Menu, Smartphone } from "lucide-react";
 
 interface AppTopbarProps {
   onToggleMobile?: () => void;
 }
 
 export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
-  const pathname = usePathname();
-  const isModerator = pathname.startsWith("/moderator");
+  const { currentRole } = useAuth();
+  const isModerator = currentRole === "moderator";
+  const isAdmin = currentRole === "admin";
 
   return (
     <header className="h-14 bg-card/80 backdrop-blur border-b border-border-default flex items-center justify-between px-3 md:px-6 z-20 flex-shrink-0 gap-2">
@@ -34,6 +35,8 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
               <span className="truncate">
                 {isModerator
                   ? "Buscar en cola de PRs, reportes o vault..."
+                  : isAdmin
+                  ? "Buscar configuraciones, usuarios o auditoría..."
                   : "Buscar lecciones, cursos o alumnos..."}
               </span>
             </span>
@@ -49,10 +52,10 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
         <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-subtle font-mono">
           <span
             className={`w-2 h-2 rounded-full ${
-              isModerator ? "bg-blue-400" : "bg-emerald-brand"
+              isModerator ? "bg-blue-400" : isAdmin ? "bg-purple-400" : "bg-emerald-brand"
             }`}
           />
-          <span>{isModerator ? "SLA < 24h activo" : "Autoguardado activo"}</span>
+          <span>{isModerator ? "SLA < 24h activo" : isAdmin ? "Modo Root Activo" : "Autoguardado activo"}</span>
         </div>
 
         {/* Indicador de rol en barra superior */}
@@ -60,16 +63,18 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
           className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-mono text-xs font-bold ${
             isModerator
               ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+              : isAdmin
+              ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
               : "bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/20"
           }`}
-          title={isModerator ? "Consola de Moderación Activa" : "Portal Docente Activo"}
+          title={isModerator ? "Consola de Moderación Activa" : isAdmin ? "Consola de Gobernanza Activa" : "Portal Docente Activo"}
         >
           <span
             className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-              isModerator ? "bg-blue-400" : "bg-emerald-brand"
+              isModerator ? "bg-blue-400" : isAdmin ? "bg-purple-400" : "bg-emerald-brand"
             }`}
           />
-          <span>{isModerator ? "Consola Moderación" : "Modo Docente"}</span>
+          <span>{isModerator ? "Consola Moderación" : isAdmin ? "Super Admin" : "Modo Docente"}</span>
         </div>
 
         <div className="h-4 w-px bg-border-default hidden sm:block" />
@@ -90,16 +95,6 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
             }`}
           />
           <span className="hidden md:inline">Playtest Móvil</span>
-        </Link>
-
-        {/* Enlace a pantalla de inicio de sesión */}
-        <Link
-          href="/login"
-          className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border-default hover:border-emerald-brand/40 text-xs font-medium text-slate-muted hover:text-emerald-brand transition-colors cursor-pointer"
-          title="Ir a Pantalla de Login"
-        >
-          <LogIn className="w-3.5 h-3.5" />
-          <span>Login Screen</span>
         </Link>
       </div>
     </header>

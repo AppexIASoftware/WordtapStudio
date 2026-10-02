@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/features/auth/auth-context";
 import {
   LayoutDashboard,
   Layers,
@@ -16,6 +17,8 @@ import {
   LogOut,
   X,
   AlertTriangle,
+  Activity,
+  CreditCard,
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -25,11 +28,14 @@ interface AppSidebarProps {
 
 export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
   const pathname = usePathname();
-  const isModerator = pathname.startsWith("/moderator");
+  const { user, currentRole, logout } = useAuth();
+  const isModerator = currentRole === "moderator";
+  const isAdmin = currentRole === "admin";
 
   const isRouteActive = (route: string) => {
     if (route === "/teacher") return pathname === "/teacher";
     if (route === "/moderator") return pathname === "/moderator";
+    if (route === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(route);
   };
 
@@ -39,6 +45,13 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
       return `w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all cursor-pointer ${
         active
           ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold"
+          : "text-slate-muted hover:bg-card-hover hover:text-slate-100 font-medium"
+      }`;
+    }
+    if (isAdmin) {
+      return `w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all cursor-pointer ${
+        active
+          ? "bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold"
           : "text-slate-muted hover:bg-card-hover hover:text-slate-100 font-medium"
       }`;
     }
@@ -52,7 +65,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
 
   return (
     <>
-      {/* Fondo oscuro para móvil */}
+      {/* Mobile overlay */}
       {isOpenMobile && (
         <div
           onClick={onCloseMobile}
@@ -65,17 +78,19 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
           isOpenMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        {/* Cabecera de marca y espacio de trabajo */}
+        {/* Brand header */}
         <div className="p-4 border-b border-border-default space-y-3">
           <div className="flex items-center justify-between">
             <Link
-              href={isModerator ? "/moderator" : "/teacher"}
+              href={isModerator ? "/moderator" : isAdmin ? "/dashboard" : "/teacher"}
               className="flex items-center gap-2.5 overflow-hidden"
             >
               <div
                 className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-base flex-shrink-0 ${
                   isModerator
                     ? "bg-gradient-to-br from-blue-500 to-cyan-400 text-white shadow-sm"
+                    : isAdmin
+                    ? "bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-sm"
                     : "bg-gradient-to-br from-emerald-brand to-mint-brand text-canvas shadow-glow-emerald"
                 }`}
               >
@@ -88,6 +103,8 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                     className={`text-xs px-1.5 py-0.2 rounded font-mono ${
                       isModerator
                         ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                        : isAdmin
+                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
                         : "bg-emerald-dark/60 text-emerald-brand border border-emerald-brand/30"
                     }`}
                   >
@@ -95,7 +112,11 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   </span>
                 </span>
                 <span className="text-[10px] text-slate-subtle font-mono">
-                  {isModerator ? "Consola de Moderación" : "CMS & Portal Docente"}
+                  {isModerator
+                    ? "Consola de Moderación"
+                    : isAdmin
+                    ? "Consola de Gobernanza"
+                    : "CMS & Portal Docente"}
                 </span>
               </div>
             </Link>
@@ -112,51 +133,35 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
             )}
           </div>
 
-          {/* Selector de rol de espacio de trabajo (Docente / Mod / Admin) */}
-          <div className="grid grid-cols-3 gap-1 p-1 bg-canvas rounded-xl border border-border-default text-xs font-medium">
-            <Link
-              href="/teacher"
-              className={`flex items-center justify-center gap-1 py-1.5 rounded-lg transition-colors truncate cursor-pointer ${
-                !isModerator
-                  ? "bg-card text-emerald-brand shadow-sm font-semibold border border-border-default"
-                  : "text-slate-muted hover:text-slate-200"
-              }`}
-              title="Modo Docente"
-            >
-              <GraduationCap className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">Docente</span>
-            </Link>
-            <Link
-              href="/moderator"
-              className={`flex items-center justify-center gap-1 py-1.5 rounded-lg transition-colors truncate cursor-pointer ${
-                isModerator
-                  ? "bg-card text-blue-400 shadow-sm font-semibold border border-border-default"
-                  : "text-slate-muted hover:text-slate-200"
-              }`}
-              title="Modo Moderador"
-            >
-              <ShieldCheck className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">Mod</span>
-            </Link>
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-center gap-1 py-1.5 rounded-lg text-slate-muted hover:text-slate-200 truncate cursor-pointer"
-              title="Modo Administrador"
-            >
-              <Shield className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">Admin</span>
-            </Link>
+          {/* Role badge */}
+          <div className="p-1 bg-canvas rounded-xl border border-border-default text-xs font-medium">
+            {currentRole === "instructor" && (
+              <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-emerald-brand shadow-sm font-semibold border border-border-default">
+                <GraduationCap className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Docente</span>
+              </div>
+            )}
+            {currentRole === "moderator" && (
+              <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-blue-400 shadow-sm font-semibold border border-border-default">
+                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Mod</span>
+              </div>
+            )}
+            {currentRole === "admin" && (
+              <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-purple-400 shadow-sm font-semibold border border-border-default">
+                <Shield className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">Admin</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* NAVEGACIÓN DESPLAZABLE */}
+        {/* Navigation */}
         <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
-          {/* ========================================================= */}
-          {/* GRUPO DE MODERACIÓN (ACTIVO EN /moderator/*)               */}
-          {/* ========================================================= */}
+          {/* Moderation space */}
           {isModerator ? (
             <>
-              {/* AUDITORÍA & CALIDAD */}
+              {/* Quality and audit */}
               <div>
                 <div className="flex items-center justify-between px-3 mb-1.5">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400 font-mono">
@@ -186,7 +191,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 </nav>
               </div>
 
-              {/* BANCO MAESTRO & CURSOS */}
+              {/* Courses vault */}
               <div>
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
                   Banco Maestro & Cursos
@@ -214,7 +219,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 </nav>
               </div>
 
-              {/* RESOLUCIÓN DE INCIDENCIAS */}
+              {/* Reports */}
               <div>
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
                   Resolución de Incidencias
@@ -232,12 +237,55 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 </nav>
               </div>
             </>
-          ) : (
-            /* ========================================================= */
-            /* GRUPO DOCENTE (ACTIVO EN /teacher/*)                       */
-            /* ========================================================= */
+          ) : isAdmin ? (
+            /* Admin space */
             <>
-              {/* MI ESPACIO DOCENTE */}
+              <div>
+                <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-purple-400 mb-1.5 font-mono">
+                  Supervisión Global (Admin)
+                </p>
+                <nav className="space-y-0.5">
+                  <Link href="/dashboard" className={getLinkClasses("/dashboard")}>
+                    <div className="flex items-center gap-3">
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span>Dashboard Ejecutivo</span>
+                    </div>
+                  </Link>
+                </nav>
+              </div>
+
+              <div>
+                <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+                  Gobernanza & Operaciones
+                </p>
+                <nav className="space-y-0.5">
+                  <Link href="/roles" className={getLinkClasses("/roles")}>
+                    <div className="flex items-center gap-3">
+                      <Shield className="w-4 h-4" />
+                      <span>Roles & Permisos (RBAC)</span>
+                    </div>
+                  </Link>
+
+                  <Link href="/audit" className={getLinkClasses("/audit")}>
+                    <div className="flex items-center gap-3">
+                      <Activity className="w-4 h-4" />
+                      <span>Log de Auditoría</span>
+                    </div>
+                  </Link>
+
+                  <Link href="/monetization" className={getLinkClasses("/monetization")}>
+                    <div className="flex items-center gap-3">
+                      <CreditCard className="w-4 h-4" />
+                      <span>Monetización & Split</span>
+                    </div>
+                  </Link>
+                </nav>
+              </div>
+            </>
+          ) : (
+            /* Teacher space */
+            <>
+              {/* Teacher dashboard */}
               <div>
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
                   Mi Espacio Docente
@@ -252,7 +300,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 </nav>
               </div>
 
-              {/* GESTIÓN EDUCATIVA (CMS) */}
+              {/* Content management */}
               <div>
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
                   Gestión Educativa (CMS)
@@ -290,7 +338,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 </nav>
               </div>
 
-              {/* MIS ESTUDIANTES */}
+              {/* Students */}
               <div>
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
                   Mis Estudiantes
@@ -313,7 +361,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 </nav>
               </div>
 
-              {/* ESTADO DE PUBLICACIÓN */}
+              {/* Submissions */}
               <div>
                 <div className="flex items-center justify-between px-3 mb-1.5">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-subtle font-mono">
@@ -339,7 +387,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
           )}
         </div>
 
-        {/* Pie de perfil del usuario logueado */}
+        {/* User profile */}
         <div className="p-3 border-t border-border-default bg-card/50">
           <div className="flex items-center justify-between p-2 rounded-xl bg-canvas border border-border-default">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -347,28 +395,31 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${
                   isModerator
                     ? "bg-gradient-to-tr from-blue-500 to-cyan-400 text-white"
+                    : isAdmin
+                    ? "bg-gradient-to-tr from-purple-500 to-indigo-600 text-white"
                     : "bg-gradient-to-tr from-emerald-brand to-mint-brand text-canvas"
                 }`}
               >
-                {isModerator ? "ER" : "MS"}
+                {user.avatarInitials}
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-xs font-bold text-white truncate">
-                  {isModerator ? "Lic. Elena Ramos" : "Prof. Mateo Silva"}
+                  {user.name}
                 </span>
                 <span className="text-[10px] text-slate-subtle font-mono truncate">
-                  {isModerator ? "Moderadora Oficial (Calidad)" : "Docente Autorizado"}
+                  {user.title}
                 </span>
               </div>
             </div>
 
-            <Link
-              href="/login"
-              className="p-1.5 text-slate-muted hover:text-rose-400 hover:bg-card-hover rounded-lg transition-colors flex-shrink-0"
+            <button
+              type="button"
+              onClick={logout}
+              className="p-1.5 text-slate-muted hover:text-rose-400 hover:bg-card-hover rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               title="Cerrar sesión"
             >
               <LogOut className="w-3.5 h-3.5" />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>

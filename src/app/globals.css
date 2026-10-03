@@ -77,9 +77,16 @@ html.light :is(
   .bg-gradient-to-r *,
   .bg-gradient-to-br *,
   .bg-gradient-to-tr *,
-  [class*="text-canvas"], [class*="text-canvas"] *
+  [class*="text-canvas"], [class*="text-canvas"] *,
+  [class*="bg-slate-900"], [class*="bg-slate-900"] *,
+  [data-toast], [data-toast] *
 ) {
   color: #0F172A !important;
+}
+
+/* Toast notification styling */
+[data-toast], [data-toast] * {
+  color: #F8FAFC !important;
 }
 
 html.light :is(.text-slate-300, .text-slate-400):not(

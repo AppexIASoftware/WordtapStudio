@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { CLASSROOMS_DATA, GLOBAL_STUDENTS_DATA } from "../data/mock-teacher-data";
 import { Classroom } from "../types";
+import { ToastNotification } from "@/components/ui/toast-notification";
 
 export function StudentsProgressView() {
   const [classrooms, setClassrooms] = useState<Classroom[]>(CLASSROOMS_DATA);
@@ -89,12 +90,7 @@ export function StudentsProgressView() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Toast flotante */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[100] px-4 py-2.5 rounded-xl bg-slate-900 text-white border border-slate-700/80 text-xs font-semibold shadow-2xl flex items-center gap-2.5 animate-in fade-in duration-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-brand flex-shrink-0 animate-pulse" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <ToastNotification message={toastMessage} variant="emerald" />
 
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

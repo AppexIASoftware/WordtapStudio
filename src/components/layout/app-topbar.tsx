@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useAuth } from "@/features/auth/auth-context";
-import { Search, Menu, Smartphone } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
+import { Search, Menu, Smartphone, Sun, Moon } from "lucide-react";
 
 interface AppTopbarProps {
   onToggleMobile?: () => void;
@@ -10,6 +11,7 @@ interface AppTopbarProps {
 
 export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
   const { currentRole } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const isModerator = currentRole === "moderator";
   const isAdmin = currentRole === "admin";
 
@@ -96,6 +98,17 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
           />
           <span className="hidden md:inline">Playtest Móvil</span>
         </Link>
+
+        {/* Theme toggle */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border-default hover:border-emerald-brand/40 text-xs font-medium text-slate-muted hover:text-emerald-brand transition-colors cursor-pointer"
+          title="Cambiar Tema (Claro / Oscuro)"
+        >
+          {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-slate-subtle" />}
+          <span className="hidden md:inline">{isDark ? "Claro" : "Oscuro"}</span>
+        </button>
       </div>
     </header>
   );

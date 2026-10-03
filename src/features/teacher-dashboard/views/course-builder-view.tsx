@@ -24,6 +24,7 @@ import { ManualCardModal } from "../components/builder/manual-card-modal";
 import { ExportJsonModal } from "../components/builder/export-json-modal";
 import { VaultDrawer } from "../components/builder/vault-drawer";
 import { PlaytestDrawer } from "../components/builder/playtest-drawer";
+import { ToastNotification } from "@/components/ui/toast-notification";
 
 function mapApiLessonToLesson(apiLesson: ApiLesson): Lesson {
   const items: LessonItem[] = (apiLesson.items && apiLesson.items.length > 0)
@@ -446,12 +447,7 @@ export function CourseBuilderView() {
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden relative">
       {/* Toast flotante */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[100] px-4 py-2.5 rounded-xl bg-slate-900 text-white border border-slate-700/80 text-xs font-semibold shadow-2xl flex items-center gap-2.5 animate-in fade-in duration-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-brand flex-shrink-0 animate-pulse" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <ToastNotification message={toastMessage} variant="emerald" />
 
       {/* Sub-Header / Barra superior de acciones */}
       <BuilderHeader

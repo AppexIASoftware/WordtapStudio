@@ -14,6 +14,7 @@ import {
 import { AuditEvent, ContentReport, AuditCategory } from "../types";
 import { MOCK_AUDIT_EVENTS, MOCK_CONTENT_REPORTS } from "../data/audit-data";
 import { AuditInspectorModal } from "../components/audit-inspector-modal";
+import { ToastNotification } from "@/components/ui/toast-notification";
 
 export function AuditView() {
   const [activeTab, setActiveTab] = useState<"logs" | "reports">("logs");
@@ -73,12 +74,7 @@ export function AuditView() {
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
       {/* Toast flotante */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 p-3.5 rounded-2xl bg-card border border-purple-500/40 shadow-2xl flex items-center gap-2.5 text-xs text-purple-300 font-medium animate-in fade-in slide-in-from-bottom-2 backdrop-blur-md">
-          <Sparkles className="w-4 h-4 flex-shrink-0 text-purple-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <ToastNotification message={toastMessage} variant="purple" />
 
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

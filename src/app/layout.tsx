@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/features/auth/auth-context";
+import { ThemeScript } from "@/components/theme/theme-script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,14 +32,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("wordtap_theme")||"light";document.documentElement.classList.remove("light","dark");document.documentElement.classList.add(t);}catch(e){}})();`,
-          }}
-        />
-      </head>
       <body className="min-h-full flex flex-col bg-canvas text-slate-100">
+        <ThemeScript />
         <Script
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"

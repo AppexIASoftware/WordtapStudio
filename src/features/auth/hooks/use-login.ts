@@ -35,6 +35,16 @@ export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
     avatarInitials: "CM",
     scope: "Consola de Gobernanza: admin.wordtap.app",
   },
+  candidate: {
+    id: "candidate",
+    label: "Postulante",
+    name: "Lic. Andrea Vega",
+    email: "andrea.vega@gmail.com",
+    roleHint: "Postulante Docente • Cuenta en revisión pedagógica",
+    title: "Postulante Docente",
+    avatarInitials: "AV",
+    scope: "En espera de Aprobación",
+  },
 };
 
 export function useLogin() {
@@ -55,15 +65,22 @@ export function useLogin() {
     setStatusMessage(null);
   };
 
-  const loginWithDemo = (roleOverride?: UserRole) => {
+  const loginWithDemo = async (roleOverride?: UserRole) => {
     const role = roleOverride || selectedRole;
     setIsLoading(true);
     setStatusMessage(`Iniciando sesión en sandbox como ${DEMO_ACCOUNTS[role].label}...`);
 
-    setTimeout(() => {
+    try {
+      const res = await auth.login(role);
+      if (res && !res.success) {
+        setStatusMessage(res.error || "Acceso denegado.");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error inesperado de autenticación";
+      setStatusMessage(message);
+    } finally {
       setIsLoading(false);
-      auth.login(role);
-    }, 200);
+    }
   };
 
   const initGoogleIdentity = useCallback((clientId: string) => {

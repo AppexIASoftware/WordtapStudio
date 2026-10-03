@@ -9,6 +9,7 @@ import {
   LockKeyhole,
   CheckCircle2,
   AlertCircle,
+  ShieldAlert,
 } from "lucide-react";
 
 export function LoginForm() {
@@ -23,8 +24,15 @@ export function LoginForm() {
     handleGoogleSso,
   } = useLogin();
 
-  const isErrorMessage = statusMessage?.toLowerCase().includes("error") ||
-    statusMessage?.toLowerCase().includes("bloqueó");
+  const isSuspended =
+    statusMessage?.toLowerCase().includes("suspend") ||
+    statusMessage?.toLowerCase().includes("inactiv");
+  const isErrorMessage =
+    isSuspended ||
+    statusMessage?.toLowerCase().includes("error") ||
+    statusMessage?.toLowerCase().includes("bloqueó") ||
+    statusMessage?.toLowerCase().includes("denegad") ||
+    statusMessage?.toLowerCase().includes("falló");
 
   return (
     <div className="bg-card border border-border-default rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 relative overflow-hidden backdrop-blur-xl">
@@ -59,18 +67,29 @@ export function LoginForm() {
       {/* Mensaje de estado dinámico */}
       {statusMessage && (
         <div
-          className={`p-2.5 rounded-xl border text-[11px] font-medium flex items-center gap-2 ${
-            isErrorMessage
+          className={`p-3 rounded-2xl border text-xs font-medium flex items-start gap-2.5 transition-all ${
+            isSuspended
+              ? "bg-rose-500/15 border-rose-500/40 text-rose-200"
+              : isErrorMessage
               ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
               : "bg-emerald-brand/10 border-emerald-brand/30 text-emerald-brand"
           }`}
         >
-          {isErrorMessage ? (
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          {isSuspended ? (
+            <ShieldAlert className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+          ) : isErrorMessage ? (
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
           ) : (
-            <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+            <Sparkles className="w-4 h-4 text-emerald-brand flex-shrink-0 mt-0.5" />
           )}
-          <span>{statusMessage}</span>
+          <div className="space-y-0.5">
+            {isSuspended && (
+              <p className="font-bold text-rose-300 text-xs">
+                Acceso Bloqueado • Cuenta Suspendida
+              </p>
+            )}
+            <p className="leading-relaxed text-[11px]">{statusMessage}</p>
+          </div>
         </div>
       )}
 

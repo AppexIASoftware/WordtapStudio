@@ -29,6 +29,9 @@ Supervisión global ejecutiva, analíticas de actividad, métricas y gobernanza 
   <img src="docs/assets/panel-admin.png" alt="Panel de Administración" width="800" style="border-radius: 12px;" />
 </p>
 
+### 4. Pantalla de Espera para Postulantes Docentes (`/pending-approval`)
+Acceso para aspirantes registrados con Google OAuth. Muestra estado de revisión en vivo, las tres etapas pedagógicas y datos de contacto institucional configurables desde el panel de administración.
+
 ---
 
 ## Stack Tecnológico

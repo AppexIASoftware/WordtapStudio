@@ -12,14 +12,14 @@ export function DemoAccountsSelector({
   selectedRole,
   onSelectRole,
 }: DemoAccountsSelectorProps) {
-  const roles: UserRole[] = ["instructor", "moderator", "admin"];
+  const roles: UserRole[] = ["instructor", "moderator", "admin", "candidate"];
 
   return (
     <div className="space-y-1.5">
       <label className="text-[10px] font-semibold text-slate-subtle uppercase tracking-wider font-mono">
         Perfil a Simular:
       </label>
-      <div className="grid grid-cols-3 gap-1.5 p-1 bg-canvas rounded-2xl border border-border-default text-center">
+      <div className="grid grid-cols-4 gap-1 p-1 bg-canvas rounded-2xl border border-border-default text-center">
         {roles.map((role) => {
           const account = DEMO_ACCOUNTS[role];
           const isSelected = selectedRole === role;

@@ -87,7 +87,13 @@ export async function apiRequest<T>(
         clearStoredTokens();
       }
       const body = await res.json().catch(() => ({}));
-      const errorMsg = body.error || body.details || `HTTP ${res.status}: ${res.statusText}`;
+      let errorMsg = body.message;
+      if (!errorMsg && body.reason) {
+        errorMsg = `Cuenta docente suspendida. Motivo: ${body.reason}`;
+      }
+      if (!errorMsg) {
+        errorMsg = body.error || body.details || `HTTP ${res.status}: ${res.statusText}`;
+      }
       return { data: null, error: errorMsg };
     }
 

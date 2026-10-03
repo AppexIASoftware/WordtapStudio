@@ -1,4 +1,4 @@
-export type UserRole = "instructor" | "moderator" | "admin";
+export type UserRole = "instructor" | "moderator" | "admin" | "candidate";
 
 export interface UserProfile {
   id: string;
@@ -9,6 +9,7 @@ export interface UserProfile {
   avatarInitials: string;
   scope: string;
   avatarUrl?: string | null;
+  applicationStatus?: "none" | "pending" | "approved" | "rejected";
 }
 
 export interface DemoAccount {
@@ -35,7 +36,7 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   switchRole: (role: UserRole) => void;
-  login: (role?: UserRole) => void;
+  login: (role?: UserRole) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogleToken: (idToken: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }

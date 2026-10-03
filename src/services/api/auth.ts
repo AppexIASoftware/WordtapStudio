@@ -29,3 +29,21 @@ export async function getMeApi(): Promise<{
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export async function devLoginApi(
+  role: string,
+  email?: string
+): Promise<{
+  data: AuthResponse | null;
+  error: string | null;
+}> {
+  const result = await apiRequest<AuthResponse>(`${API_V1_URL}/auth/dev-login`, {
+    method: "POST",
+    body: JSON.stringify({ role, email }),
+  });
+
+  if (result.data) {
+    setStoredTokens(result.data.access_token, result.data.refresh_token);
+  }
+  return result;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, AlertTriangle, Database, FileEdit } from "lucide-react";
+import { Plus, AlertTriangle, Database, Settings } from "lucide-react";
 import { Course, Lesson, LessonItem } from "../../types";
 
 interface CourseStructurePanelProps {
@@ -12,6 +12,7 @@ interface CourseStructurePanelProps {
   };
   onSelectLesson: (lesson: Lesson) => void;
   onOpenAddLessonModal: () => void;
+  onEditLesson?: (lesson: Lesson) => void;
   onOpenVaultDrawer: () => void;
   onOpenAddStepModal: () => void;
 }
@@ -22,6 +23,7 @@ export function CourseStructurePanel({
   linkedClassroom,
   onSelectLesson,
   onOpenAddLessonModal,
+  onEditLesson,
   onOpenVaultDrawer,
   onOpenAddStepModal,
 }: CourseStructurePanelProps) {
@@ -78,15 +80,30 @@ export function CourseStructurePanel({
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold">{lesson.title}</span>
-                <span
-                  className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${
-                    isSelected
-                      ? "bg-emerald-brand/20 text-emerald-brand"
-                      : "bg-card text-slate-subtle"
-                  }`}
-                >
-                  {lesson.duration}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                      isSelected
+                        ? "bg-emerald-brand/20 text-emerald-brand"
+                        : "bg-card text-slate-subtle"
+                    }`}
+                  >
+                    {lesson.duration}
+                  </span>
+                  {onEditLesson && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditLesson(lesson);
+                      }}
+                      className="p-1 rounded-md text-slate-muted hover:text-white hover:bg-card-hover transition-colors cursor-pointer"
+                      title="Editar o eliminar lección"
+                    >
+                      <Settings className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
               </div>
               <p className="text-[10px] text-slate-subtle mt-1 truncate">
                 {lesson.subtitle}
@@ -115,7 +132,7 @@ export function CourseStructurePanel({
           onClick={onOpenAddStepModal}
           className="w-full py-2 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/40 text-xs font-semibold text-slate-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          <FileEdit className="w-3.5 h-3.5" />
+          <Plus className="w-3.5 h-3.5" />
           <span>Redactar Tarjeta Manual</span>
         </button>
       </div>

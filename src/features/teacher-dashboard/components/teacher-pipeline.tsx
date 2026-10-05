@@ -90,28 +90,17 @@ export function TeacherPipeline({ onNewCourse }: TeacherPipelineProps) {
             );
           })
         ) : (
-          // ponytail: fallback template when no remote courses created yet
-          COURSE_PIPELINE.map((course) => (
-            <Link
-              key={course.id}
-              href={course.badgeVariant === "amber" ? "/teacher/approvals" : "/teacher/builder"}
-              className="p-3 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/40 flex items-center justify-between transition-colors block"
+          <div className="py-6 px-4 rounded-xl bg-canvas border border-border-default text-center space-y-3">
+            <p className="text-xs text-slate-muted">No tienes cursos creados en el pipeline.</p>
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="px-3 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors cursor-pointer inline-flex items-center gap-1.5"
             >
-              <div>
-                <p className="text-xs font-semibold text-slate-200">{course.title}</p>
-                <p className="text-[10px] text-slate-subtle">{course.subtitle}</p>
-              </div>
-              <span
-                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
-                  course.badgeVariant === "amber"
-                    ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                    : "bg-emerald-brand/20 text-emerald-brand border-emerald-brand/30"
-                }`}
-              >
-                {course.badge}
-              </span>
-            </Link>
-          ))
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Crear mi primer curso</span>
+            </button>
+          </div>
         )}
       </div>
 

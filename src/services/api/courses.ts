@@ -65,3 +65,13 @@ export async function submitCourseReviewApi(id: string): Promise<{
     method: "POST",
   });
 }
+
+// DELETE /api/v1/courses/:id
+export async function deleteCourseApi(id: string): Promise<{
+  data: { status: string; course_id: string } | null;
+  error: string | null;
+}> {
+  return apiRequest<{ status: string; course_id: string }>(`${API_V1_URL}/courses/${id}`, {
+    method: "DELETE",
+  });
+}

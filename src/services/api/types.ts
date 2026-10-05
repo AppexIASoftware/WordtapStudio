@@ -31,6 +31,7 @@ export interface ApiCourse {
   slug: string;
   description?: string | null;
   access_tier: string;
+  price_cents?: number;
   level: string;
   status: "draft" | "in_review" | "published" | "archived";
   sort_order: number;
@@ -48,6 +49,7 @@ export interface CreateCoursePayload {
   description?: string;
   level?: string;
   access_tier?: string;
+  price_cents?: number;
   source_lang?: string;
   target_lang?: string;
   cover_image_url?: string;
@@ -58,7 +60,27 @@ export interface UpdateCoursePayload {
   description?: string;
   level?: string;
   access_tier?: string;
+  price_cents?: number;
   cover_image_url?: string;
+}
+
+export interface ApiVocabularyItem {
+  id: string;
+  spanish: string;
+  english: string;
+  pronunciation?: string | null;
+  part_of_speech?: string | null;
+  definition?: string | null;
+  example_sentence?: string | null;
+  audio_url?: string | null;
+}
+
+export interface ApiPhrase {
+  id: string;
+  spanish: string;
+  english: string;
+  audio_url?: string | null;
+  explanation?: string | null;
 }
 
 export interface ApiLessonItem {
@@ -68,6 +90,8 @@ export interface ApiLessonItem {
   content_text?: string | null;
   sort_order: number;
   is_required: boolean;
+  vocabulary_item?: ApiVocabularyItem | null;
+  phrase?: ApiPhrase | null;
 }
 
 export interface ApiLesson {

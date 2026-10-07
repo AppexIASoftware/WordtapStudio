@@ -102,7 +102,7 @@ export default function PendingApprovalPage() {
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <span className="font-black text-sm tracking-tight text-white">Wordtap</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand border border-emerald-brand/30 font-mono font-bold">
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold tracking-wide badge-studio">
               Studio
             </span>
           </div>

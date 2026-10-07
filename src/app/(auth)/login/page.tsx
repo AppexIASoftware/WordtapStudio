@@ -32,7 +32,7 @@ export default function LoginPage() {
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
               <span>Wordtap</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-dark/60 text-emerald-brand border border-emerald-brand/30 font-mono">
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold tracking-wide badge-studio">
                 Studio
               </span>
             </h1>

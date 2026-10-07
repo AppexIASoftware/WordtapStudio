@@ -82,7 +82,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                 <div className="flex flex-col">
                   <span className="font-bold text-sm tracking-tight text-white flex items-center gap-1.5">
                     Wordtap{" "}
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-dark/60 text-emerald-brand border border-emerald-brand/30 font-mono">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold tracking-wide badge-studio">
                       Studio
                     </span>
                   </span>

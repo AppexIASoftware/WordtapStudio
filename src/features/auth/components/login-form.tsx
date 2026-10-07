@@ -1,11 +1,9 @@
 "use client";
 
 import { useLogin } from "../hooks/use-login";
-import { DemoAccountsSelector } from "./demo-accounts-selector";
 import {
   ShieldCheck,
   Sparkles,
-  ArrowRight,
   LockKeyhole,
   CheckCircle2,
   AlertCircle,
@@ -14,13 +12,9 @@ import {
 
 export function LoginForm() {
   const {
-    selectedRole,
     isLoading,
     statusMessage,
     googleClientReady,
-    currentDemo,
-    selectRole,
-    loginWithDemo,
     handleGoogleSso,
   } = useLogin();
 
@@ -45,22 +39,22 @@ export function LoginForm() {
           <h2 className="text-sm sm:text-base font-bold text-white">Acceso Institucional</h2>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30 flex items-center gap-1 font-semibold">
             <LockKeyhole className="w-2.5 h-2.5" />
-            OAuth 2.0
+            Acceso Seguro
           </span>
         </div>
         <p className="text-[11px] text-slate-muted mt-1 leading-relaxed">
-          Ingreso restringido a docentes, moderadores y personal autorizados en la whitelist del sistema.
+          Ingreso restringido a docentes, moderadores y personal autorizados en el sistema.
         </p>
       </div>
 
-      {/* Banner de aviso de whitelist / proveedor exclusivo */}
+      {/* Banner de autenticación delegada */}
       <div className="p-3 rounded-2xl bg-canvas/80 border border-border-default space-y-1.5">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-brand flex-shrink-0" />
-          <span>Autenticación delegada obligatoria</span>
+          <span>Autenticación institucional oficial</span>
         </div>
         <p className="text-[10.5px] text-slate-muted leading-relaxed">
-          Por políticas de seguridad, Wordtap no utiliza contraseñas locales. Iniciá sesión con tu cuenta corporativa de Google pre-autorizada.
+          Iniciá sesión directamente con tu cuenta autorizada de Google para ingresar a tu panel correspondiente.
         </p>
       </div>
 
@@ -125,45 +119,16 @@ export function LoginForm() {
               />
             </svg>
             <span>
-              {isLoading ? "Procesando autenticación..." : "Continuar con Google Workspace"}
+              {isLoading ? "Procesando autenticación..." : "Continuar con Google"}
             </span>
           </button>
         )}
       </div>
 
-      {/* Separador elegante para sandbox / pruebas de roles */}
-      <div className="relative flex items-center justify-center pt-2">
-        <div className="border-t border-border-default w-full" />
-        <span className="bg-card px-3 text-[9px] uppercase font-mono text-slate-subtle tracking-wider absolute">
-          simulador local de roles
-        </span>
-      </div>
-
-      {/* Selector y botón de acceso Sandbox (1-Clic sin claves) */}
-      <div className="space-y-2.5 bg-canvas/40 p-3 rounded-2xl border border-border-default/80">
-        <DemoAccountsSelector
-          selectedRole={selectedRole}
-          onSelectRole={selectRole}
-        />
-
-        <button
-          type="button"
-          onClick={() => loginWithDemo()}
-          disabled={isLoading}
-          className="w-full py-2 px-3.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-emerald-brand hover:text-emerald-300 font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          <span>Acceder como {currentDemo.label} (Sandbox)</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      {/* Aviso de seguridad y cumplimiento */}
-      <div className="pt-1 border-t border-border-default/60 flex items-start gap-1.5 text-[9.5px] text-slate-subtle leading-tight">
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-brand flex-shrink-0 mt-0.5" />
-        <p>
-          Aislamiento estricto por RBAC (ADR-30). Token JWT firmado con HMAC-SHA256
-          y rotación automática de sesión. Cero credenciales locales almacenadas.
-        </p>
+      {/* Aviso de seguridad y cumplimiento institucional */}
+      <div className="pt-2 border-t border-border-default/60 flex items-center justify-center gap-1.5 text-[10px] text-slate-subtle text-center">
+        <ShieldCheck className="w-3.5 h-3.5 text-emerald-brand flex-shrink-0" />
+        <span>Acceso institucional protegido • Conexión cifrada de extremo a extremo</span>
       </div>
     </div>
   );

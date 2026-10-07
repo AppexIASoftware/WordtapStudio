@@ -117,6 +117,33 @@ html.light textarea::placeholder {
   color: #94A3B8 !important;
 }
 
+/* Insignia de marca Studio adaptable para tema claro y oscuro */
+.badge-studio {
+  background-color: rgba(5, 176, 117, 0.1);
+  color: #047857 !important;
+  border: 1px solid rgba(5, 176, 117, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html.dark .badge-studio {
+  background-color: rgba(4, 78, 59, 0.6);
+  color: #05B075 !important;
+  border-color: rgba(5, 176, 117, 0.3);
+}
+
+/* Adaptación de badges e insignias esmeralda en tema claro */
+html.light [class*="bg-emerald-dark"] {
+  background-color: rgba(5, 176, 117, 0.1) !important;
+  color: #047857 !important;
+  border-color: rgba(5, 176, 117, 0.25) !important;
+}
+
+html.light [class*="bg-emerald-dark"] :is(span, [class*="text-emerald-brand"]) {
+  color: #047857 !important;
+}
+
 /* Reglas explícitas para tema oscuro (html.dark) */
 html.dark input,
 html.dark select,

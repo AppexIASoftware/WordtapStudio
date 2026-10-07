@@ -102,12 +102,12 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 <span className="font-bold text-sm tracking-tight text-white flex items-center gap-1.5">
                   Wordtap{" "}
                   <span
-                    className={`text-xs px-1.5 py-0.2 rounded font-mono ${
+                    className={`text-xs px-1.5 py-0.5 rounded font-mono font-bold tracking-wide ${
                       isModerator
-                        ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                        ? "bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 dark:border-blue-500/30"
                         : isAdmin
-                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                        : "bg-emerald-dark/60 text-emerald-brand border border-emerald-brand/30"
+                        ? "bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/30"
+                        : "badge-studio"
                     }`}
                   >
                     Studio

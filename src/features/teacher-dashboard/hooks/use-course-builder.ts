@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Course, Lesson } from "../types";
 import {
   getTeacherCoursesApi,
+  getTeacherCourseReviewsApi,
   submitCourseReviewApi,
+  withdrawCourseReviewApi,
   getCourseLessonsApi,
   saveLessonItemApi,
   updateCourseApi,
@@ -13,13 +15,20 @@ import {
   deleteLessonApi,
   createLessonApi,
   ApiCourse,
+  saveSyncedReview,
+  removeSyncedReview,
+  getSyncedReviews,
+  subscribeSyncedReviews,
 } from "@/services/api";
+import { useAuth } from "@/features/auth/auth-context";
 import { mapApiLessonToLesson } from "../utils/course-mapper";
+import { COURSES_DATA } from "../data/mock-courses";
 import { useBuilderModals } from "./use-builder-modals";
 import { useBuilderSimulation } from "./use-builder-simulation";
 import { useCardEditor } from "./use-card-editor";
 
 export function useCourseBuilder() {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Record<string, Course>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [currentCourseId, setCurrentCourseId] = useState("");
@@ -60,62 +69,107 @@ export function useCourseBuilder() {
     [handleStepSelect, resetStepForm]
   );
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadCoursesData = useCallback(async () => {
     setIsLoading(true);
-    getTeacherCoursesApi().then(async (res) => {
-      if (!isMounted) return;
-      if (res.data && res.data.length > 0) {
-        const mapped: Record<string, Course> = {};
-        for (const c of res.data) {
-          let courseLessons: Lesson[] = [];
-          const lessonsRes = await getCourseLessonsApi(c.id);
-          if (lessonsRes.data && lessonsRes.data.length > 0) {
-            courseLessons = lessonsRes.data.map(mapApiLessonToLesson);
-          } else if (c.lessons && c.lessons.length > 0) {
-            courseLessons = c.lessons.map(mapApiLessonToLesson);
-          }
+    const [res, reviewsRes] = await Promise.all([
+      getTeacherCoursesApi(),
+      getTeacherCourseReviewsApi(),
+    ]);
+    const syncedReviews = getSyncedReviews();
 
-          mapped[c.id] = {
-            id: c.id,
-            title: c.title,
-            level: c.level,
-            tier: c.status === "draft" ? "draft" : c.access_tier === "course" ? "course" : "free",
-            price: typeof c.price_cents === "number" ? c.price_cents / 100 : 19.99,
-            currency: "USD",
-            author: "Docente",
-            lessons: courseLessons,
-          };
-        }
+    if (res.data && res.data.length > 0) {
+      const mapped: Record<string, Course> = {};
+      for (const c of res.data) {
+        const courseLessons: Lesson[] = (c.lessons && c.lessons.length > 0)
+          ? c.lessons.map(mapApiLessonToLesson)
+          : [];
 
-        if (isMounted) {
-          setCourses(mapped);
-          const firstId = res.data[0].id;
-          setCurrentCourseId(firstId);
-          const firstLessons = mapped[firstId]?.lessons;
-          syncSelectedLesson(firstLessons?.[0] || null);
-          setIsLoading(false);
-        }
-      } else {
-        if (isMounted) {
-          setCourses({});
-          setCurrentCourseId("");
-          syncSelectedLesson(null);
-          if (res.error) triggerToast(`No se pudieron cargar tus cursos: ${res.error}`);
-          setIsLoading(false);
-        }
+        const apiRev = reviewsRes.data?.find((r) => r.course_id === c.id);
+        const syncRev = syncedReviews.find((r) => r.courseId === c.id || r.originalId === c.id);
+
+        const revStatus = apiRev?.status || syncRev?.status;
+        const feedback = apiRev?.feedback_notes || syncRev?.feedback;
+        const reviewer = apiRev?.reviewer_admin_id ? `Admin (${apiRev.reviewer_admin_id.slice(0, 6)})` : syncRev?.reviewer;
+
+        mapped[c.id] = {
+          id: c.id,
+          title: c.title,
+          level: c.level,
+          tier: c.status === "draft" ? "draft" : c.access_tier === "course" ? "course" : "free",
+          price: typeof c.price_cents === "number" ? c.price_cents / 100 : 19.99,
+          currency: "USD",
+          author: c.author?.name || user?.name || "Prof. Mateo Silva",
+          status: c.status,
+          reviewStatus: (revStatus as any) || (c.status === "in_review" ? "pending" : undefined),
+          feedbackNotes: feedback || undefined,
+          reviewerName: reviewer || undefined,
+          lessons: courseLessons,
+        };
       }
+
+      setCourses(mapped);
+      setCurrentCourseId((prev) => {
+        if (prev && mapped[prev]) return prev;
+        const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        const reqId = urlParams?.get("courseId");
+        const nextId = reqId && mapped[reqId] ? reqId : res.data![0].id;
+        const activeLessons = mapped[nextId]?.lessons;
+        syncSelectedLesson(activeLessons?.[0] || null);
+        return nextId;
+      });
+      setIsLoading(false);
+    } else {
+      const fallback: Record<string, Course> = {};
+      for (const [key, val] of Object.entries(COURSES_DATA)) {
+        const syncRev = syncedReviews.find((r) => r.courseId === key || r.originalId === key);
+        fallback[key] = {
+          ...val,
+          reviewStatus: (syncRev?.status as any) || (val.status === "in_review" ? "pending" : undefined),
+          feedbackNotes: syncRev?.feedback,
+          reviewerName: syncRev?.reviewer,
+        };
+      }
+      setCourses(fallback);
+      setCurrentCourseId((prev) => {
+        if (prev && fallback[prev]) return prev;
+        const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        const reqId = urlParams?.get("courseId");
+        const nextId = reqId && fallback[reqId] ? reqId : Object.keys(fallback)[0] || "";
+        const activeLessons = fallback[nextId]?.lessons;
+        syncSelectedLesson(activeLessons?.[0] || null);
+        return nextId;
+      });
+      setIsLoading(false);
+    }
+  }, [user, syncSelectedLesson]);
+
+  useEffect(() => {
+    loadCoursesData();
+    const unsub = subscribeSyncedReviews(() => {
+      loadCoursesData();
     });
-    return () => {
-      isMounted = false;
-    };
-  }, []); // Run on mount
+    return unsub;
+  }, [loadCoursesData]);
 
   const handleSelectCourse = (id: string) => {
     setCurrentCourseId(id);
     const target = courses[id];
-    syncSelectedLesson(target?.lessons[0] || null);
-    triggerToast(`Curso activo: ${target?.title}`);
+    if (target) {
+      if ((!target.lessons || target.lessons.length === 0) && id) {
+        getCourseLessonsApi(id).then((lessonsRes) => {
+          if (lessonsRes.data && lessonsRes.data.length > 0) {
+            const loadedLessons = lessonsRes.data.map(mapApiLessonToLesson);
+            setCourses((prev) => ({
+              ...prev,
+              [id]: { ...prev[id], lessons: loadedLessons },
+            }));
+            syncSelectedLesson(loadedLessons[0] || null);
+          }
+        });
+      }
+      syncSelectedLesson(target.lessons?.[0] || null);
+      triggerToast(`Curso activo: ${target.title}`);
+    }
   };
 
   const handleSelectLesson = (lesson: Lesson) => {
@@ -203,9 +257,14 @@ export function useCourseBuilder() {
         level: res.data!.level,
         price: (res.data!.price_cents ?? 0) / 100,
         tier: res.data!.access_tier === "course" ? "course" : "free",
+        status: res.data!.status,
       },
     }));
-    triggerToast("Curso actualizado con éxito");
+    triggerToast(
+      res.data?.status === "in_review"
+        ? "Curso actualizado y enviado a revisión"
+        : "Curso actualizado con éxito"
+    );
   };
 
   const handleDeleteCourse = async () => {
@@ -315,13 +374,73 @@ export function useCourseBuilder() {
     triggerToast(`Precio actualizado a $${newPrice.toFixed(2)} USD`);
   };
 
-  const handleSubmitReview = async () => {
-    const res = await submitCourseReviewApi(currentCourseId);
-    if (res.error) {
-      triggerToast(`Error: ${res.error}`);
-    } else {
-      triggerToast("Curso enviado a revisión con éxito.");
-    }
+  const handleSubmitReview = async (changeSummary?: string) => {
+    if (!currentCourse) return;
+    const isResubmission = currentCourse.reviewStatus === "changes_requested";
+    const defaultSummary = isResubmission
+      ? "Correcciones aplicadas según las observaciones pedagógicas del revisor."
+      : `Solicitud de revisión para publicación oficial del curso: ${currentCourse.title}`;
+    const summary = changeSummary?.trim() || defaultSummary;
+
+    const teacherName = user?.name || currentCourse.author || "Prof. Mateo Silva";
+    const teacherEmail = user?.email || "docente@wordtap.app";
+    const teacherInitials = teacherName.split(" ").slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "MS";
+
+    const res = await submitCourseReviewApi(currentCourseId, {
+      change_summary: summary,
+    });
+    const prId = `PR-${currentCourseId.replace(/^course-/, "").slice(0, 6).toUpperCase() || "NEW"}`;
+
+    saveSyncedReview({
+      id: prId,
+      originalId: currentCourseId,
+      courseId: currentCourseId,
+      title: currentCourse.title,
+      author: teacherName,
+      authorEmail: teacherEmail,
+      authorAvatar: teacherInitials,
+      submittedAt: new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+      waitHours: "0.1h",
+      changesCount: `${currentCourse.lessons?.length || 1} lecciones`,
+      status: "open",
+      statusLabel: "En Revisión",
+      summary: summary,
+      reviewer: "Pendiente de Asignación",
+    });
+
+    setCourses((prev) => ({
+      ...prev,
+      [currentCourseId]: {
+        ...prev[currentCourseId],
+        status: res.data?.status || "in_review",
+        reviewStatus: "pending",
+        feedbackNotes: undefined,
+      },
+    }));
+
+    triggerToast(
+      isResubmission
+        ? `¡Correcciones de "${currentCourse.title}" re-enviadas a revisión con éxito!`
+        : `¡Curso "${currentCourse.title}" enviado a revisión con éxito!`
+    );
+  };
+
+  const handleWithdrawReview = async () => {
+    if (!currentCourse) return;
+    setIsLoading(true);
+    await withdrawCourseReviewApi(currentCourseId);
+    removeSyncedReview(currentCourseId);
+    setCourses((prev) => ({
+      ...prev,
+      [currentCourseId]: {
+        ...prev[currentCourseId],
+        status: "draft",
+        reviewStatus: undefined,
+        feedbackNotes: undefined,
+      },
+    }));
+    setIsLoading(false);
+    triggerToast(`Solicitud retirada. El curso "${currentCourse.title}" volvió a borrador para edición.`);
   };
 
   return {
@@ -340,6 +459,8 @@ export function useCourseBuilder() {
     handleLessonCreated,
     handleSelectLesson,
     handleSubmitReview,
+    handleWithdrawReview,
+    handleRefreshCourses: loadCoursesData,
     handleEditCourse,
     handleDeleteCourse,
     handleSaveLesson,

@@ -13,6 +13,7 @@ export function useBuilderModals(currentCourseLessons: Lesson[] | undefined) {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showPlaytestDrawer, setShowPlaytestDrawer] = useState(false);
   const [showVaultDrawer, setShowVaultDrawer] = useState(false);
+  const [showSubmitReviewModal, setShowSubmitReviewModal] = useState(false);
 
   const handleOpenModal = (name: string) => {
     if (name.startsWith("editLesson:")) {
@@ -29,6 +30,7 @@ export function useBuilderModals(currentCourseLessons: Lesson[] | undefined) {
       export: setShowExportModal,
       playtest: setShowPlaytestDrawer,
       vault: setShowVaultDrawer,
+      submitReview: setShowSubmitReviewModal,
     };
     setters[name]?.(true);
   };
@@ -47,6 +49,7 @@ export function useBuilderModals(currentCourseLessons: Lesson[] | undefined) {
       export: setShowExportModal,
       playtest: setShowPlaytestDrawer,
       vault: setShowVaultDrawer,
+      submitReview: setShowSubmitReviewModal,
     };
     setters[name]?.(false);
   };
@@ -61,6 +64,7 @@ export function useBuilderModals(currentCourseLessons: Lesson[] | undefined) {
     showExportModal,
     showPlaytestDrawer,
     showVaultDrawer,
+    showSubmitReviewModal,
     handleOpenModal,
     handleCloseModal,
   };

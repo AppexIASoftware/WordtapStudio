@@ -39,4 +39,5 @@ export interface AuthContextValue {
   login: (role?: UserRole) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogleToken: (idToken: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  refreshSession: () => Promise<UserProfile | null>;
 }

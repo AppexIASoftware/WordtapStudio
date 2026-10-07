@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { TeacherPipeline } from "@/features/teacher-dashboard/components/teacher-pipeline";
 
 export function InstructorDashboard() {
   const [period, setPeriod] = useState<"today" | "7d" | "30d" | "year">("7d");
@@ -254,68 +255,9 @@ export function InstructorDashboard() {
           </div>
         </div>
 
-        {/* Pipeline de Cursos (4 columnas) */}
-        <div className="lg:col-span-4 space-y-4">
-          <div className="p-5 rounded-2xl bg-card border border-border-default space-y-4 shadow-card-soft">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-white">Pipeline de Cursos</h4>
-              <span className="text-[10px] font-mono text-emerald-brand">Catálogo Activo</span>
-            </div>
-
-            <div className="space-y-2.5">
-              <Link
-                href="/courses"
-                className="p-3 rounded-xl bg-canvas border border-border-default flex items-center justify-between cursor-pointer hover:border-emerald-brand/40 transition-colors block"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-slate-200">Inglés Básico Gratuito</p>
-                  <p className="text-[10px] text-slate-subtle">Nivel A1 • 4 lecciones</p>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-brand/20 text-emerald-brand border border-emerald-brand/30">
-                  Publicado
-                </span>
-              </Link>
-
-              <Link
-                href="/courses"
-                className="p-3 rounded-xl bg-canvas border border-border-default flex items-center justify-between cursor-pointer hover:border-emerald-brand/40 transition-colors block"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-slate-200">Curso Premium WordTap</p>
-                  <p className="text-[10px] text-slate-subtle">Nivel B1 • $19.99 pago único</p>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-brand/20 text-emerald-brand border border-emerald-brand/30">
-                  Activo
-                </span>
-              </Link>
-
-              <Link
-                href="/approvals"
-                className="p-3 rounded-xl bg-canvas border border-amber-500/30 flex items-center justify-between cursor-pointer hover:border-amber-500 transition-colors block"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-amber-300">B1 Conversational Travel</p>
-                  <p className="text-[10px] text-slate-subtle">Nivel B1 • 12 lecciones en revisión</p>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Diff #108
-                </span>
-              </Link>
-
-              <Link
-                href="/courses"
-                className="p-3 rounded-xl bg-canvas border border-border-default flex items-center justify-between cursor-pointer hover:border-border-subtle transition-colors block"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-slate-200">Curso Intensivo de Negocios</p>
-                  <p className="text-[10px] text-slate-subtle">Nivel B2 • 8 lecciones</p>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-500/20 text-slate-300 border border-slate-500/30">
-                  Borrador
-                </span>
-              </Link>
-            </div>
-          </div>
+        {/* Pipeline de Cursos Dinámico y Seguro (4 columnas) */}
+        <div className="lg:col-span-4">
+          <TeacherPipeline />
         </div>
       </div>
     </div>

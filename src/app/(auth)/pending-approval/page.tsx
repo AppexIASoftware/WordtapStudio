@@ -11,6 +11,7 @@ import {
   getPublicSettingsApi,
   PublicSettings,
 } from "@/services/api/settings";
+import { setStoredRole } from "@/services/api";
 import {
   Clock,
   CheckCircle2,
@@ -27,7 +28,7 @@ import {
 import { useTheme } from "@/hooks/use-theme";
 
 export default function PendingApprovalPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshSession } = useAuth();
   const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
 
@@ -50,10 +51,13 @@ export default function PendingApprovalPage() {
       if (resStatus.data) {
         setStatusData(resStatus.data);
         if (resStatus.data.status === "approved") {
+          setFeedbackMsg("¡Cuenta aprobada! Sincronizando credenciales docentes...");
+          setStoredRole("instructor");
+          await refreshSession();
           setFeedbackMsg("¡Cuenta aprobada! Redirigiendo al panel docente...");
           setTimeout(() => {
-            window.location.href = "/teacher";
-          }, 1200);
+            router.push("/teacher");
+          }, 800);
         } else if (resStatus.data.status === "suspended") {
           setFeedbackMsg("Tu cuenta docente se encuentra temporalmente suspendida.");
         } else if (resStatus.data.status === "rejected") {

@@ -34,6 +34,7 @@ export function CourseBuilderView() {
         showExportModal={b.showExportModal}
         showPlaytestDrawer={b.showPlaytestDrawer}
         showVaultDrawer={b.showVaultDrawer}
+        showSubmitReviewModal={b.showSubmitReviewModal}
         onSelectCourse={b.handleSelectCourse}
         onCreateCourse={b.handleCourseCreated}
         onLessonCreated={b.handleLessonCreated}
@@ -45,6 +46,8 @@ export function CourseBuilderView() {
         onAddCard={b.handleAddCard}
         onSpeak={b.speak}
         onSubmitReview={b.handleSubmitReview}
+        onWithdrawReview={b.handleWithdrawReview}
+        onRefresh={b.handleRefreshCourses}
         onSaveCourse={b.handleEditCourse}
         onDeleteCourse={b.handleDeleteCourse}
         onSaveLesson={b.handleSaveLesson}

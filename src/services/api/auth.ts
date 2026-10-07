@@ -17,7 +17,7 @@ export async function loginWithGoogleApi(idToken: string): Promise<{
 }
 
 export async function getMeApi(): Promise<{
-  data: { user: BackendUser } | null;
+  data: { user: BackendUser; access_token?: string; expires_in?: number } | null;
   error: string | null;
 }> {
   const token = getStoredAccessToken();
@@ -25,9 +25,19 @@ export async function getMeApi(): Promise<{
     return { data: null, error: "No access token found" };
   }
 
-  return apiRequest<{ user: BackendUser }>(`${API_V1_URL}/users/me`, {
+  const result = await apiRequest<{
+    user: BackendUser;
+    access_token?: string;
+    expires_in?: number;
+  }>(`${API_V1_URL}/users/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+
+  if (result.data?.access_token) {
+    setStoredTokens(result.data.access_token);
+  }
+
+  return result;
 }
 
 export async function devLoginApi(

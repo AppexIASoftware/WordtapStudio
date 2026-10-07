@@ -122,6 +122,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCurrentRole(role);
     setUser(getProfile(role));
     setStoredRole(role);
+    const demoEmail = DEMO_ACCOUNTS[role]?.email;
+    devLoginApi(role === "candidate" ? "student" : role, demoEmail)
+      .then(({ data }) => {
+        if (data?.access_token) {
+          setStoredTokens(data.access_token, data.refresh_token);
+        }
+      })
+      .catch(() => {});
     if (role === "candidate") {
       router.push("/pending-approval");
     }
@@ -188,6 +196,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/login");
   };
 
+  const refreshSession = async (): Promise<UserProfile | null> => {
+    const token = getStoredAccessToken();
+    if (!token) return null;
+    const { data, error } = await getMeApi();
+    if (data?.user) {
+      const profile = mapBackendUserToProfile(data.user);
+      setUser(profile);
+      setCurrentRole(profile.role);
+      setStoredRole(profile.role);
+      setIsAuthenticated(true);
+      return profile;
+    }
+    if (error) {
+      clearStoredTokens();
+      setIsAuthenticated(false);
+    }
+    return null;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -199,6 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         loginWithGoogleToken,
         logout,
+        refreshSession,
       }}
     >
       {children}

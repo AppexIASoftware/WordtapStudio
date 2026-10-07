@@ -1,6 +1,7 @@
 "use client";
 
-import { BookOpen, Loader2, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { BookOpen, Loader2, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { Course, Lesson, LessonItem } from "../../types";
 import { ApiCourse } from "@/services/api";
 import { NewCourseModal } from "../new-course-modal";
@@ -17,6 +18,8 @@ import { ManualCardModal } from "./manual-card-modal";
 import { ExportJsonModal } from "./export-json-modal";
 import { VaultDrawer } from "./vault-drawer";
 import { PlaytestDrawer } from "./playtest-drawer";
+import { SubmitReviewModal } from "./submit-review-modal";
+import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 
 type CanvasTab = "cards" | "games" | "preview";
 type SimScreen = "lesson" | "home" | "game";
@@ -45,6 +48,7 @@ interface CourseBuilderWorkspaceProps {
   showExportModal: boolean;
   showPlaytestDrawer: boolean;
   showVaultDrawer: boolean;
+  showSubmitReviewModal?: boolean;
   onSelectCourse: (id: string) => void;
   onCreateCourse: (course: ApiCourse) => void;
   onLessonCreated: (lesson: Lesson) => void;
@@ -55,7 +59,7 @@ interface CourseBuilderWorkspaceProps {
   onDeleteStep: (id: string) => void;
   onAddCard: (item: Omit<LessonItem, "id">) => void;
   onSpeak: (text: string) => void;
-  onSubmitReview: () => void;
+  onSubmitReview: (summary?: string) => Promise<void> | void;
   onSaveCourse: (course: { title: string; level: string; price: number }) => Promise<void>;
   onDeleteCourse: () => Promise<void>;
   onSaveLesson: (id: string, title: string, subtitle: string, duration: string) => Promise<void>;
@@ -72,16 +76,25 @@ interface CourseBuilderWorkspaceProps {
   onResetSimGame: () => void;
   onToast: (message: string) => void;
   onCopyExport: () => void;
+  onRefresh?: () => void;
+  onWithdrawReview?: () => void;
 }
 
 export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
+  const [isFeedbackExpanded, setIsFeedbackExpanded] = useState(true);
+
   const {
     courses, currentCourseId, currentCourse, currentLessonId, currentLesson,
     currentStepId, stepForm, isLoading, activeCanvasTab,
     simScreen, simTier, isSimLessonCompleted, simGameSelected, simGameMatched,
     showNewCourseModal, showEditCourseModal, showPricingModal, showAddLessonModal,
     editingLesson, showAddStepModal, showExportModal, showPlaytestDrawer, showVaultDrawer,
+    showSubmitReviewModal,
   } = props;
+
+  useEffect(() => {
+    setIsFeedbackExpanded(true);
+  }, [currentCourseId]);
 
   return (
     <>
@@ -89,13 +102,16 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
         courses={courses}
         currentCourseId={currentCourseId}
         currentCourse={currentCourse}
+        isLoading={isLoading}
+        onRefresh={props.onRefresh}
         onSelectCourse={props.onSelectCourse}
         onOpenNewCourseModal={() => props.onOpenModal("newCourse")}
         onOpenEditCourseModal={() => props.onOpenModal("editCourse")}
         onOpenPricingModal={() => props.onOpenModal("pricing")}
         onOpenExportModal={() => props.onOpenModal("export")}
         onOpenPlaytestDrawer={() => props.onOpenModal("playtest")}
-        onSubmitReview={props.onSubmitReview}
+        onSubmitReview={() => props.onOpenModal("submitReview")}
+        onWithdrawReview={props.onWithdrawReview}
       />
 
       {isLoading ? (
@@ -151,6 +167,73 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   ))}
                 </div>
               </div>
+              {currentCourse?.reviewStatus === "changes_requested" && currentCourse?.feedbackNotes && (
+                isFeedbackExpanded ? (
+                  <div className="m-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-3 shadow-sm flex-shrink-0 animate-in fade-in duration-200">
+                    <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white text-sm">Correcciones Pedidas por el Revisor</span>
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30">
+                            {currentCourse.reviewerName || "Equipo Pedagógico"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsFeedbackExpanded(false)}
+                          className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-[11px] font-semibold flex-shrink-0"
+                          title="Minimizar notificación para ganar espacio de trabajo"
+                        >
+                          <span>Minimizar</span>
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+                        <FeedbackTextRenderer text={currentCourse.feedbackNotes} bulletColor="text-amber-300" />
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+                        <p className="text-slate-400 text-[11px]">
+                          Aplica las correcciones en las lecciones y pulsa &quot;Re-enviar Correcciones&quot;.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => props.onOpenModal("submitReview")}
+                          className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-canvas font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-sm"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Re-enviar Correcciones</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mx-4 my-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-center justify-between gap-3 shadow-sm flex-shrink-0 animate-in fade-in duration-150">
+                    <div className="flex items-center gap-2 truncate">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <span className="font-bold text-white text-xs">Correcciones Pedidas</span>
+                      <span className="px-2 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30">
+                        {currentCourse.reviewerName || "Equipo Pedagógico"}
+                      </span>
+                      <span className="text-slate-400 text-[11px] hidden sm:inline truncate">
+                        • Observaciones minimizadas
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsFeedbackExpanded(true)}
+                      className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-[11px] font-semibold flex-shrink-0"
+                      title="Expandir observaciones del revisor"
+                    >
+                      <span>Ver Observaciones</span>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )
+              )}
               {activeCanvasTab === "cards" && <CardsTab currentLesson={currentLesson} currentStepId={currentStepId} stepForm={stepForm} onSelectStep={props.onSelectStep} onStepFormChange={props.onStepFormChange} onSaveStep={props.onSaveStep} onDeleteStep={props.onDeleteStep} onOpenAddStepModal={() => props.onOpenModal("addStep")} onSpeak={props.onSpeak} />}
               {activeCanvasTab === "games" && <GamesTab onTestGames={() => props.onSetSimScreen("game")} />}
               {activeCanvasTab === "preview" && (
@@ -182,6 +265,14 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
       {currentCourse && <ExportJsonModal isOpen={showExportModal} course={currentCourse} onClose={() => props.onCloseModal("export")} onCopied={props.onCopyExport} />}
       {currentLesson && <VaultDrawer isOpen={showVaultDrawer} currentLesson={currentLesson} onClose={() => props.onCloseModal("vault")} onImportItem={props.onAddCard} />}
       {currentLesson && <PlaytestDrawer isOpen={showPlaytestDrawer} currentLesson={currentLesson} onClose={() => props.onCloseModal("playtest")} onSpeak={props.onSpeak} />}
+      {showSubmitReviewModal && currentCourse && (
+        <SubmitReviewModal
+          isOpen
+          course={currentCourse}
+          onClose={() => props.onCloseModal("submitReview")}
+          onSubmit={(summary) => Promise.resolve(props.onSubmitReview(summary))}
+        />
+      )}
     </>
   );
 }

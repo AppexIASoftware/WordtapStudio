@@ -39,6 +39,7 @@ export interface ApiCourse {
   source_lang: string;
   target_lang: string;
   created_by?: string | null;
+  author?: BackendUser | null;
   created_at: string;
   updated_at: string;
   lessons?: ApiLesson[];
@@ -62,6 +63,31 @@ export interface UpdateCoursePayload {
   access_tier?: string;
   price_cents?: number;
   cover_image_url?: string;
+  change_summary?: string;
+}
+
+export interface ApiCourseReviewRequest {
+  id: string;
+  course_id: string;
+  instructor_id: string;
+  reviewer_admin_id?: string | null;
+  status: "pending" | "changes_requested" | "approved" | "rejected";
+  feedback_notes?: string | null;
+  diff_summary?: string;
+  change_summary?: string | null;
+  submitted_at: string;
+  reviewed_at?: string | null;
+  course?: ApiCourse;
+  instructor?: BackendUser;
+}
+
+export interface SubmitCourseReviewPayload {
+  change_summary?: string;
+}
+
+export interface ReviewDecisionPayload {
+  status: "approved" | "changes_requested" | "rejected";
+  feedback_notes?: string;
 }
 
 export interface ApiVocabularyItem {

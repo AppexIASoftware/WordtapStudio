@@ -24,7 +24,13 @@ export function middleware(request: NextRequest) {
   // Redirect authenticated users away from login
   if (pathname === "/login" && isAuthenticated) {
     const target =
-      role === "moderator" ? "/moderator" : role === "admin" ? "/dashboard" : "/teacher";
+      role === "candidate"
+        ? "/pending-approval"
+        : role === "moderator"
+        ? "/moderator"
+        : role === "admin"
+        ? "/dashboard"
+        : "/teacher";
     return NextResponse.redirect(new URL(target, request.url));
   }
 
@@ -39,10 +45,31 @@ export function middleware(request: NextRequest) {
   if (pathname === "/") {
     if (isAuthenticated) {
       const target =
-        role === "moderator" ? "/moderator" : role === "admin" ? "/dashboard" : "/teacher";
+        role === "candidate"
+          ? "/pending-approval"
+          : role === "moderator"
+          ? "/moderator"
+          : role === "admin"
+          ? "/dashboard"
+          : "/teacher";
       return NextResponse.redirect(new URL(target, request.url));
     }
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Restricción para postulantes en espera (/pending-approval)
+  if (pathname.startsWith("/pending-approval")) {
+    if (role && role !== "candidate") {
+      const target =
+        role === "moderator" ? "/moderator" : role === "admin" ? "/dashboard" : "/teacher";
+      return NextResponse.redirect(new URL(target, request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Si el rol es candidato, restringir navegación exclusivamente a /pending-approval
+  if (role === "candidate") {
+    return NextResponse.redirect(new URL("/pending-approval", request.url));
   }
 
   // Enforce role-based path access

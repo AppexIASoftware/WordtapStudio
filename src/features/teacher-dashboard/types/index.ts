@@ -26,7 +26,7 @@ export interface CoursePipelineItem {
   title: string;
   subtitle: string;
   badge: string;
-  badgeVariant: "emerald" | "amber";
+  badgeVariant: "emerald" | "amber" | "blue" | "rose";
   actionLabel?: string;
 }
 
@@ -63,6 +63,10 @@ export interface Course {
   price: number;
   currency: string;
   author: string;
+  status?: "draft" | "in_review" | "published" | "archived";
+  reviewStatus?: "pending" | "in_review" | "approved" | "changes_requested" | "rejected";
+  feedbackNotes?: string;
+  reviewerName?: string;
   lessons: Lesson[];
 }
 
@@ -173,15 +177,20 @@ export interface GlobalStudent {
 
 export interface ApprovalRequest {
   id: string;
+  courseId?: string;
   title: string;
   submittedDate: string;
   reviewer: string;
   author: string;
   waitHours: string;
   changesCount: string;
-  status: "pending" | "in_review" | "approved" | "rejected";
+  status: "pending" | "in_review" | "approved" | "rejected" | "changes_requested";
   statusLabel: string;
   changes: string;
   notes?: string;
+  diffSummary?: string;
+  changeSummary?: string;
+  isResubmission?: boolean;
+  previousNotes?: string;
 }
 

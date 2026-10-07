@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getPublicSettingsApi,
   updateSettingApi,
@@ -13,23 +14,30 @@ interface PlatformSettingsCardProps {
   isAdmin: boolean;
 }
 
+const DEFAULT_SETTINGS: PublicSettings = {
+  contact_email: "soporte@wordtap.app",
+  company_name: "Wordtap Studio",
+  support_url: "https://wordtap.app/soporte",
+};
+
 export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCardProps) {
-  const [settings, setSettings] = useState<PublicSettings>({
-    contact_email: "soporte@wordtap.app",
-    company_name: "Wordtap Studio",
-    support_url: "https://wordtap.app/soporte",
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [formSettings, setFormSettings] = useState<PublicSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
 
+  const { data: remoteSettings, isLoading } = useQuery<PublicSettings>({
+    queryKey: ["public-settings"],
+    queryFn: async () => {
+      const { data } = await getPublicSettingsApi();
+      return data || DEFAULT_SETTINGS;
+    },
+  });
+
   useEffect(() => {
-    getPublicSettingsApi().then(({ data }) => {
-      setIsLoading(false);
-      if (data) {
-        setSettings(data);
-      }
-    });
-  }, []);
+    if (remoteSettings) {
+      setFormSettings(remoteSettings);
+    }
+  }, [remoteSettings]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,15 +49,16 @@ export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCard
     setIsSaving(true);
     try {
       const [resEmail, resName, resUrl] = await Promise.all([
-        updateSettingApi("contact_email", settings.contact_email),
-        updateSettingApi("company_name", settings.company_name),
-        updateSettingApi("support_url", settings.support_url),
+        updateSettingApi("contact_email", formSettings.contact_email),
+        updateSettingApi("company_name", formSettings.company_name),
+        updateSettingApi("support_url", formSettings.support_url),
       ]);
 
       if (resEmail.error || resName.error || resUrl.error) {
         onNotify("Error al guardar configuraciones institucionales");
       } else {
         onNotify("¡Datos institucionales actualizados correctamente!");
+        queryClient.invalidateQueries({ queryKey: ["public-settings"] });
       }
     } catch {
       onNotify("No fue posible comunicarse con el servidor");
@@ -93,9 +102,9 @@ export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCard
               type="email"
               required
               disabled={!isAdmin || isSaving}
-              value={settings.contact_email}
+              value={formSettings.contact_email}
               onChange={(e) =>
-                setSettings({ ...settings, contact_email: e.target.value })
+                setFormSettings({ ...formSettings, contact_email: e.target.value })
               }
               placeholder="soporte@wordtap.app"
               className="w-full pl-9 pr-3 py-2 text-xs bg-canvas rounded-xl border border-border-default focus:border-emerald-brand focus:outline-none text-white font-mono disabled:opacity-50"
@@ -113,9 +122,9 @@ export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCard
               type="text"
               required
               disabled={!isAdmin || isSaving}
-              value={settings.company_name}
+              value={formSettings.company_name}
               onChange={(e) =>
-                setSettings({ ...settings, company_name: e.target.value })
+                setFormSettings({ ...formSettings, company_name: e.target.value })
               }
               placeholder="Wordtap Studio"
               className="w-full pl-9 pr-3 py-2 text-xs bg-canvas rounded-xl border border-border-default focus:border-emerald-brand focus:outline-none text-white disabled:opacity-50"
@@ -132,9 +141,9 @@ export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCard
             <input
               type="url"
               disabled={!isAdmin || isSaving}
-              value={settings.support_url}
+              value={formSettings.support_url}
               onChange={(e) =>
-                setSettings({ ...settings, support_url: e.target.value })
+                setFormSettings({ ...formSettings, support_url: e.target.value })
               }
               placeholder="https://wordtap.app/soporte"
               className="w-full pl-9 pr-3 py-2 text-xs bg-canvas rounded-xl border border-border-default focus:border-emerald-brand focus:outline-none text-white font-mono disabled:opacity-50"

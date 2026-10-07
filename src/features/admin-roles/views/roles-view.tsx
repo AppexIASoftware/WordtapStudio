@@ -180,10 +180,10 @@ export function RolesView() {
               Directorio de Staff & Roles (RBAC)
             </h1>
             <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30">
-              ADR-08 • Acceso Tokenizado
+              Control de Accesos
             </span>
             <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">
-              ADR-30 • Matriz Dinámica
+              Políticas de Seguridad
             </span>
           </div>
           <p className="text-sm text-slate-muted mt-1 leading-relaxed">

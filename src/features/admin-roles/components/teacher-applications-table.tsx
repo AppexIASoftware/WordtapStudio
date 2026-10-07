@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   listTeacherApplicationsApi,
   approveTeacherApplicationApi,
@@ -31,8 +32,7 @@ interface TeacherApplicationsTableProps {
 }
 
 export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicationsTableProps) {
-  const [applications, setApplications] = useState<ApiTeacherApplication[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [suspendingApp, setSuspendingApp] = useState<ApiTeacherApplication | null>(null);
@@ -40,23 +40,20 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
   const [deletingApp, setDeletingApp] = useState<ApiTeacherApplication | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadApplications = async () => {
-    setIsLoading(true);
-    try {
+  const { data: applications = [], isLoading, refetch } = useQuery({
+    queryKey: ["teacher-applications", statusFilter],
+    queryFn: async () => {
       const res = await listTeacherApplicationsApi(statusFilter === "all" ? undefined : statusFilter);
-      if (res.data) {
-        setApplications(res.data.applications || []);
+      if (res.error) {
+        onNotify("Error al cargar postulaciones de docentes");
       }
-    } catch {
-      onNotify("Error al cargar postulaciones de docentes");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return res.data?.applications || [];
+    },
+  });
 
-  useEffect(() => {
-    loadApplications();
-  }, [statusFilter]);
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["teacher-applications"] });
+  };
 
   const handleApprove = async (app: ApiTeacherApplication) => {
     if (!isAdmin) {
@@ -70,7 +67,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
         onNotify(`Error: ${res.error}`);
       } else {
         onNotify(`¡Postulación de ${app.user?.name || app.user?.email} aprobada! Rol cambiado a Instructor.`);
-        loadApplications();
+        invalidate();
       }
     } finally {
       setActionLoadingId(null);
@@ -92,7 +89,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
         onNotify(`Error: ${res.error}`);
       } else {
         onNotify(`Postulación de ${app.user?.name || app.user?.email} rechazada.`);
-        loadApplications();
+        invalidate();
       }
     } finally {
       setActionLoadingId(null);
@@ -118,7 +115,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
       } else {
         onNotify(`Docente ${suspendingApp.user?.name || suspendingApp.user?.email} suspendido. Sesiones invalidadas.`);
         setSuspendingApp(null);
-        loadApplications();
+        invalidate();
       }
     } finally {
       setIsSuspending(false);
@@ -138,7 +135,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
         onNotify(`Error: ${res.error}`);
       } else {
         onNotify(`Docente ${app.user?.name || app.user?.email} reactivado con rol de Instructor.`);
-        loadApplications();
+        invalidate();
       }
     } finally {
       setActionLoadingId(null);
@@ -164,7 +161,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
       } else {
         onNotify(`Registro eliminado y permisos de docente revocados.`);
         setDeletingApp(null);
-        loadApplications();
+        invalidate();
       }
     } finally {
       setIsDeleting(false);
@@ -206,7 +203,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
 
         <button
           type="button"
-          onClick={loadApplications}
+          onClick={() => refetch()}
           disabled={isLoading}
           className="px-3 py-1.5 rounded-xl bg-canvas border border-border-default hover:text-white text-slate-muted text-xs font-mono flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
         >

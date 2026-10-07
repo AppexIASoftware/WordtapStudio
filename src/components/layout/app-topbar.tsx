@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-context";
 import { useTheme } from "@/hooks/use-theme";
 import { Search, Menu, Smartphone, Sun, Moon } from "lucide-react";
@@ -14,6 +15,7 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
   const { isDark, toggleTheme } = useTheme();
   const isModerator = currentRole === "moderator";
   const isAdmin = currentRole === "admin";
+  const pathname = usePathname();
 
   return (
     <header className="h-14 bg-card/80 backdrop-blur border-b border-border-default flex items-center justify-between px-3 md:px-6 z-20 flex-shrink-0 gap-2">
@@ -82,22 +84,24 @@ export function AppTopbar({ onToggleMobile }: AppTopbarProps) {
         <div className="h-4 w-px bg-border-default hidden sm:block" />
 
         {/* Acceso rápido a simulador móvil */}
-        <Link
-          href={isModerator ? "/moderator/courses" : "/teacher/builder"}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border text-xs font-semibold transition-colors shadow-sm cursor-pointer ${
-            isModerator
-              ? "border-blue-500/40 text-blue-300 hover:bg-blue-500/10"
-              : "border-emerald-brand/40 text-emerald-brand hover:bg-emerald-brand/10"
-          }`}
-          title="Abrir Simulador de Playtest Móvil"
-        >
-          <Smartphone
-            className={`w-3.5 h-3.5 ${
-              isModerator ? "text-blue-400" : "text-emerald-brand"
+        {!pathname?.startsWith("/moderator/courses") && (
+          <Link
+            href={isModerator ? "/moderator/courses" : "/teacher/builder"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border text-xs font-semibold transition-colors shadow-sm cursor-pointer ${
+              isModerator
+                ? "border-blue-500/40 text-blue-300 hover:bg-blue-500/10"
+                : "border-emerald-brand/40 text-emerald-brand hover:bg-emerald-brand/10"
             }`}
-          />
-          <span className="hidden md:inline">Playtest Móvil</span>
-        </Link>
+            title="Abrir Simulador de Playtest Móvil"
+          >
+            <Smartphone
+              className={`w-3.5 h-3.5 ${
+                isModerator ? "text-blue-400" : "text-emerald-brand"
+              }`}
+            />
+            <span className="hidden md:inline">Playtest Móvil</span>
+          </Link>
+        )}
 
         {/* Theme toggle */}
         <button

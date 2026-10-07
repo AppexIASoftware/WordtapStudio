@@ -102,7 +102,7 @@ export function ModeratorDashboard() {
               <h3 className="text-sm font-bold text-white">Solicitudes de Aprobación Pendientes</h3>
             </div>
             <Link
-              href="/approvals"
+              href="/moderator/approvals"
               className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1 transition-colors"
             >
               <span>Ver cola completa</span>
@@ -130,7 +130,7 @@ export function ModeratorDashboard() {
 
               <div className="flex items-center gap-2">
                 <Link
-                  href="/approvals"
+                  href="/moderator/approvals"
                   className="px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition-colors shadow-sm"
                 >
                   Auditar Diff
@@ -157,7 +157,7 @@ export function ModeratorDashboard() {
 
               <div className="flex items-center gap-2">
                 <Link
-                  href="/approvals"
+                  href="/moderator/approvals"
                   className="px-3 py-1.5 rounded-xl bg-card border border-border-default text-slate-300 hover:text-white font-medium text-xs transition-colors"
                 >
                   Reclamar

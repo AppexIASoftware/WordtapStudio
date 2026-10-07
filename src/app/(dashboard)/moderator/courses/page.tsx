@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { ModeratorCoursesView } from "@/features/moderator-dashboard/views/moderator-courses-view";
 
@@ -7,5 +8,15 @@ export const metadata: Metadata = {
 };
 
 export default function ModeratorCoursesPage() {
-  return <ModeratorCoursesView />;
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs font-mono text-slate-muted">
+          Cargando supervisión curricular...
+        </div>
+      }
+    >
+      <ModeratorCoursesView />
+    </Suspense>
+  );
 }

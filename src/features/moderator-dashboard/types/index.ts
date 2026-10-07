@@ -11,6 +11,8 @@ export interface ModeratorKPI {
 
 export interface ModeratorPR {
   id: string;
+  originalId?: string;
+  courseId?: string;
   title: string;
   author: string;
   authorEmail: string;
@@ -19,7 +21,7 @@ export interface ModeratorPR {
   waitHours: string;
   changesCount: string;
   reviewer: string;
-  status: "open" | "in_review" | "approved" | "changes_requested";
+  status: "open" | "in_review" | "approved" | "changes_requested" | "rejected";
   statusLabel: string;
   summary: string;
   feedback?: string;

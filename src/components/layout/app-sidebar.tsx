@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Layers,
   Database,
+  Boxes,
   Gamepad2,
   Users,
   Flame,
@@ -19,6 +20,7 @@ import {
   AlertTriangle,
   Activity,
   CreditCard,
+  CheckCircle2,
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -114,8 +116,6 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                 <span className="text-[10px] text-slate-subtle font-mono">
                   {isModerator
                     ? "Consola de Moderación"
-                    : isAdmin
-                    ? "Consola de Gobernanza"
                     : "CMS & Portal Docente"}
                 </span>
               </div>
@@ -177,9 +177,6 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                       <GitPullRequest className="w-4 h-4" />
                       <span>Cola de Revisiones (PRs)</span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-bold font-mono">
-                      Diff #108
-                    </span>
                   </Link>
 
                   <Link href="/moderator" className={getLinkClasses("/moderator")}>
@@ -238,8 +235,9 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
               </div>
             </>
           ) : isAdmin ? (
-            /* Admin space */
+            /* Admin space - Sincronizado con Sidebar de Studio */
             <>
+              {/* 1. SUPERVISIÓN GLOBAL */}
               <div>
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-purple-400 mb-1.5 font-mono">
                   Supervisión Global (Admin)
@@ -253,10 +251,32 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   </Link>
                 </nav>
               </div>
-
+              {/* 2. CENTRO DE MODERACIÓN */}
+              <div>
+                <div className="flex items-center justify-between px-3 mb-1.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-subtle font-mono">
+                    Centro de Moderación
+                  </span>
+                  <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-mono font-bold">
+                    2 Pendientes
+                  </span>
+                </div>
+                <nav className="space-y-0.5">
+                  <Link href="/approvals" className={getLinkClasses("/approvals")}>
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 className="w-4 h-4 text-purple-400" />
+                      <span>Aprobación de Cursos</span>
+                    </div>
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-bold font-mono">
+                      Diff #108
+                    </span>
+                  </Link>
+                </nav>
+              </div>
+              {/* 3. GOBERNANZA & SEGURIDAD */}
               <div>
                 <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-                  Gobernanza & Operaciones
+                  Gobernanza & Seguridad
                 </p>
                 <nav className="space-y-0.5">
                   <Link href="/roles" className={getLinkClasses("/roles")}>
@@ -264,20 +284,61 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                       <Shield className="w-4 h-4" />
                       <span>Roles & Permisos (RBAC)</span>
                     </div>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
+                      Total
+                    </span>
                   </Link>
-
                   <Link href="/audit" className={getLinkClasses("/audit")}>
                     <div className="flex items-center gap-3">
                       <Activity className="w-4 h-4" />
-                      <span>Log de Auditoría</span>
+                      <span>Auditoría & Trazabilidad</span>
                     </div>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
+                      Logs Live
+                    </span>
                   </Link>
-
+                </nav>
+              </div>
+              {/* 4. MONETIZACIÓN & PAGOS */}
+              <div>
+                <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+                  Monetización & Pagos
+                </p>
+                <nav className="space-y-0.5">
                   <Link href="/monetization" className={getLinkClasses("/monetization")}>
                     <div className="flex items-center gap-3">
                       <CreditCard className="w-4 h-4" />
-                      <span>Monetización & Split</span>
+                      <span>Marketplace & Stripe</span>
                     </div>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand font-bold">
+                      25% / 75%
+                    </span>
+                  </Link>
+                </nav>
+              </div>
+              {/* 5. CATÁLOGO GLOBAL */}
+              <div>
+                <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+                  Catálogo Global
+                </p>
+                <nav className="space-y-0.5">
+                  <Link href="/vault" className={getLinkClasses("/vault")}>
+                    <div className="flex items-center gap-3">
+                      <Boxes className="w-4 h-4" />
+                      <span>Content Vault Maestro</span>
+                    </div>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">
+                      Global
+                    </span>
+                  </Link>
+                  <Link href="/moderator/courses" className={getLinkClasses("/moderator/courses")}>
+                    <div className="flex items-center gap-3">
+                      <Layers className="w-4 h-4" />
+                      <span>Todos los Cursos</span>
+                    </div>
+                    <span className="text-[9px] font-mono text-slate-subtle font-bold">
+                      Supervisar
+                    </span>
                   </Link>
                 </nav>
               </div>
@@ -377,9 +438,6 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                       <GitPullRequest className="w-4 h-4" />
                       <span>Mis Solicitudes (PRs)</span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-brand/20 text-amber-brand font-bold font-mono">
-                      1
-                    </span>
                   </Link>
                 </nav>
               </div>

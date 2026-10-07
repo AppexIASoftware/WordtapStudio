@@ -200,16 +200,11 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     )}
                   </Link>
 
-                  <Link href="/approvals" className={navItemClass("/approvals")}>
+                  <Link href="/teacher/approvals" className={navItemClass("/teacher/approvals")}>
                     <div className="flex items-center gap-3">
                       <GitPullRequest size={18} />
                       {!collapsed && <span>Mis Solicitudes (PRs)</span>}
                     </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
-                        1
-                      </span>
-                    )}
                   </Link>
                 </nav>
               </div>
@@ -226,16 +221,11 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/approvals" className={navItemClass("/approvals")}>
+                  <Link href="/moderator/approvals" className={navItemClass("/moderator/approvals")}>
                     <div className="flex items-center gap-3">
                       <CheckCircle2 size={18} />
                       {!collapsed && <span>Cola de Moderación</span>}
                     </div>
-                    {!collapsed && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/30 text-amber-300 font-bold font-mono">
-                        Diff #108
-                      </span>
-                    )}
                   </Link>
 
                   <Link href="/dashboard" className={navItemClass("/dashboard")}>

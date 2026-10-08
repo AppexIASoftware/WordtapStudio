@@ -56,8 +56,9 @@ interface CourseBuilderWorkspaceProps {
   onSelectStep: (step: LessonItem) => void;
   onStepFormChange: (updater: (previous: LessonItem) => LessonItem) => void;
   onSaveStep: () => void;
+  isSavingStep?: boolean;
   onDeleteStep: (id: string) => void;
-  onAddCard: (item: Omit<LessonItem, "id">) => void;
+  onAddCard: (item: Omit<LessonItem, "id">, contentBankItemId?: string) => void;
   onSpeak: (text: string) => void;
   onSubmitReview: (summary?: string) => Promise<void> | void;
   onSaveCourse: (course: { title: string; level: string; price: number }) => Promise<void>;
@@ -234,7 +235,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   </div>
                 )
               )}
-              {activeCanvasTab === "cards" && <CardsTab currentLesson={currentLesson} currentStepId={currentStepId} stepForm={stepForm} onSelectStep={props.onSelectStep} onStepFormChange={props.onStepFormChange} onSaveStep={props.onSaveStep} onDeleteStep={props.onDeleteStep} onOpenAddStepModal={() => props.onOpenModal("addStep")} onSpeak={props.onSpeak} />}
+              {activeCanvasTab === "cards" && <CardsTab currentLesson={currentLesson} currentStepId={currentStepId} stepForm={stepForm} isSavingStep={props.isSavingStep} onSelectStep={props.onSelectStep} onStepFormChange={props.onStepFormChange} onSaveStep={props.onSaveStep} onDeleteStep={props.onDeleteStep} onAddCard={props.onAddCard} onOpenAddStepModal={() => props.onOpenModal("addStep")} onSpeak={props.onSpeak} />}
               {activeCanvasTab === "games" && <GamesTab onTestGames={() => props.onSetSimScreen("game")} />}
               {activeCanvasTab === "preview" && (
                 <SimulatorTab

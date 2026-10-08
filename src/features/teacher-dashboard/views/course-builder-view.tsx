@@ -42,6 +42,7 @@ export function CourseBuilderView() {
         onSelectStep={b.handleStepSelect}
         onStepFormChange={b.setStepForm}
         onSaveStep={b.handleSaveStep}
+        isSavingStep={b.isSavingStep}
         onDeleteStep={b.handleDeleteStep}
         onAddCard={b.handleAddCard}
         onSpeak={b.speak}

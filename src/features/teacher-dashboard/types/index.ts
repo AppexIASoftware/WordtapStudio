@@ -32,6 +32,7 @@ export interface CoursePipelineItem {
 
 export interface LessonItem {
   id: string;
+  contentBankItemId?: string | null;
   en: string;
   es: string;
   ipa?: string;

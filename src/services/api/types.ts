@@ -112,12 +112,16 @@ export interface ApiPhrase {
 export interface ApiLessonItem {
   id: string;
   lesson_id: string;
+  vocabulary_item_id?: string | null;
+  phrase_id?: string | null;
+  content_bank_item_id?: string | null;
   item_type: "word" | "phrase" | "grammar" | "tip" | "exercise";
   content_text?: string | null;
   sort_order: number;
   is_required: boolean;
   vocabulary_item?: ApiVocabularyItem | null;
   phrase?: ApiPhrase | null;
+  content_bank_item?: ApiVaultItem | null;
 }
 
 export interface ApiLesson {
@@ -151,8 +155,67 @@ export interface UpdateLessonPayload {
 
 export interface SaveLessonItemPayload {
   id?: string;
+  content_bank_item_id?: string;
   item_type?: "word" | "phrase" | "grammar" | "tip" | "exercise";
   content_text?: string;
   sort_order?: number;
   is_required?: boolean;
+}
+
+export interface ApiVaultType {
+  slug: string;
+  display_name: string;
+  color_theme: string;
+  description?: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ApiVaultItem {
+  id: string;
+  bank_type: string;
+  category_id?: string | null;
+  source_lang: string;
+  target_lang: string;
+  prompt_text: string;
+  target_text: string;
+  ipa?: string | null;
+  cefr_level: string;
+  difficulty: number;
+  audio_url?: string | null;
+  explanation?: string | null;
+  metadata: string;
+  status: "draft" | "published" | "archived";
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+  bank_type_ref?: ApiVaultType | null;
+}
+
+export interface VaultItemsResponse {
+  items: ApiVaultItem[];
+  total: number;
+}
+
+export interface CreateVaultItemPayload {
+  bank_type: string;
+  prompt_text: string;
+  target_text: string;
+  ipa?: string;
+  cefr_level?: string;
+  difficulty?: number;
+  audio_url?: string;
+  explanation?: string;
+  metadata?: string;
+}
+
+export interface UpdateVaultItemPayload {
+  prompt_text?: string;
+  target_text?: string;
+  ipa?: string;
+  cefr_level?: string;
+  difficulty?: number;
+  audio_url?: string;
+  explanation?: string;
+  metadata?: string;
 }

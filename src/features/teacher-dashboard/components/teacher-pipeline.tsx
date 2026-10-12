@@ -6,11 +6,8 @@ import { Layers, Plus, Loader2, Award, Clock, AlertTriangle, RefreshCw } from "l
 import {
   getTeacherCoursesApi,
   getTeacherCourseReviewsApi,
-  getSyncedReviews,
-  subscribeSyncedReviews,
   ApiCourse,
 } from "@/services/api";
-import { COURSE_PIPELINE } from "../data/mock-courses";
 import { NewCourseModal } from "./new-course-modal";
 
 interface TeacherPipelineProps {
@@ -28,56 +25,33 @@ export function TeacherPipeline({ onNewCourse }: TeacherPipelineProps) {
 
   const fetchPipeline = useCallback(async () => {
     setLoading(true);
-    const [res, reviewsRes] = await Promise.all([
-      getTeacherCoursesApi(),
-      getTeacherCourseReviewsApi(),
-    ]);
-    const synced = getSyncedReviews();
+    try {
+      const [res, reviewsRes] = await Promise.all([
+        getTeacherCoursesApi(),
+        getTeacherCourseReviewsApi(),
+      ]);
 
-    if (res.data && res.data.length > 0) {
-      const items: PipelineCourseItem[] = res.data.map((c) => {
-        const rev = reviewsRes.data?.find((r) => r.course_id === c.id);
-        const syncRev = synced.find((s) => s.courseId === c.id || s.originalId === c.id);
-        return {
-          ...c,
-          reviewStatus: rev?.status || syncRev?.status,
-        };
-      });
-      setCourses(items);
-    } else {
-      const fallback: PipelineCourseItem[] = COURSE_PIPELINE.map((p) => {
-        const syncRev = synced.find((s) => s.courseId === p.id || s.originalId === p.id);
-        return {
-          id: p.id,
-          title: p.title,
-          slug: p.id,
-          level: p.subtitle.split("•")[0]?.trim() || "A1",
-          status:
-            p.badge === "Publicado" || p.badge === "Activo" || p.badge === "Aprobado & Verificado"
-              ? "published"
-              : p.badge === "En Revisión" || p.badge === "Revisar"
-              ? "in_review"
-              : "draft",
-          reviewStatus: syncRev?.status,
-          access_tier: "free",
-          sort_order: 0,
-          source_lang: "es",
-          target_lang: "en",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-      });
-      setCourses(fallback);
+      if (res.data && res.data.length > 0) {
+        const items: PipelineCourseItem[] = res.data.map((c) => {
+          const rev = reviewsRes.data?.find((r) => r.course_id === c.id);
+          return {
+            ...c,
+            reviewStatus: rev?.status,
+          };
+        });
+        setCourses(items);
+      } else {
+        setCourses([]);
+      }
+    } catch {
+      setCourses([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchPipeline();
-    const unsub = subscribeSyncedReviews(() => {
-      fetchPipeline();
-    });
-    return unsub;
   }, [fetchPipeline]);
 
   const getStatusBadge = (course: PipelineCourseItem) => {
@@ -177,12 +151,23 @@ export function TeacherPipeline({ onNewCourse }: TeacherPipelineProps) {
             );
           })
         ) : (
-          <div className="py-6 px-4 rounded-xl bg-canvas border border-border-default text-center space-y-3">
-            <p className="text-xs text-slate-muted">No tienes cursos creados en el pipeline.</p>
+          <div className="py-8 px-4 rounded-xl bg-canvas border border-border-default text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-card border border-border-default flex items-center justify-center mx-auto text-slate-400">
+              <Layers className="w-5 h-5 text-emerald-brand" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-200">No tienes cursos creados</p>
+              <p className="text-[11px] text-slate-muted mt-0.5">
+                Crea lecciones interactivas para comenzar a publicar contenido.
+              </p>
+            </div>
             <button
               type="button"
-              onClick={() => setShowModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              onClick={() => {
+                if (onNewCourse) onNewCourse();
+                else setShowModal(true);
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors cursor-pointer inline-flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Crear mi primer curso</span>
@@ -197,7 +182,7 @@ export function TeacherPipeline({ onNewCourse }: TeacherPipelineProps) {
           className="text-slate-muted hover:text-emerald-brand transition-colors text-[11px] font-medium flex items-center gap-1"
         >
           <Layers className="w-3.5 h-3.5" />
-          <span>Ver estado de aprobaciones (PRs)</span>
+          <span>Ver centro de revisiones</span>
         </Link>
         <button
           type="button"

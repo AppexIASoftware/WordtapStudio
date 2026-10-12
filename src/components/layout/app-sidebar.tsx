@@ -268,7 +268,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                       <span>Aprobación de Cursos</span>
                     </div>
                     <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-bold font-mono">
-                      Diff #108
+                      Pendientes
                     </span>
                   </Link>
                 </nav>
@@ -282,7 +282,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   <Link href="/roles" className={getLinkClasses("/roles")}>
                     <div className="flex items-center gap-3">
                       <Shield className="w-4 h-4" />
-                      <span>Roles & Permisos (RBAC)</span>
+                      <span>Roles & Permisos</span>
                     </div>
                     <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
                       Total
@@ -294,7 +294,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                       <span>Auditoría & Trazabilidad</span>
                     </div>
                     <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-                      Logs Live
+                      En vivo
                     </span>
                   </Link>
                 </nav>
@@ -311,7 +311,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                       <span>Marketplace & Stripe</span>
                     </div>
                     <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand font-bold">
-                      25% / 75%
+                      70 / 30
                     </span>
                   </Link>
                 </nav>

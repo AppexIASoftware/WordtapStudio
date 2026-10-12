@@ -197,7 +197,7 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
       {
         key: "monetization:custom_course_price",
         name: "Fijar precio en cursos propios ($4.99 a $99.99)",
-        desc: "Definición de precio standalone y desglose 70/30 hacia cuenta Stripe Connect (ADR-05b).",
+        desc: "Definición de precio standalone y desglose hacia cuenta conectada.",
         student: { val: false, locked: true },
         instructor: { val: true, locked: false },
         moderator: { val: false, locked: true },

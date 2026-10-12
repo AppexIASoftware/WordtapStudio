@@ -321,14 +321,14 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     </div>
                     {!collapsed && (
                       <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-bold font-mono">
-                        Diff #108
+                        Pendientes
                       </span>
                     )}
                   </Link>
                 </nav>
               </div>
 
-              {/* 3. GOBERNANZA & RBAC */}
+              {/* 3. GOBERNANZA & SEGURIDAD */}
               <div>
                 {!collapsed && (
                   <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
@@ -339,7 +339,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   <Link href="/roles" className={navItemAdminClass("/roles")}>
                     <div className="flex items-center gap-3">
                       <Shield size={18} />
-                      {!collapsed && <span>Roles & Permisos (RBAC)</span>}
+                      {!collapsed && <span>Roles & Permisos</span>}
                     </div>
                     {!collapsed && (
                       <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
@@ -355,7 +355,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     </div>
                     {!collapsed && (
                       <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-                        Logs Live
+                        En vivo
                       </span>
                     )}
                   </Link>
@@ -377,7 +377,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     </div>
                     {!collapsed && (
                       <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand font-bold">
-                        25% / 75%
+                        70 / 30
                       </span>
                     )}
                   </Link>

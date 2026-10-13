@@ -209,6 +209,14 @@ export const COURSES_DATA: Record<string, Course> = {
   },
 };
 
-// Aliases for legacy mock references
-COURSES_DATA["c-1"] = COURSES_DATA["course-a1-basic"];
-COURSES_DATA["c-2"] = COURSES_DATA["course-b1-travel"];
+// Unique list of mock courses for clean mapping without duplicates
+export const MOCK_COURSES_LIST: Course[] = [
+  COURSES_DATA["course-a1-basic"],
+  COURSES_DATA["course-b2-business"],
+  COURSES_DATA["course-b1-travel"],
+  COURSES_DATA["course-med-c1"],
+];
+
+// Aliases for legacy mock references with unique ids to prevent duplicate key collisions
+COURSES_DATA["c-1"] = { ...COURSES_DATA["course-a1-basic"], id: "c-1" };
+COURSES_DATA["c-2"] = { ...COURSES_DATA["course-b1-travel"], id: "c-2" };

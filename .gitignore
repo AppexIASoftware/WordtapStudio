@@ -42,3 +42,6 @@ next-env.d.ts
 
 # codegraph
 .codegraph/
+
+# antigravity / tooling
+.atl/

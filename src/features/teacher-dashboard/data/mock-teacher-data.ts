@@ -112,7 +112,7 @@ export const HEATMAP_TERMS: HeatmapItem[] = [
   },
 ];
 
-export { COURSE_PIPELINE, COURSES_DATA } from "./mock-courses";
+export { COURSE_PIPELINE, COURSES_DATA, MOCK_COURSES_LIST } from "./mock-courses";
 
 export const GAMES_DATA: GameModeItem[] = [
   {

@@ -218,7 +218,7 @@ export function ModeratorVaultView() {
       {isLoading ? (
         <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-muted bg-canvas rounded-2xl border border-border-default">
           <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
-          <span className="text-xs font-mono">Cargando catálogo oficial desde MySQL...</span>
+          <span className="text-xs font-mono">Cargando catálogo oficial...</span>
         </div>
       ) : items.length === 0 ? (
         <div className="p-12 text-center bg-canvas rounded-2xl border border-border-default space-y-2">

@@ -219,3 +219,18 @@ export interface UpdateVaultItemPayload {
   explanation?: string;
   metadata?: string;
 }
+
+export interface CreateClassroomPayload {
+  name: string;
+  level?: string;
+  course_id?: string;
+  course_ids?: string[];
+  game_ids?: string[];
+  weekly_goal_words?: number;
+  description?: string;
+}
+
+export interface JoinClassroomPayload {
+  code: string;
+}
+

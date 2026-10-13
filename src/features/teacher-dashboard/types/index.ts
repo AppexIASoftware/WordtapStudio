@@ -69,6 +69,7 @@ export interface Course {
   feedbackNotes?: string;
   reviewerName?: string;
   lessons: Lesson[];
+  isDemo?: boolean;
 }
 
 export interface GameModeItem {
@@ -139,6 +140,7 @@ export interface StumbleItem {
   term: string;
   failRate: string;
   desc: string;
+  isDemo?: boolean;
 }
 
 export interface Classroom {
@@ -147,6 +149,9 @@ export interface Classroom {
   code: string;
   courseId: string;
   courseTitle: string;
+  assignedCourses?: string[];
+  activeGames?: string[];
+  weeklyGoalWords?: number;
   level: string;
   created: string;
   studentsCount: number;
@@ -158,6 +163,7 @@ export interface Classroom {
   };
   stumble: StumbleItem[];
   students: ClassroomStudent[];
+  isDemo?: boolean;
 }
 
 export interface GlobalStudent {
@@ -174,6 +180,7 @@ export interface GlobalStudent {
   progress: number;
   payStatus: "subscription" | "trial" | "free" | "course_purchased";
   payLabel: string;
+  isDemo?: boolean;
 }
 
 export interface ApprovalRequest {

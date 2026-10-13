@@ -6,3 +6,4 @@ export * from "./courses";
 export * from "./lessons";
 export * from "./review-sync";
 export * from "./vault";
+export * from "./classroom";

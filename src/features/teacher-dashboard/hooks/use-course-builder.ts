@@ -28,11 +28,11 @@ import { useBuilderSimulation } from "./use-builder-simulation";
 import { useCardEditor } from "./use-card-editor";
 import { useCourseCrud } from "./use-course-crud";
 
-export function useCourseBuilder() {
+export function useCourseBuilder(initialCourseId?: string) {
   const { user } = useAuth();
   const [courses, setCourses] = useState<Record<string, Course>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [currentCourseId, setCurrentCourseId] = useState("");
+  const [currentCourseId, setCurrentCourseId] = useState(initialCourseId || "");
   const currentCourse = courses[currentCourseId] || Object.values(courses)[0] || null;
 
   const [currentLessonId, setCurrentLessonId] = useState("");
@@ -112,7 +112,7 @@ export function useCourseBuilder() {
       setCurrentCourseId((prev) => {
         if (prev && mapped[prev]) return prev;
         const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-        const reqId = urlParams?.get("courseId");
+        const reqId = initialCourseId || urlParams?.get("courseId");
         const nextId = reqId && mapped[reqId] ? reqId : res.data![0].id;
         const activeLessons = mapped[nextId]?.lessons;
         syncSelectedLesson(activeLessons?.[0] || null);
@@ -134,7 +134,7 @@ export function useCourseBuilder() {
       setCurrentCourseId((prev) => {
         if (prev && fallback[prev]) return prev;
         const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-        const reqId = urlParams?.get("courseId");
+        const reqId = initialCourseId || urlParams?.get("courseId");
         const nextId = reqId && fallback[reqId] ? reqId : Object.keys(fallback)[0] || "";
         const activeLessons = fallback[nextId]?.lessons;
         syncSelectedLesson(activeLessons?.[0] || null);
@@ -172,6 +172,12 @@ export function useCourseBuilder() {
       triggerToast(`Curso activo: ${target.title}`);
     }
   };
+
+  useEffect(() => {
+    if (initialCourseId && courses[initialCourseId] && initialCourseId !== currentCourseId) {
+      handleSelectCourse(initialCourseId);
+    }
+  }, [initialCourseId, courses]);
 
   const handleSelectLesson = (lesson: Lesson) => {
     syncSelectedLesson(lesson);

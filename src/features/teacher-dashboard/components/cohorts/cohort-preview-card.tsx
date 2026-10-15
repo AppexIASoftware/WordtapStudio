@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Copy, Share2 } from "lucide-react";
+import { Sparkles, Copy, Share2, Pencil } from "lucide-react";
 
 interface CohortPreviewCardProps {
   name: string;
@@ -13,6 +13,10 @@ interface CohortPreviewCardProps {
   isSubmitting: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onCancel?: () => void;
+  isViewOnly?: boolean;
+  onEnableEdit?: () => void;
+  submitLabel?: string;
+  cancelLabel?: string;
 }
 
 export function CohortPreviewCard({
@@ -26,6 +30,10 @@ export function CohortPreviewCard({
   isSubmitting,
   onSubmit,
   onCancel,
+  isViewOnly,
+  onEnableEdit,
+  submitLabel,
+  cancelLabel,
 }: CohortPreviewCardProps) {
   return (
     <div className="p-5 rounded-2xl bg-card border border-emerald-brand/40 shadow-xl space-y-4">
@@ -93,15 +101,30 @@ export function CohortPreviewCard({
       </div>
 
       <div className="space-y-2">
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={isSubmitting}
-          className="w-full py-3 rounded-xl bg-emerald-brand hover:bg-mint-brand text-canvas font-bold text-xs flex items-center justify-center gap-2 shadow-glow-emerald transition-colors cursor-pointer"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{isSubmitting ? "Guardando..." : "Confirmar y Crear Aula"}</span>
-        </button>
+        {isViewOnly ? (
+          <button
+            type="button"
+            onClick={onEnableEdit}
+            className="w-full py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-canvas font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            <span>Habilitar Edición</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl bg-emerald-brand hover:bg-mint-brand text-canvas font-bold text-xs flex items-center justify-center gap-2 shadow-glow-emerald transition-colors cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>
+              {isSubmitting
+                ? "Guardando..."
+                : submitLabel || "Confirmar y Crear Aula"}
+            </span>
+          </button>
+        )}
         {onCancel && (
           <button
             type="button"
@@ -109,7 +132,7 @@ export function CohortPreviewCard({
             disabled={isSubmitting}
             className="w-full py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white font-semibold text-xs transition-colors cursor-pointer"
           >
-            Cancelar
+            {cancelLabel || (isViewOnly ? "Volver a Aulas" : "Cancelar")}
           </button>
         )}
       </div>

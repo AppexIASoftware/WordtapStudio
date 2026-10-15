@@ -137,7 +137,7 @@ export function CohortCoursesTab({
               <div className="pt-2 border-t border-border-default/80 flex items-center justify-between text-xs">
                 <span className="text-[10px] font-mono text-slate-400">Contenido activo</span>
                 <Link
-                  href="/teacher/builder"
+                  href={`/teacher/builder?courseId=${course.id}`}
                   className="px-2.5 py-1 rounded-lg bg-emerald-brand/10 border border-emerald-brand/30 text-emerald-brand hover:bg-emerald-brand hover:text-canvas text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
                 >
                   <span>Gestionar en Creador</span>

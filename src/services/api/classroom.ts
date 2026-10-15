@@ -1,5 +1,5 @@
 import { API_V1_URL, apiRequest } from "./client";
-import { CreateClassroomPayload, JoinClassroomPayload } from "./types";
+import { CreateClassroomPayload, UpdateClassroomPayload, JoinClassroomPayload } from "./types";
 import { Classroom, StumbleItem } from "@/features/teacher-dashboard/types";
 
 function unwrapResponse<T>(res: { data: T | { data: T } | null; error: string | null }): { data: T | null; error: string | null } {
@@ -27,6 +27,21 @@ export async function createClassroomApi(payload: CreateClassroomPayload): Promi
 }> {
   const res = await apiRequest<Classroom>(`${API_V1_URL}/teacher/classrooms`, {
     method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return unwrapResponse(res);
+}
+
+// PUT /api/v1/teacher/classrooms/:id
+export async function updateClassroomApi(
+  id: string,
+  payload: UpdateClassroomPayload
+): Promise<{
+  data: Classroom | null;
+  error: string | null;
+}> {
+  const res = await apiRequest<Classroom>(`${API_V1_URL}/teacher/classrooms/${id}`, {
+    method: "PUT",
     body: JSON.stringify(payload),
   });
   return unwrapResponse(res);

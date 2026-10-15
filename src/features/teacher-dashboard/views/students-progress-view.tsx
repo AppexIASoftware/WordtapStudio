@@ -22,11 +22,15 @@ export function StudentsProgressView() {
   const pathname = usePathname();
 
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
-  const [isLiveApi, setIsLiveApi] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "create">(
-    searchParams.get("view") === "create" ? "create" : "list"
+  const [viewMode, setViewMode] = useState<"list" | "create" | "detail">(
+    searchParams.get("view") === "create"
+      ? "create"
+      : searchParams.get("view") === "detail"
+      ? "detail"
+      : "list"
   );
+  const [detailClassroom, setDetailClassroom] = useState<Classroom | null>(null);
   const [mainTab, setMainTab] = useState<"cohorts" | "global">("cohorts");
   const [cohortSubTab, setCohortSubTab] = useState<"students" | "courses" | "games">("students");
   const [cohortFilter, setCohortFilter] = useState<
@@ -38,14 +42,26 @@ export function StudentsProgressView() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (searchParams.get("view") === "create") {
+    const view = searchParams.get("view");
+    if (view === "create") {
+      setDetailClassroom(null);
       setViewMode("create");
+    } else if (view === "detail") {
+      const classId = searchParams.get("classId");
+      if (classId) {
+        const found = classrooms.find((c) => c.id === classId);
+        if (found) {
+          setDetailClassroom(found);
+        }
+      }
+      setViewMode("detail");
     } else {
       setViewMode("list");
     }
-  }, [searchParams]);
+  }, [searchParams, classrooms]);
 
   const handleOpenCreate = () => {
+    setDetailClassroom(null);
     setViewMode("create");
     const params = new URLSearchParams(searchParams.toString());
     params.set("view", "create");
@@ -53,10 +69,23 @@ export function StudentsProgressView() {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handleCloseCreate = () => {
+  const handleOpenDetail = (cls: Classroom) => {
+    setSelectedClassId(cls.id);
+    setDetailClassroom(cls);
+    setViewMode("detail");
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", "detail");
+    params.set("classId", cls.id);
+    params.set("tab", "general");
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleCloseWorkspace = () => {
+    setDetailClassroom(null);
     setViewMode("list");
     const params = new URLSearchParams(searchParams.toString());
     params.delete("view");
+    params.delete("classId");
     params.delete("tab");
     params.delete("step");
     router.push(`${pathname}?${params.toString()}`);
@@ -76,20 +105,17 @@ export function StudentsProgressView() {
           }));
           setClassrooms(liveData);
           setSelectedClassId(liveData[0].id);
-          setIsLiveApi(true);
         } else {
           // El demo SOLO se muestra si NO hay información pedida por la API de la DB
           const demoData = CLASSROOMS_DATA.map((c) => ({ ...c, isDemo: true }));
           setClassrooms(demoData);
           setSelectedClassId(demoData[0].id);
-          setIsLiveApi(false);
         }
       } catch {
         // En caso de fallo o desconexión del backend
         const demoData = CLASSROOMS_DATA.map((c) => ({ ...c, isDemo: true }));
         setClassrooms(demoData);
         setSelectedClassId(demoData[0].id);
-        setIsLiveApi(false);
       }
     }
     loadClassrooms();
@@ -159,12 +185,14 @@ export function StudentsProgressView() {
     return true;
   });
 
-  if (viewMode === "create") {
+  if (viewMode === "create" || viewMode === "detail") {
     return (
       <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
         <ToastNotification message={toastMessage} variant="emerald" />
         <CohortCreationWorkspace
-          onCancel={handleCloseCreate}
+          initialClassroom={viewMode === "detail" ? detailClassroom : null}
+          initialMode={viewMode === "detail" ? "view" : "create"}
+          onCancel={handleCloseWorkspace}
           onClassroomCreated={(newCls) => {
             setClassrooms((prev) => {
               // Si la lista contenía aulas demo por estar la DB vacía, eliminarlas por completo
@@ -172,10 +200,14 @@ export function StudentsProgressView() {
               return [newCls, ...realClassrooms];
             });
             setSelectedClassId(newCls.id);
-            if (!newCls.isDemo) {
-              setIsLiveApi(true);
-            }
-            handleCloseCreate();
+            handleCloseWorkspace();
+          }}
+          onClassroomUpdated={(updatedCls) => {
+            setClassrooms((prev) =>
+              prev.map((c) => (c.id === updatedCls.id ? updatedCls : c))
+            );
+            setDetailClassroom(updatedCls);
+            triggerToast(`¡Aula "${updatedCls.name}" actualizada con éxito!`);
           }}
           triggerToast={triggerToast}
         />
@@ -199,7 +231,7 @@ export function StudentsProgressView() {
             </span>
           </div>
           <p className="text-sm text-slate-muted mt-1">
-            Gestión de cohortes privadas mediante códigos de invitación y seguimiento del aprendizaje en tiempo real.
+            Gestión de cohortes privadas mediante códigos de invitación y seguimiento del aprendizaje.
           </p>
         </div>
 
@@ -260,18 +292,6 @@ export function StudentsProgressView() {
             </span>
           </button>
         </div>
-
-        <div className="hidden sm:flex items-center gap-2 text-xs font-mono">
-          <span className={`w-2 h-2 rounded-full ${isLiveApi ? "bg-emerald-brand animate-pulse" : "bg-amber-400"}`} />
-          <span className={isLiveApi ? "text-emerald-brand font-semibold" : "text-amber-300"}>
-            {isLiveApi ? "En Tiempo Real" : "Modo Demostración"}
-          </span>
-          {!isLiveApi && (
-            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              Demo
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Contenido según pestaña */}
@@ -283,6 +303,7 @@ export function StudentsProgressView() {
             onSelectClassroom={(id) => setSelectedClassId(id)}
             onCopyCode={copyCode}
             onShareWhatsApp={shareWhatsApp}
+            onOpenClassroomDetail={handleOpenDetail}
           />
 
           <CohortStumbleCards
@@ -293,7 +314,7 @@ export function StudentsProgressView() {
           />
 
           {/* Sub-Pestañas de Gestión de la Cohorte Seleccionada */}
-          <div className="flex items-center gap-2 border-b border-border-default pb-2">
+          <div id="cohort-management-tabs" className="flex items-center gap-2 border-b border-border-default pb-2">
             {[
               {
                 id: "students",

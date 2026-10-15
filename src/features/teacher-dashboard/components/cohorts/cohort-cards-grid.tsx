@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Copy, Share2, ExternalLink, Users } from "lucide-react";
+import { Copy, Share2, Users, Eye } from "lucide-react";
 import { Classroom } from "../../types";
 
 interface CohortCardsGridProps {
@@ -10,6 +9,7 @@ interface CohortCardsGridProps {
   onSelectClassroom: (id: string) => void;
   onCopyCode: (code: string) => void;
   onShareWhatsApp: (name: string, code: string) => void;
+  onOpenClassroomDetail: (classroom: Classroom) => void;
 }
 
 export function CohortCardsGrid({
@@ -18,6 +18,7 @@ export function CohortCardsGrid({
   onSelectClassroom,
   onCopyCode,
   onShareWhatsApp,
+  onOpenClassroomDetail,
 }: CohortCardsGridProps) {
   if (classrooms.length === 0) {
     return (
@@ -119,21 +120,35 @@ export function CohortCardsGrid({
             </div>
 
             {/* Curso Vinculado y Navegación Rápida */}
-            <div className="pt-2 border-t border-border-default/80 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-slate-300 truncate">
-                <span className="text-[10px] font-mono text-slate-muted uppercase">Curso:</span>
+            <div className="pt-2 border-t border-border-default/80 flex items-center justify-between text-xs gap-2">
+              <div className="flex items-center gap-1.5 text-slate-300 truncate min-w-0">
+                <span className="text-[10px] font-mono text-slate-muted uppercase flex-shrink-0">
+                  {cls.assignedCourses && cls.assignedCourses.length > 1
+                    ? `Cursos (${cls.assignedCourses.length}):`
+                    : "Curso:"}
+                </span>
                 <span className="font-bold text-white text-xs truncate">
                   {cls.courseTitle}
+                  {cls.assignedCourses && cls.assignedCourses.length > 1 && (
+                    <span className="text-emerald-brand font-mono text-[10px] ml-1">
+                      +{cls.assignedCourses.length - 1} más
+                    </span>
+                  )}
                 </span>
               </div>
-              <Link
-                href="/teacher/builder"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectClassroom(cls.id);
+                  onOpenClassroomDetail(cls);
+                }}
                 className="px-2.5 py-1 rounded-lg bg-emerald-brand/10 border border-emerald-brand/30 text-emerald-brand hover:bg-emerald-brand hover:text-canvas text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+                title="Ver detalle del aula y configuración pedagógica"
               >
-                <span>Ver Contenido</span>
-                <ExternalLink className="w-3 h-3" />
-              </Link>
+                <span>Ver Detalle de Aula</span>
+                <Eye className="w-3 h-3" />
+              </button>
             </div>
           </div>
         );

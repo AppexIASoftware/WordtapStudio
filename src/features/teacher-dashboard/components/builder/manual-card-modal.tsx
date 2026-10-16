@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileEdit, Volume2, Plus, X } from "lucide-react";
 import { LessonItem } from "../../types";
+import { useSpeak } from "@/hooks/use-speak";
 
 interface ManualCardModalProps {
   isOpen: boolean;
@@ -22,15 +23,7 @@ export function ManualCardModal({ isOpen, onClose, onAddCard }: ManualCardModalP
 
   if (!isOpen) return null;
 
-  const handleSpeak = (text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    }
-  };
+  const handleSpeak = useSpeak();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

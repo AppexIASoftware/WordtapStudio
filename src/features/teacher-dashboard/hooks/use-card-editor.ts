@@ -3,6 +3,7 @@
 import { useState, useCallback, Dispatch, SetStateAction } from "react";
 import { Course, Lesson, LessonItem } from "../types";
 import { saveLessonItemApi, deleteLessonItemApi } from "@/services/api";
+import { useSpeak } from "@/hooks/use-speak";
 
 export const createEmptyItem = (): LessonItem => ({
   id: `step-${Date.now()}`,
@@ -36,17 +37,9 @@ export function useCardEditor(
     setStepForm(createEmptyItem());
   }, []);
 
-  const speak = (text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      triggerToast("Pronunciando: " + text);
-    }
-  };
+  const speak = useSpeak({
+    onUnavailable: (text) => triggerToast("Pronunciando: " + text),
+  });
 
   const handleSaveStep = async () => {
     if (!currentLesson) {

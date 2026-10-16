@@ -3,6 +3,7 @@
 import { Volume2, Edit3, Trash2 } from "lucide-react";
 import { ApiVaultItem } from "@/services/api";
 import { VaultAccent } from "../types/vault";
+import { useSpeak } from "@/hooks/use-speak";
 
 // El acento solo cambia el color del borde al pasar el mouse y del nivel CEFR:
 // la estructura de la tarjeta es una sola para los tres roles.
@@ -16,16 +17,6 @@ const CARD_ACCENT: Record<VaultAccent, { hover: string; cefr: string }> = {
     cefr: "bg-blue-500/15 text-blue-300 border-blue-500/25",
   },
 };
-
-function speakTerm(text: string) {
-  if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US";
-    u.rate = 0.9;
-    window.speechSynthesis.speak(u);
-  }
-}
 
 interface VaultItemCardProps {
   item: ApiVaultItem;
@@ -47,6 +38,7 @@ export function VaultItemCard({
   onDelete,
 }: VaultItemCardProps) {
   const tone = CARD_ACCENT[accent];
+  const speak = useSpeak();
 
   return (
     <div
@@ -68,7 +60,7 @@ export function VaultItemCard({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => speakTerm(item.target_text)}
+            onClick={() => speak(item.target_text)}
             className="p-1.5 rounded-lg bg-canvas hover:bg-canvas-hover text-slate-400 hover:text-white cursor-pointer"
             title="Escuchar audio nativo"
           >

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { useSpeak } from "@/hooks/use-speak";
 import Link from "next/link";
 import {
   X,
@@ -129,15 +130,7 @@ export function ApprovalAuditDrawer({
     };
   }, [isOpen, activePr?.courseId]);
 
-  const speak = useCallback((text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  }, []);
+  const speak = useSpeak();
 
   const handleOpenPlaytest = (lesson: Lesson) => {
     setPlaytestLesson(lesson);

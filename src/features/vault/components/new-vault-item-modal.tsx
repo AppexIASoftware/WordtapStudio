@@ -6,6 +6,7 @@ import { CreateVaultItemPayload, ApiVaultItem } from "@/services/api";
 import { VaultDrawerConfigBar } from "./vault-drawer-config-bar";
 import { VaultPedagogicalNoteCard } from "./vault-pedagogical-note-card";
 import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea";
+import { useSpeak } from "@/hooks/use-speak";
 
 interface NewVaultItemModalProps {
   isOpen: boolean;
@@ -125,15 +126,7 @@ export function NewVaultItemModal({
       ? "Traducción o Equivalente en Español (Prompt) *"
       : "Traducción al Español (Prompt) *";
 
-  const speak = (text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    }
-  };
+  const speak = useSpeak();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

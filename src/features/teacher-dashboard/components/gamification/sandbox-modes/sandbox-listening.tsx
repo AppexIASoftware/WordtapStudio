@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSpeak } from "@/hooks/use-speak";
 import { SandboxEngineProps } from "./sandbox-types";
 import { Volume2, VolumeX, Sparkles } from "lucide-react";
 
@@ -15,21 +16,11 @@ export function SandboxListening({
 
   const currentPair = wordPairs[currentIndex] || wordPairs[0];
 
-  const playAudio = useCallback((text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.85; // velocidad pedagógica
-      utterance.onstart = () => setIsPlayingAudio(true);
-      utterance.onend = () => setIsPlayingAudio(false);
-      utterance.onerror = () => setIsPlayingAudio(false);
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      setIsPlayingAudio(false);
-    }
-  }, []);
+  const playAudio = useSpeak({
+    rate: 0.85,
+    onStart: () => setIsPlayingAudio(true),
+    onEnd: () => setIsPlayingAudio(false),
+  });
 
   // Reproducir automáticamente al cambiar de palabra
   useEffect(() => {

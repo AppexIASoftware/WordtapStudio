@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSpeak } from "@/hooks/use-speak";
 import Link from "next/link";
 import {
   Smartphone,
@@ -170,17 +171,9 @@ export function ModeratorCoursesView() {
     return currentCourse.lessons.find((l) => l.id === selectedLessonId) || currentCourse.lessons[0] || null;
   }, [currentCourse.lessons, selectedLessonId]);
 
-  const speak = useCallback((text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      triggerToast("Pronunciando: " + text);
-    }
-  }, [triggerToast]);
+  const speak = useSpeak({
+    onUnavailable: (text) => triggerToast("Pronunciando: " + text),
+  });
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden relative">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSpeak } from "@/hooks/use-speak";
 import {
   Database,
   X,
@@ -82,15 +83,7 @@ export function VaultDrawer({
   const items: ApiVaultItem[] = activeSource === "official" ? officialData || [] : privateData || [];
   const isLoading = activeSource === "official" ? loadingOfficial : loadingPrivate;
 
-  const speak = (text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    }
-  };
+  const speak = useSpeak();
 
   const handleImport = async (item: ApiVaultItem) => {
     setImportingId(item.id);

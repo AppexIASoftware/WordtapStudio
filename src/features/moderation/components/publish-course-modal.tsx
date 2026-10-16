@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Check } from "lucide-react";
-import { ModeratorPR } from "@/features/moderator-dashboard/types";
+import { ModeratorPR } from "@/features/moderation/types";;
 
 interface PublishCourseModalProps {
   isOpen: boolean;

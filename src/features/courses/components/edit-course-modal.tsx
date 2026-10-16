@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, Trash2, Edit3 } from "lucide-react";
-import { Course } from "@/features/teacher-dashboard/types";
+import { Course } from "@/features/courses/types";;
 
 interface EditCourseModalProps {
   isOpen: boolean;

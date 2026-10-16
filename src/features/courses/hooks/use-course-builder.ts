@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Course, Lesson } from "@/features/teacher-dashboard/types";
+import { Course, Lesson } from "@/features/courses/types";;
 import {
   getTeacherCoursesApi,
   getTeacherCourseReviewsApi,

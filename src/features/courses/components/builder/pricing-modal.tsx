@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DollarSign } from "lucide-react";
-import { Course } from "@/features/teacher-dashboard/types";
+import { Course } from "@/features/courses/types";;
 
 interface PricingModalProps {
   isOpen: boolean;

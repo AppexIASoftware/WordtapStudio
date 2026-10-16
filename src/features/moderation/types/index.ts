@@ -1,12 +1,20 @@
-export interface ModeratorKPI {
+export interface ApprovalRequest {
   id: string;
+  courseId?: string;
   title: string;
-  value: string;
-  subValue: string;
-  badgeText: string;
-  badgeVariant: "emerald" | "mint" | "amber" | "blue";
-  footerText: string;
-  footerDotColor: string;
+  submittedDate: string;
+  reviewer: string;
+  author: string;
+  waitHours: string;
+  changesCount: string;
+  status: "pending" | "in_review" | "approved" | "rejected" | "changes_requested";
+  statusLabel: string;
+  changes: string;
+  notes?: string;
+  diffSummary?: string;
+  changeSummary?: string;
+  isResubmission?: boolean;
+  previousNotes?: string;
 }
 
 export interface ModeratorPR {

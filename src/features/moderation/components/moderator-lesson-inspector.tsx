@@ -1,7 +1,7 @@
 "use client";
 
 import { Volume2, Sparkles, Gamepad2, Play } from "lucide-react";
-import { Lesson } from "@/features/teacher-dashboard/types";
+import { Lesson } from "@/features/courses/types";;
 
 interface ModeratorLessonInspectorProps {
   currentLesson: Lesson | null;

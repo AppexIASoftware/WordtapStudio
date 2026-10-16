@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { COURSES_DATA } from "@/features/courses/data/mock-courses";
-import { Course, Lesson } from "@/features/teacher-dashboard/types";
+import { Course, Lesson } from "@/features/courses/types";;
 import { getCourseDetailApi, getAdminCourseReviewsApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";

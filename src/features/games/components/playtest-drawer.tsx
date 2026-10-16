@@ -1,7 +1,7 @@
 "use client";
 
 import { Smartphone, X, Volume2 } from "lucide-react";
-import { Lesson } from "@/features/teacher-dashboard/types";
+import { Lesson } from "@/features/courses/types";;
 
 interface PlaytestDrawerProps {
   isOpen: boolean;

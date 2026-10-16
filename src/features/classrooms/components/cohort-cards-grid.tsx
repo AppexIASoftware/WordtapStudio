@@ -1,7 +1,7 @@
 "use client";
 
 import { Copy, Share2, Users, Eye } from "lucide-react";
-import { Classroom } from "@/features/teacher-dashboard/types";
+import { Classroom } from "@/features/classrooms/types";;
 
 interface CohortCardsGridProps {
   classrooms: Classroom[];

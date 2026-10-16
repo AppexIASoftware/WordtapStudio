@@ -1,4 +1,4 @@
-import { GameModeItem } from "@/features/teacher-dashboard/types";
+import { GameModeItem } from "@/features/games/types";;
 
 export const GAMES_DATA: GameModeItem[] = [
   {

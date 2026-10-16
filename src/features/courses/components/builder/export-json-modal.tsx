@@ -1,7 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { Course } from "@/features/teacher-dashboard/types";
+import { Course } from "@/features/courses/types";;
 
 interface ExportJsonModalProps {
   isOpen: boolean;

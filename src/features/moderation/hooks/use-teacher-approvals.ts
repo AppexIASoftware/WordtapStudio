@@ -9,7 +9,7 @@ import {
   removeSyncedReview,
   subscribeSyncedReviews,
 } from "@/services/api";
-import { ApprovalRequest } from "@/features/teacher-dashboard/types";
+import { ApprovalRequest } from "@/features/moderation/types";;
 import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
 
 function mapApiToApproval(req: ApiCourseReviewRequest): ApprovalRequest {

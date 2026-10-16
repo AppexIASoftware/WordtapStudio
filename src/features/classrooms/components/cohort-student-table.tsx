@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, UserCheck } from "lucide-react";
-import { ClassroomStudent } from "@/features/teacher-dashboard/types";
+import { ClassroomStudent } from "@/features/classrooms/types";;
 
 interface CohortStudentTableProps {
   students: ClassroomStudent[];

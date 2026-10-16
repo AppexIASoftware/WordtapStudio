@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { XCircle, AlertOctagon } from "lucide-react";
-import { ModeratorPR } from "@/features/moderator-dashboard/types";
+import { ModeratorPR } from "@/features/moderation/types";;
 
 interface RejectCourseModalProps {
   isOpen: boolean;

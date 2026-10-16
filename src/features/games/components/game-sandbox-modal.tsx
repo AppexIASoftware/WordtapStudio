@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { X, Play, RotateCcw, Heart, Trophy, Clock, CheckCircle2, AlertCircle } from "lucide-react";
-import { GameModeItem } from "@/features/teacher-dashboard/types";
+import { GameModeItem } from "@/features/games/types";;
 import { TeacherGameDTO } from "@/services/api/types";
 import {
   WordPair,

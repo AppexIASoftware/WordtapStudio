@@ -1,7 +1,7 @@
 "use client";
 
 import { Volume2, Play } from "lucide-react";
-import { Course, Lesson } from "../../types";
+import { Course, Lesson } from "@/features/teacher-dashboard/types";
 
 interface SimulatorTabProps {
   currentCourse: Course;

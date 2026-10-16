@@ -25,8 +25,8 @@ import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 import { PlaytestDrawer } from "@/features/teacher-dashboard/components/builder/playtest-drawer";
 import { Lesson } from "@/features/teacher-dashboard/types";
 import { getCourseDetailApi } from "@/services/api";
-import { mapApiLessonToLesson } from "@/features/teacher-dashboard/utils/course-mapper";
-import { COURSES_DATA } from "@/features/teacher-dashboard/data/mock-courses";
+import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
+import { COURSES_DATA } from "@/features/courses/data/mock-courses";
 
 interface ApprovalAuditDrawerProps {
   isOpen: boolean;

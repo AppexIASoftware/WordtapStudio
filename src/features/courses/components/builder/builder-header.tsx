@@ -14,7 +14,7 @@ import {
   RefreshCw,
   RotateCcw,
 } from "lucide-react";
-import { Course } from "../../types";
+import { Course } from "@/features/teacher-dashboard/types";
 
 interface BuilderHeaderProps {
   courses: Record<string, Course>;

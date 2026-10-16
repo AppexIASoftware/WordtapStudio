@@ -8,7 +8,7 @@ import {
   getTeacherCourseReviewsApi,
   ApiCourse,
 } from "@/services/api";
-import { NewCourseModal } from "./new-course-modal";
+import { NewCourseModal } from "@/features/courses/components/new-course-modal";
 
 interface TeacherPipelineProps {
   onNewCourse?: () => void;

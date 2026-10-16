@@ -1,4 +1,4 @@
-import { Course, CoursePipelineItem } from "../types";
+import { Course, CoursePipelineItem } from "@/features/teacher-dashboard/types";
 
 export const COURSE_PIPELINE: CoursePipelineItem[] = [
   {

@@ -14,13 +14,13 @@ import {
   Gamepad2,
   ShieldCheck,
 } from "lucide-react";
-import { COURSES_DATA } from "@/features/teacher-dashboard/data/mock-courses";
+import { COURSES_DATA } from "@/features/courses/data/mock-courses";
 import { Course, Lesson } from "@/features/teacher-dashboard/types";
 import { getCourseDetailApi, getAdminCourseReviewsApi } from "@/services/api";
-import { mapApiLessonToLesson } from "@/features/teacher-dashboard/utils/course-mapper";
+import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { PlaytestDrawer } from "@/features/teacher-dashboard/components/builder/playtest-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
-import { ModeratorLessonInspector } from "../components/moderator-lesson-inspector";
+import { ModeratorLessonInspector } from "@/features/moderator-dashboard/components/moderator-lesson-inspector";
 
 export function ModeratorCoursesView() {
   const searchParams = useSearchParams();

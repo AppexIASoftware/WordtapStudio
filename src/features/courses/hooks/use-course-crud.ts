@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction } from "react";
-import { Course, Lesson } from "../types";
+import { Course, Lesson } from "@/features/teacher-dashboard/types";
 import {
   updateCourseApi,
   deleteCourseApi,

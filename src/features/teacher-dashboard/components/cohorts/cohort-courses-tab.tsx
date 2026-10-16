@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ExternalLink, Plus, Layers } from "lucide-react";
 import { Course } from "../../types";
-import { MOCK_COURSES_LIST } from "../../data/mock-courses";
+import { MOCK_COURSES_LIST } from "@/features/courses/data/mock-courses";
 import { getTeacherCoursesApi } from "@/services/api/courses";
 
 interface CohortCoursesTabProps {

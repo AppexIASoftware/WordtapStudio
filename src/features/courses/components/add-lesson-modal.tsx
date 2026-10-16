@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, Loader2 } from "lucide-react";
 import { createLessonApi, saveLessonItemApi } from "@/services/api";
-import { Lesson } from "../types";
+import { Lesson } from "@/features/teacher-dashboard/types";
 
 interface AddLessonModalProps {
   isOpen: boolean;

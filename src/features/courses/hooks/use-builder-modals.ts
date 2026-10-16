@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Lesson } from "../types";
+import { Lesson } from "@/features/teacher-dashboard/types";
 
 export function useBuilderModals(currentCourseLessons: Lesson[] | undefined) {
   const [showNewCourseModal, setShowNewCourseModal] = useState(false);

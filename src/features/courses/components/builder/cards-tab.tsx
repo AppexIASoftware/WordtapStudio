@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileEdit, Volume2, Trash2, Save, Plus, PlusCircle, X, Loader2 } from "lucide-react";
-import { Lesson, LessonItem } from "../../types";
+import { Lesson, LessonItem } from "@/features/teacher-dashboard/types";
 
 interface CardsTabProps {
   currentLesson: Lesson;

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
-import { ModeratorCoursesView } from "@/features/moderator-dashboard/views/moderator-courses-view";
+import { ModeratorCoursesView } from "@/features/courses/views/moderator-courses-view";
 
 export const metadata: Metadata = {
   title: "Supervisión de Cursos & Playtest — Wordtap Studio",

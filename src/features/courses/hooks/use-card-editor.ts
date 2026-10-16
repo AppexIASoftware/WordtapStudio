@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, Dispatch, SetStateAction } from "react";
-import { Course, Lesson, LessonItem } from "../types";
+import { Course, Lesson, LessonItem } from "@/features/teacher-dashboard/types";
 import { saveLessonItemApi, deleteLessonItemApi } from "@/services/api";
 import { useSpeak } from "@/hooks/use-speak";
 

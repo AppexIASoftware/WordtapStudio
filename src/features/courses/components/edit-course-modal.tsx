@@ -1,37 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Trash2, Edit } from "lucide-react";
-import { Lesson } from "../types";
+import { Loader2, Trash2, Edit3 } from "lucide-react";
+import { Course } from "@/features/teacher-dashboard/types";
 
-interface EditLessonModalProps {
+interface EditCourseModalProps {
   isOpen: boolean;
-  lesson: Lesson;
+  course: Course;
   onClose: () => void;
-  onSave: (lessonId: string, title: string, subtitle: string, duration: string) => Promise<void>;
-  onDelete: (lessonId: string) => Promise<void>;
+  onSave: (updated: { title: string; level: string; price: number }) => Promise<void>;
+  onDelete: () => Promise<void>;
 }
 
-export function EditLessonModal({
+export function EditCourseModal({
   isOpen,
-  lesson,
+  course,
   onClose,
   onSave,
   onDelete,
-}: EditLessonModalProps) {
-  const [title, setTitle] = useState(lesson.title);
-  const [subtitle, setSubtitle] = useState(lesson.subtitle);
-  const [duration, setDuration] = useState(lesson.duration);
+}: EditCourseModalProps) {
+  const [title, setTitle] = useState(course.title);
+  const [level, setLevel] = useState(course.level);
+  const [price, setPrice] = useState(course.price || 19.99);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setTitle(lesson.title);
-    setSubtitle(lesson.subtitle);
-    setDuration(lesson.duration);
+    setTitle(course.title);
+    setLevel(course.level);
+    setPrice(course.price || 19.99);
     setError(null);
-  }, [lesson]);
+  }, [course]);
 
   if (!isOpen) return null;
 
@@ -43,26 +43,26 @@ export function EditLessonModal({
     setIsSubmitting(true);
     setError(null);
     try {
-      await onSave(lesson.id, cleanTitle, subtitle.trim(), duration);
+      await onSave({ title: cleanTitle, level, price });
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al actualizar lección");
+      setError(err instanceof Error ? err.message : "Error al actualizar curso");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar la lección "${lesson.title}" y todas sus tarjetas?`)) {
+    if (!confirm(`¿Eliminar definitivamente el curso "${course.title}"?`)) {
       return;
     }
     setIsDeleting(true);
     setError(null);
     try {
-      await onDelete(lesson.id);
+      await onDelete();
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al eliminar lección");
+      setError(err instanceof Error ? err.message : "Error al eliminar curso");
     } finally {
       setIsDeleting(false);
     }
@@ -70,11 +70,11 @@ export function EditLessonModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-card border border-border-default rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+      <div className="bg-card border border-border-default rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
         <div className="flex items-center justify-between border-b border-border-default pb-3">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Edit className="w-4 h-4 text-emerald-brand" />
-            <span>Editar Lección</span>
+            <Edit3 className="w-4 h-4 text-emerald-brand" />
+            <span>Editar Curso</span>
           </h3>
           <button
             type="button"
@@ -91,10 +91,10 @@ export function EditLessonModal({
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
             <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-              Título de la Lección
+              Título del Curso
             </label>
             <input
               type="text"
@@ -105,33 +105,37 @@ export function EditLessonModal({
             />
           </div>
 
-          <div>
-            <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-              Subtítulo / Objetivo
-            </label>
-            <input
-              type="text"
-              value={subtitle}
-              onChange={(e) => setSubtitle(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
-            />
-          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] font-mono text-slate-subtle block mb-1">
+                Nivel Pedagógico
+              </label>
+              <select
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
+              >
+                <option value="A1">A1 - Principiante</option>
+                <option value="A2">A2 - Elemental</option>
+                <option value="B1">B1 - Intermedio</option>
+                <option value="B2">B2 - Intermedio Alto</option>
+                <option value="C1">C1 - Avanzado</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-              Duración Estimada
-            </label>
-            <select
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
-            >
-              <option value="5 min">5 min</option>
-              <option value="10 min">10 min</option>
-              <option value="15 min">15 min</option>
-              <option value="20 min">20 min</option>
-              <option value="30 min">30 min</option>
-            </select>
+            <div>
+              <label className="text-[11px] font-mono text-slate-subtle block mb-1">
+                Precio (USD)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+                className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white font-mono focus:outline-none focus:border-emerald-brand"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-between pt-3 border-t border-border-default">
@@ -159,7 +163,7 @@ export function EditLessonModal({
                 className="px-4 py-2 text-xs rounded-xl bg-emerald-brand text-canvas font-bold hover:bg-mint-brand transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>Guardar</span>
+                <span>Guardar Cambios</span>
               </button>
             </div>
           </div>

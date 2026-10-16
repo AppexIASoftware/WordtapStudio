@@ -1,4 +1,4 @@
-import { CourseBuilderView } from "@/features/teacher-dashboard/views/course-builder-view";
+import { CourseBuilderView } from "@/features/courses/views/course-builder-view";
 
 export const metadata = {
   title: "Creador de Cursos & Lecciones — Wordtap Studio",

@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, AlertTriangle, Database, Settings } from "lucide-react";
-import { Course, Lesson, LessonItem } from "../../types";
+import { Course, Lesson, LessonItem } from "@/features/teacher-dashboard/types";
 
 interface CourseStructurePanelProps {
   currentCourse: Course;

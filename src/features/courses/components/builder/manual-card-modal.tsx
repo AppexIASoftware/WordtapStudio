@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileEdit, Volume2, Plus, X } from "lucide-react";
-import { LessonItem } from "../../types";
+import { LessonItem } from "@/features/teacher-dashboard/types";
 import { useSpeak } from "@/hooks/use-speak";
 
 interface ManualCardModalProps {

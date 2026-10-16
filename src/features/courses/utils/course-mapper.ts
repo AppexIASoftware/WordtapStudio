@@ -1,4 +1,4 @@
-import { Lesson, LessonItem } from "../types";
+import { Lesson, LessonItem } from "@/features/teacher-dashboard/types";
 import { ApiLesson } from "@/services/api";
 
 export function mapApiLessonToLesson(apiLesson: ApiLesson): Lesson {

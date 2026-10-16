@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BookOpen, Loader2, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
-import { Course, Lesson, LessonItem } from "../../types";
+import { Course, Lesson, LessonItem } from "@/features/teacher-dashboard/types";
 import { ApiCourse } from "@/services/api";
 import { NewCourseModal } from "../new-course-modal";
 import { AddLessonModal } from "../add-lesson-modal";
@@ -17,7 +17,7 @@ import { PricingModal } from "./pricing-modal";
 import { ManualCardModal } from "./manual-card-modal";
 import { ExportJsonModal } from "./export-json-modal";
 import { VaultDrawer } from "@/features/vault/components/vault-drawer";
-import { PlaytestDrawer } from "./playtest-drawer";
+import { PlaytestDrawer } from "@/features/teacher-dashboard/components/builder/playtest-drawer";
 import { SubmitReviewModal } from "./submit-review-modal";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 

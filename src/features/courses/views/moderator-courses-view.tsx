@@ -26,7 +26,7 @@ export function ModeratorCoursesView() {
   const searchParams = useSearchParams();
   const queryCourseId = searchParams?.get("courseId");
   const queryPrId = searchParams?.get("pr");
-  const fromUrl = searchParams?.get("from") || "/approvals";
+  const fromUrl = searchParams?.get("from") || "/moderator/approvals";
 
   const [courseList, setCourseList] = useState<{ id: string; title: string; status?: string }[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(
@@ -34,7 +34,7 @@ export function ModeratorCoursesView() {
   );
 
   const returnUrl = useMemo(() => {
-    const base = fromUrl || "/approvals";
+    const base = fromUrl || "/moderator/approvals";
     const params = new URLSearchParams();
     if (queryPrId) params.set("pr", queryPrId);
     if (selectedCourseId) params.set("courseId", selectedCourseId);

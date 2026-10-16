@@ -37,7 +37,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
   const isRouteActive = (route: string) => {
     if (route === "/teacher") return pathname === "/teacher";
     if (route === "/moderator") return pathname === "/moderator";
-    if (route === "/dashboard") return pathname === "/dashboard";
+    if (route === "/admin/dashboard") return pathname === "/admin/dashboard";
     return pathname.startsWith(route);
   };
 
@@ -84,7 +84,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
         <div className="p-4 border-b border-border-default space-y-3">
           <div className="flex items-center justify-between">
             <Link
-              href={isModerator ? "/moderator" : isAdmin ? "/dashboard" : "/teacher"}
+              href={isModerator ? "/moderator" : isAdmin ? "/admin/dashboard" : "/teacher"}
               className="flex items-center gap-2.5 overflow-hidden"
             >
               <div
@@ -243,7 +243,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   Supervisión Global (Admin)
                 </p>
                 <nav className="space-y-0.5">
-                  <Link href="/dashboard" className={getLinkClasses("/dashboard")}>
+                  <Link href="/admin/dashboard" className={getLinkClasses("/admin/dashboard")}>
                     <div className="flex items-center gap-3">
                       <LayoutDashboard className="w-4 h-4" />
                       <span>Dashboard Ejecutivo</span>
@@ -262,7 +262,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   </span>
                 </div>
                 <nav className="space-y-0.5">
-                  <Link href="/approvals" className={getLinkClasses("/approvals")}>
+                  <Link href="/admin/approvals" className={getLinkClasses("/admin/approvals")}>
                     <div className="flex items-center gap-3">
                       <CheckCircle2 className="w-4 h-4 text-purple-400" />
                       <span>Aprobación de Cursos</span>
@@ -279,7 +279,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   Gobernanza & Seguridad
                 </p>
                 <nav className="space-y-0.5">
-                  <Link href="/roles" className={getLinkClasses("/roles")}>
+                  <Link href="/admin/roles" className={getLinkClasses("/admin/roles")}>
                     <div className="flex items-center gap-3">
                       <Shield className="w-4 h-4" />
                       <span>Roles & Permisos</span>
@@ -288,7 +288,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                       Total
                     </span>
                   </Link>
-                  <Link href="/audit" className={getLinkClasses("/audit")}>
+                  <Link href="/admin/audit" className={getLinkClasses("/admin/audit")}>
                     <div className="flex items-center gap-3">
                       <Activity className="w-4 h-4" />
                       <span>Auditoría & Trazabilidad</span>
@@ -305,7 +305,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   Monetización & Pagos
                 </p>
                 <nav className="space-y-0.5">
-                  <Link href="/monetization" className={getLinkClasses("/monetization")}>
+                  <Link href="/admin/monetization" className={getLinkClasses("/admin/monetization")}>
                     <div className="flex items-center gap-3">
                       <CreditCard className="w-4 h-4" />
                       <span>Marketplace & Stripe</span>
@@ -322,7 +322,7 @@ export function AppSidebar({ isOpenMobile, onCloseMobile }: AppSidebarProps) {
                   Catálogo Global
                 </p>
                 <nav className="space-y-0.5">
-                  <Link href="/vault" className={getLinkClasses("/vault")}>
+                  <Link href="/admin/vault" className={getLinkClasses("/admin/vault")}>
                     <div className="flex items-center gap-3">
                       <Boxes className="w-4 h-4" />
                       <span>Content Vault Maestro</span>

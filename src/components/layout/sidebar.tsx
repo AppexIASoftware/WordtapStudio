@@ -35,7 +35,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
   const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (path: string) => {
-    if (path === "/dashboard") return pathname === "/dashboard";
+    if (path === "/admin/dashboard") return pathname === "/admin/dashboard";
     return pathname.startsWith(path);
   };
 
@@ -72,7 +72,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
         <div className="p-4 border-b border-border-default space-y-3">
           <div className="flex items-center justify-between">
             <Link
-              href="/dashboard"
+              href="/admin/dashboard"
               className="flex items-center gap-2.5 overflow-hidden cursor-pointer"
             >
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-brand to-mint-brand flex items-center justify-center text-canvas font-black text-base shadow-glow-emerald flex-shrink-0">
@@ -139,7 +139,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/dashboard" className={navItemClass("/dashboard")}>
+                  <Link href="/admin/dashboard" className={navItemClass("/admin/dashboard")}>
                     <div className="flex items-center gap-3">
                       <LayoutDashboard size={18} />
                       {!collapsed && <span>Dashboard Pedagógico</span>}
@@ -155,7 +155,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/courses" className={navItemClass("/courses")}>
+                  <Link href="/admin/courses" className={navItemClass("/admin/courses")}>
                     <div className="flex items-center gap-3">
                       <BookOpen size={18} />
                       {!collapsed && <span>Creador de Cursos</span>}
@@ -167,7 +167,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     )}
                   </Link>
 
-                  <Link href="/vault" className={navItemClass("/vault")}>
+                  <Link href="/admin/vault" className={navItemClass("/admin/vault")}>
                     <div className="flex items-center gap-3">
                       <Boxes size={18} />
                       {!collapsed && <span>Content Vault</span>}
@@ -188,7 +188,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/students" className={navItemClass("/students")}>
+                  <Link href="/admin/students" className={navItemClass("/admin/students")}>
                     <div className="flex items-center gap-3">
                       <Users size={18} />
                       {!collapsed && <span>Aulas & Cohortes</span>}
@@ -228,7 +228,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     </div>
                   </Link>
 
-                  <Link href="/dashboard" className={navItemClass("/dashboard")}>
+                  <Link href="/admin/dashboard" className={navItemClass("/admin/dashboard")}>
                     <div className="flex items-center gap-3">
                       <LayoutDashboard size={18} />
                       {!collapsed && <span>Métricas de Calidad</span>}
@@ -244,7 +244,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/vault" className={navItemClass("/vault")}>
+                  <Link href="/admin/vault" className={navItemClass("/admin/vault")}>
                     <div className="flex items-center gap-3">
                       <Boxes size={18} />
                       {!collapsed && <span>Content Vault</span>}
@@ -256,14 +256,14 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     )}
                   </Link>
 
-                  <Link href="/courses" className={navItemClass("/courses")}>
+                  <Link href="/admin/courses" className={navItemClass("/admin/courses")}>
                     <div className="flex items-center gap-3">
                       <BookOpen size={18} />
                       {!collapsed && <span>Supervisar Cursos</span>}
                     </div>
                   </Link>
 
-                  <Link href="/audit" className={navItemClass("/audit")}>
+                  <Link href="/admin/audit" className={navItemClass("/admin/audit")}>
                     <div className="flex items-center gap-3">
                       <Activity size={18} />
                       {!collapsed && <span>Reportes de Incidencias</span>}
@@ -290,7 +290,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/dashboard" className={navItemAdminClass("/dashboard")}>
+                  <Link href="/admin/dashboard" className={navItemAdminClass("/admin/dashboard")}>
                     <div className="flex items-center gap-3">
                       <LayoutDashboard size={18} />
                       {!collapsed && <span>Dashboard Ejecutivo</span>}
@@ -314,7 +314,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   )}
                 </div>
                 <nav className="space-y-0.5">
-                  <Link href="/approvals" className={navItemAdminClass("/approvals")}>
+                  <Link href="/admin/approvals" className={navItemAdminClass("/admin/approvals")}>
                     <div className="flex items-center gap-3">
                       <CheckCircle2 size={18} />
                       {!collapsed && <span>Aprobación de Cursos</span>}
@@ -336,7 +336,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/roles" className={navItemAdminClass("/roles")}>
+                  <Link href="/admin/roles" className={navItemAdminClass("/admin/roles")}>
                     <div className="flex items-center gap-3">
                       <Shield size={18} />
                       {!collapsed && <span>Roles & Permisos</span>}
@@ -348,7 +348,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     )}
                   </Link>
 
-                  <Link href="/audit" className={navItemAdminClass("/audit")}>
+                  <Link href="/admin/audit" className={navItemAdminClass("/admin/audit")}>
                     <div className="flex items-center gap-3">
                       <Activity size={18} />
                       {!collapsed && <span>Auditoría & Trazabilidad</span>}
@@ -370,7 +370,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/monetization" className={navItemAdminClass("/monetization")}>
+                  <Link href="/admin/monetization" className={navItemAdminClass("/admin/monetization")}>
                     <div className="flex items-center gap-3">
                       <CreditCard size={18} />
                       {!collapsed && <span>Marketplace & Stripe</span>}
@@ -392,7 +392,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                   </p>
                 )}
                 <nav className="space-y-0.5">
-                  <Link href="/vault" className={navItemAdminClass("/vault")}>
+                  <Link href="/admin/vault" className={navItemAdminClass("/admin/vault")}>
                     <div className="flex items-center gap-3">
                       <Boxes size={18} />
                       {!collapsed && <span>Content Vault Maestro</span>}
@@ -404,7 +404,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     )}
                   </Link>
 
-                  <Link href="/courses" className={navItemAdminClass("/courses")}>
+                  <Link href="/admin/courses" className={navItemAdminClass("/admin/courses")}>
                     <div className="flex items-center gap-3">
                       <Layers size={18} />
                       {!collapsed && <span>Todos los Cursos</span>}

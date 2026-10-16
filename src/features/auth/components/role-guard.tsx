@@ -43,7 +43,7 @@ export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
           ? "/teacher"
           : currentRole === "moderator"
           ? "/moderator"
-          : "/dashboard";
+          : "/admin/dashboard";
       router.replace(fallback);
     }
   }, [isAuthenticated, isAuthorized, isLoading, currentRole, pathname, router]);

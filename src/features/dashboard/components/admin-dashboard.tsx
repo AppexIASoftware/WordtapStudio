@@ -105,7 +105,7 @@ export function AdminDashboard() {
               <span>Distribución de Monetización (4 Tiers)</span>
             </h3>
             <Link
-              href="/monetization"
+              href="/admin/monetization"
               className="text-xs text-emerald-brand hover:underline font-semibold"
             >
               Configurar Pasarelas →
@@ -146,7 +146,7 @@ export function AdminDashboard() {
               <Activity size={16} className="text-purple-400" />
               <span>Eventos de Auditoría en Vivo</span>
             </h3>
-            <Link href="/audit" className="text-xs text-purple-400 hover:underline">
+            <Link href="/admin/audit" className="text-xs text-purple-400 hover:underline">
               Ver log
             </Link>
           </div>

@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/api"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Bypass static assets and Next.js internals
@@ -29,7 +29,7 @@ export function middleware(request: NextRequest) {
         : role === "moderator"
         ? "/moderator"
         : role === "admin"
-        ? "/dashboard"
+        ? "/admin/dashboard"
         : "/teacher";
     return NextResponse.redirect(new URL(target, request.url));
   }
@@ -50,7 +50,7 @@ export function middleware(request: NextRequest) {
           : role === "moderator"
           ? "/moderator"
           : role === "admin"
-          ? "/dashboard"
+          ? "/admin/dashboard"
           : "/teacher";
       return NextResponse.redirect(new URL(target, request.url));
     }
@@ -61,7 +61,7 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/pending-approval")) {
     if (role && role !== "candidate") {
       const target =
-        role === "moderator" ? "/moderator" : role === "admin" ? "/dashboard" : "/teacher";
+        role === "moderator" ? "/moderator" : role === "admin" ? "/admin/dashboard" : "/teacher";
       return NextResponse.redirect(new URL(target, request.url));
     }
     return NextResponse.next();
@@ -75,30 +75,21 @@ export function middleware(request: NextRequest) {
   // Enforce role-based path access
   if (pathname.startsWith("/teacher")) {
     if (role !== "instructor" && role !== "admin") {
-      const target = role === "moderator" ? "/moderator" : "/dashboard";
+      const target = role === "moderator" ? "/moderator" : "/admin/dashboard";
       return NextResponse.redirect(new URL(target, request.url));
     }
   }
 
   if (pathname.startsWith("/moderator")) {
     if (role !== "moderator" && role !== "admin") {
-      const target = role === "instructor" ? "/teacher" : "/dashboard";
+      const target = role === "instructor" ? "/teacher" : "/admin/dashboard";
       return NextResponse.redirect(new URL(target, request.url));
     }
   }
 
-  const ADMIN_ROUTES = [
-    "/dashboard",
-    "/roles",
-    "/audit",
-    "/monetization",
-    "/approvals",
-    "/vault",
-    "/students",
-    "/courses",
-  ];
-
-  if (ADMIN_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
+  // El área admin vive bajo un único prefijo, así que el prefijo es la regla:
+  // ya no hay una lista de rutas admin que mantener a mano y sincronizar.
+  if (pathname.startsWith("/admin")) {
     if (role !== "admin") {
       const target = role === "moderator" ? "/moderator" : "/teacher";
       return NextResponse.redirect(new URL(target, request.url));

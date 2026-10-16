@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (role === "candidate") {
       router.push("/pending-approval");
     } else {
-      router.push(role === "instructor" ? "/teacher" : role === "moderator" ? "/moderator" : "/dashboard");
+      router.push(role === "instructor" ? "/teacher" : role === "moderator" ? "/moderator" : "/admin/dashboard");
     }
     return { success: true };
   };
@@ -185,7 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       router.push("/pending-approval");
     } else {
-      router.push(profile.role === "instructor" ? "/teacher" : profile.role === "moderator" ? "/moderator" : "/dashboard");
+      router.push(profile.role === "instructor" ? "/teacher" : profile.role === "moderator" ? "/moderator" : "/admin/dashboard");
     }
     return { success: true };
   };

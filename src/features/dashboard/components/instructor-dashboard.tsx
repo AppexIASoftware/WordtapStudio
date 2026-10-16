@@ -86,7 +86,7 @@ export function InstructorDashboard() {
 
         {/* KPI 3 */}
         <Link
-          href="/vault"
+          href="/teacher/vault"
           className="p-5 rounded-2xl bg-card border border-border-default hover:border-emerald-brand/50 transition-all shadow-card-soft cursor-pointer group block"
           title="Abrir el Banco de Contenidos"
         >
@@ -147,7 +147,7 @@ export function InstructorDashboard() {
               </p>
             </div>
             <Link
-              href="/vault"
+              href="/teacher/vault"
               className="text-xs font-semibold text-emerald-brand hover:underline flex items-center gap-1 transition-colors"
             >
               <span>Ver todo el vocabulario</span>

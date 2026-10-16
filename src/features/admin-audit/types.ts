@@ -1,5 +1,8 @@
 export type AuditCategory = "all" | "review" | "staff" | "admob" | "vault" | "payment";
 
+/** Sub-tab activo de la seccion de auditoria. */
+export type AuditTab = "logs" | "reports";
+
 export interface FieldDiff {
   field: string;
   oldVal: string;

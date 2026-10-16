@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Plus, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { getOfficialVaultItemsApi, ApiVaultItem } from "@/services/api";
-import { NewVaultItemModal } from "@/features/teacher-dashboard/components/new-vault-item-modal";
+import { NewVaultItemModal } from "./new-vault-item-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { useVaultMutations } from "../hooks/use-vault-mutations";
 import { VaultAccent, VaultEditorIntent } from "../types/vault";

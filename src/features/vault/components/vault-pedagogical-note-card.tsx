@@ -1,6 +1,6 @@
 "use client";
 
-import { AutoResizeTextarea } from "./auto-resize-textarea";
+import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea";
 
 interface VaultPedagogicalNoteCardProps {
   note: string;

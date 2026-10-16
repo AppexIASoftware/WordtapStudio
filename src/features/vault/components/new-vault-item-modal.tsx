@@ -5,7 +5,7 @@ import { X, Sparkles, Loader2, Edit3, Volume2, CheckCircle2, AlertCircle } from 
 import { CreateVaultItemPayload, ApiVaultItem } from "@/services/api";
 import { VaultDrawerConfigBar } from "./vault-drawer-config-bar";
 import { VaultPedagogicalNoteCard } from "./vault-pedagogical-note-card";
-import { AutoResizeTextarea } from "./auto-resize-textarea";
+import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea";
 
 interface NewVaultItemModalProps {
   isOpen: boolean;

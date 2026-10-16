@@ -38,3 +38,9 @@ export interface TeacherCoursePricing {
   sales: number;
   price: number;
 }
+
+/** Sub-tab activo de la sección. */
+export type MonetizationTab = "plans" | "admob" | "teacher";
+
+/** Pasarela que se está inspeccionando en el mapeo de precios. */
+export type GatewayFilter = "all" | "stripe" | "apple" | "google";

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TeacherKpiGrid } from "@/features/teacher-dashboard/components/teacher-kpi-grid";
-import { TeacherDifficultyHeatmap } from "@/features/teacher-dashboard/components/teacher-difficulty-heatmap";
-import { TeacherPipeline } from "@/features/teacher-dashboard/components/teacher-pipeline";
+import { TeacherKpiGrid } from "@/features/dashboard/components/teacher-kpi-grid";
+import { TeacherDifficultyHeatmap } from "@/features/dashboard/components/teacher-difficulty-heatmap";
+import { TeacherPipeline } from "@/features/dashboard/components/teacher-pipeline";
 
 export default function TeacherDashboardPage() {
   const [period, setPeriod] = useState<"today" | "7d" | "30d" | "year">("7d");

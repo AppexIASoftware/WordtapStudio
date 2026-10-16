@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { HEATMAP_TERMS } from "@/features/dashboard/data/mock-teacher-metrics";
-import { HeatmapItem } from "../types";
+import { HeatmapItem } from "@/features/teacher-dashboard/types";
 import { ChevronRight, X, Sparkles, AlertCircle } from "lucide-react";
 
 export function TeacherDifficultyHeatmap() {

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { TeacherPipeline } from "@/features/teacher-dashboard/components/teacher-pipeline";
+import { TeacherPipeline } from "@/features/dashboard/components/teacher-pipeline";
 
 export function InstructorDashboard() {
   const [period, setPeriod] = useState<"today" | "7d" | "30d" | "year">("7d");

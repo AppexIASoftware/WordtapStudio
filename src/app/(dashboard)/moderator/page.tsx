@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ModeratorMetricsView } from "@/features/moderator-dashboard/views/moderator-metrics-view";
+import { ModeratorMetricsView } from "@/features/dashboard/views/moderator-metrics-view";
 
 export const metadata: Metadata = {
   title: "Consola de Calidad & Moderación — Wordtap Studio",

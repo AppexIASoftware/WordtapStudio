@@ -64,7 +64,7 @@ export function CourseBuilderView() {
         onSimGameCardClick={b.handleSimGameCardClick}
         onResetSimGame={b.handleResetSimGame}
         onToast={b.triggerToast}
-        onCopyExport={() => b.triggerToast("¡JSON copiado al portapapeles!")}
+        onCopyExport={() => b.triggerToast("¡Copia de seguridad copiada al portapapeles!")}
       />
     </div>
   );

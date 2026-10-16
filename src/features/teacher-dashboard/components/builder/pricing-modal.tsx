@@ -31,7 +31,7 @@ export function PricingModal({ isOpen, course, onClose, onSavePrice }: PricingMo
         <div className="flex items-center justify-between border-b border-border-default pb-3">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-emerald-brand" />
-            <span>Configurar Precio de Venta (ADR-05)</span>
+            <span>Configurar Precio de Venta</span>
           </h3>
           <button
             type="button"
@@ -50,7 +50,7 @@ export function PricingModal({ isOpen, course, onClose, onSavePrice }: PricingMo
 
           <div className="space-y-2">
             <label className="block font-semibold text-slate-200">
-              Precio de Venta Standalone (USD)
+              Precio de Venta (USD)
             </label>
             <input
               type="number"

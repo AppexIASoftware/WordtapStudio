@@ -139,7 +139,7 @@ export function InstructorDashboard() {
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span>Heatmap de Dificultad en Puzzles & Juegos</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand border border-emerald-brand/30 font-bold">
-                  Algoritmo SRS
+                  Modelo de Repaso
                 </span>
               </h3>
               <p className="text-xs text-slate-muted mt-0.5">

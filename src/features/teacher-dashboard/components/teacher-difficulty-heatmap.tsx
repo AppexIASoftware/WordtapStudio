@@ -16,7 +16,7 @@ export function TeacherDifficultyHeatmap() {
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <span>Heatmap de Dificultad en Puzzles & Juegos</span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand border border-emerald-brand/30 font-bold">
-              Algoritmo SRS
+              Modelo de Repaso Adaptativo
             </span>
           </h3>
           <p className="text-xs text-slate-muted mt-0.5">
@@ -109,7 +109,7 @@ export function TeacherDifficultyHeatmap() {
                 <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
                   {selectedTerm.errorRate}% Tasa de Error
                 </span>
-                <span className="text-xs text-slate-subtle font-mono">Algoritmo SM-2</span>
+                <span className="text-xs text-slate-subtle font-mono">Modelo de Repaso Adaptativo</span>
               </div>
               <h3 className="text-xl font-black text-white flex items-center gap-2">
                 <span>{selectedTerm.term}</span>
@@ -136,7 +136,7 @@ export function TeacherDifficultyHeatmap() {
                 <strong className="text-white">{selectedTerm.grammarType}</strong>
               </div>
               <div className="flex justify-between">
-                <span>Intervalo recomendado SRS:</span>
+                <span>Intervalo recomendado:</span>
                 <strong className="text-emerald-brand font-mono">1 día (Repaso Urgente)</strong>
               </div>
             </div>

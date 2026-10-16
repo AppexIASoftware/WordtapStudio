@@ -306,7 +306,7 @@ export function MonetizationView() {
                 </div>
                 <div className="text-[11px] text-mint-brand space-y-0.5 pt-1">
                   <div>• Vidas infinitas</div>
-                  <div>• Sincronización offline y SM-2</div>
+                  <div>• Sincronización offline y repaso adaptativo</div>
                 </div>
               </div>
             </div>

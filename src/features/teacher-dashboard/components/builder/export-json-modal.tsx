@@ -27,7 +27,7 @@ export function ExportJsonModal({ isOpen, course, onClose, onCopied }: ExportJso
         <div className="flex items-center justify-between border-b border-border-default pb-3">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <Download className="w-4 h-4 text-emerald-brand" />
-            <span>Exportar Copia de Seguridad JSON</span>
+            <span>Exportar Copia de Seguridad</span>
           </h3>
           <button
             type="button"
@@ -56,7 +56,7 @@ export function ExportJsonModal({ isOpen, course, onClose, onCopied }: ExportJso
             onClick={handleCopy}
             className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold shadow-glow-emerald cursor-pointer"
           >
-            Copiar JSON
+            Copiar contenido
           </button>
         </div>
       </div>

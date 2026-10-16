@@ -57,7 +57,7 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
       {
         key: "vault:consume_lessons",
         name: "Consumir lecciones y jugar minijuegos",
-        desc: "Acceso a la ejecución interactiva de unidades de aprendizaje y gamificación SM-2.",
+        desc: "Acceso a la ejecución interactiva de unidades de aprendizaje y gamificación adaptativa.",
         student: { val: true, locked: true },
         instructor: { val: true, locked: true },
         moderator: { val: true, locked: true },

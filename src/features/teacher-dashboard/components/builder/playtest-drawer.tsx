@@ -24,7 +24,7 @@ export function PlaytestDrawer({
         <div className="flex items-center justify-between border-b border-border-default pb-3">
           <div className="flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-emerald-brand" />
-            <h3 className="text-xs font-bold text-white">Playtest Móvil React Native</h3>
+            <h3 className="text-xs font-bold text-white">Vista Previa en App Móvil</h3>
           </div>
           <button
             type="button"
@@ -39,7 +39,7 @@ export function PlaytestDrawer({
           <div className="w-[300px] h-[540px] bg-slate-950 rounded-[38px] border-[5px] border-slate-800 shadow-2xl overflow-hidden flex flex-col text-slate-900">
             <div className="bg-[#05B075] pt-6 px-4 pb-4 rounded-b-[24px] text-white space-y-1">
               <div className="flex justify-between items-center text-[10px] text-white/80 font-mono">
-                <span>Playtest</span>
+                <span>Vista Previa</span>
                 <span>100% Nativo</span>
               </div>
               <h4 className="text-sm font-extrabold truncate">{currentLesson.title}</h4>

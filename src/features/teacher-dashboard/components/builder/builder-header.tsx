@@ -152,7 +152,7 @@ export function BuilderHeader({
             type="button"
             onClick={onOpenPricingModal}
             className="px-3 py-1.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-xs font-semibold text-slate-200 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
-            title="Configurar precio standalone del curso y split 70/30 (ADR-05)"
+            title="Configurar el precio de venta del curso y el reparto de ingresos"
           >
             <DollarSign className="w-3.5 h-3.5 text-emerald-brand" />
             <span>Precio:</span>

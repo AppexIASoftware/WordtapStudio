@@ -27,6 +27,7 @@ import { useBuilderModals } from "./use-builder-modals";
 import { useBuilderSimulation } from "./use-builder-simulation";
 import { useCardEditor } from "./use-card-editor";
 import { useCourseCrud } from "./use-course-crud";
+import { useUrlMirror } from "./use-url-params";
 
 export function useCourseBuilder(initialCourseId?: string) {
   const { user } = useAuth();
@@ -53,12 +54,27 @@ export function useCourseBuilder(initialCourseId?: string) {
 
   const { handleStepSelect, resetStepForm } = cards;
 
+  // La URL refleja el lugar activo del builder (curso, lección, tarjeta y
+  // pestaña del lienzo) para que el enlace sea compartible. El estado interno
+  // sigue siendo la fuente de verdad; "cards" es la pestaña por defecto y no
+  // ensucia la URL.
+  useUrlMirror({
+    courseId: currentCourseId,
+    lessonId: currentLessonId,
+    stepId: cards.currentStepId,
+    canvasTab: sim.activeCanvasTab === "cards" ? "" : sim.activeCanvasTab,
+  });
+
   const syncSelectedLesson = useCallback(
-    (lesson: Lesson | null) => {
+    (lesson: Lesson | null, requestedStepId?: string) => {
       if (lesson) {
         setCurrentLessonId(lesson.id);
-        if (lesson.items && lesson.items.length > 0) {
-          handleStepSelect(lesson.items[0]);
+        const items = lesson.items ?? [];
+        const requested = requestedStepId
+          ? items.find((item) => item.id === requestedStepId)
+          : undefined;
+        if (requested || items.length > 0) {
+          handleStepSelect(requested || items[0]);
         } else {
           resetStepForm();
         }
@@ -114,8 +130,9 @@ export function useCourseBuilder(initialCourseId?: string) {
         const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
         const reqId = initialCourseId || urlParams?.get("courseId");
         const nextId = reqId && mapped[reqId] ? reqId : res.data![0].id;
-        const activeLessons = mapped[nextId]?.lessons;
-        syncSelectedLesson(activeLessons?.[0] || null);
+        const activeLessons = mapped[nextId]?.lessons ?? [];
+        const reqLesson = activeLessons.find((lesson) => lesson.id === urlParams?.get("lessonId"));
+        syncSelectedLesson(reqLesson || activeLessons[0] || null, urlParams?.get("stepId") ?? undefined);
         return nextId;
       });
       setIsLoading(false);
@@ -136,8 +153,9 @@ export function useCourseBuilder(initialCourseId?: string) {
         const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
         const reqId = initialCourseId || urlParams?.get("courseId");
         const nextId = reqId && fallback[reqId] ? reqId : Object.keys(fallback)[0] || "";
-        const activeLessons = fallback[nextId]?.lessons;
-        syncSelectedLesson(activeLessons?.[0] || null);
+        const activeLessons = fallback[nextId]?.lessons ?? [];
+        const reqLesson = activeLessons.find((lesson) => lesson.id === urlParams?.get("lessonId"));
+        syncSelectedLesson(reqLesson || activeLessons[0] || null, urlParams?.get("stepId") ?? undefined);
         return nextId;
       });
       setIsLoading(false);

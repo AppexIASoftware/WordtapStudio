@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useBuilderSimulation(
   onSelectLessonId: (id: string) => void,
@@ -12,6 +12,13 @@ export function useBuilderSimulation(
   const [isSimLessonCompleted, setIsSimLessonCompleted] = useState(false);
   const [simGameMatched, setSimGameMatched] = useState<string[]>([]);
   const [simGameSelected, setSimGameSelected] = useState<string | null>(null);
+
+  // La pestaña activa se restaura desde la URL ya hidratada, para no romper el
+  // render estático de la página.
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("canvasTab");
+    if (raw === "games" || raw === "preview") setActiveCanvasTab(raw);
+  }, []);
 
   const toggleSimTier = () => setSimTier((value) => (value === "free" ? "premium" : "free"));
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
   Smartphone,
@@ -13,17 +12,17 @@ import {
   Award,
 } from "lucide-react";
 import { useTeacherApprovals } from "../hooks/use-teacher-approvals";
+import { useUrlParams } from "../hooks/use-url-params";
 import { TeacherApprovalDrawer } from "../components/teacher-approval-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
 export function CourseApprovalsView() {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { get, setParams } = useUrlParams();
 
   const {
     prs,
     activePr,
     selectedPrId,
-    setSelectedPrId,
     activeTab,
     setActiveTab,
     isLoading,
@@ -34,9 +33,12 @@ export function CourseApprovalsView() {
     refreshApprovals,
   } = useTeacherApprovals();
 
+  // El drawer vive en la URL: se abre solo cuando ?pr= existe en la cola actual.
+  const queryPr = get("pr");
+  const isDrawerOpen = Boolean(queryPr) && prs.some((p) => p.id === queryPr);
+
   const handleOpenDetail = (prId: string) => {
-    setSelectedPrId(prId);
-    setIsDrawerOpen(true);
+    setParams({ pr: prId }, "push");
   };
 
   return (
@@ -381,7 +383,7 @@ export function CourseApprovalsView() {
       {/* Drawer Lateral de Detalle y Feedback Pedagógico */}
       <TeacherApprovalDrawer
         isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={() => setParams({ pr: null }, "replace")}
         activePr={activePr}
         feedbackThread={feedbackThread}
         onWithdraw={handleWithdrawReview}

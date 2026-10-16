@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Sparkles, Plus } from "lucide-react";
 import { GAMES_DATA } from "../data/mock-teacher-data";
 import { GameModeItem } from "../types";
@@ -24,20 +23,28 @@ import { GamificationCustomCard } from "../components/gamification/gamification-
 import { SupermemoSimulator } from "../components/gamification/supermemo-simulator";
 import { GameCreationWorkspace } from "../components/gamification/game-creation-workspace";
 import { GameSandboxModal } from "../components/gamification/game-sandbox-modal";
+import { useUrlParams, useUrlParam } from "../hooks/use-url-params";
 
 export function GamificationView() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
+  const { get, setParams } = useUrlParams();
 
   const [baseGames] = useState<GameModeItem[]>(GAMES_DATA);
   const [customGames, setCustomGames] = useState<TeacherGameDTO[]>([]);
-  const [activeFilter, setActiveFilter] = useState<GamificationFilter>("custom");
 
-  const [viewMode, setViewMode] = useState<"list" | "create" | "edit">("list");
-  const [selectedGame, setSelectedGame] = useState<TeacherGameDTO | null>(null);
-  const [presetArchetype, setPresetArchetype] = useState<string>("match");
+  const [activeFilter, setActiveFilter] = useUrlParam<GamificationFilter>(
+    "tab",
+    ["custom", "archetypes", "simulator"],
+    "custom"
+  );
+
   const [activeSandboxGame, setActiveSandboxGame] = useState<GameModeItem | TeacherGameDTO | null>(null);
+  const presetArchetype = get("archetype") ?? "match";
+
+  // El modo de vista se deriva de la URL (?view= create|edit) con fallback a "list".
+  const urlView = get("view");
+  const urlGameId = get("gameId");
+  const resolvedMode: "list" | "create" | "edit" =
+    urlView === "create" || (urlView === "edit" && urlGameId) ? (urlView as "create" | "edit") : "list";
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const triggerToast = (msg: string) => {
@@ -60,50 +67,22 @@ export function GamificationView() {
     fetchCustomGames();
   }, [fetchCustomGames]);
 
-  // Manejar modo de vista desde URL searchParams
-  useEffect(() => {
-    const view = searchParams.get("view");
-    const gameId = searchParams.get("gameId");
-    if (view === "create") {
-      setSelectedGame(null);
-      setViewMode("create");
-    } else if (view === "edit" && gameId) {
-      const found = customGames.find((g) => g.id === gameId);
-      if (found) setSelectedGame(found);
-      setViewMode("edit");
-    } else {
-      setViewMode("list");
-      setSelectedGame(null);
-    }
-  }, [searchParams, customGames]);
+  // El juego en edición se resuelve contra la lista ya cargada (id corto de fila).
+  const selectedGame: TeacherGameDTO | null =
+    resolvedMode === "edit" && urlGameId
+      ? customGames.find((g) => g.id === urlGameId) ?? null
+      : null;
 
   const handleOpenCreate = (archetype = "match") => {
-    setPresetArchetype(archetype);
-    setSelectedGame(null);
-    setViewMode("create");
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("view", "create");
-    params.set("archetype", archetype);
-    router.push(`${pathname}?${params.toString()}`);
+    setParams({ view: "create", gameId: null, archetype }, "push");
   };
 
   const handleOpenEdit = (game: TeacherGameDTO) => {
-    setSelectedGame(game);
-    setViewMode("edit");
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("view", "edit");
-    params.set("gameId", game.id);
-    router.push(`${pathname}?${params.toString()}`);
+    setParams({ view: "edit", gameId: game.id, archetype: null }, "push");
   };
 
   const handleCloseWorkspace = () => {
-    setViewMode("list");
-    setSelectedGame(null);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("view");
-    params.delete("gameId");
-    params.delete("archetype");
-    router.push(`${pathname}?${params.toString()}`);
+    setParams({ view: null, gameId: null, archetype: null }, "replace");
   };
 
   const handleSaveGame = async (payload: {
@@ -143,7 +122,7 @@ export function GamificationView() {
   };
 
   // Renderizar Workspace de Creación/Edición
-  if (viewMode === "create" || viewMode === "edit") {
+  if (resolvedMode === "create" || resolvedMode === "edit") {
     return (
       <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
         <ToastNotification message={toastMessage} variant="emerald" />
@@ -181,7 +160,9 @@ export function GamificationView() {
       {/* Selector de Pestañas */}
       <GamificationFilterBar
         activeFilter={activeFilter}
-        onChangeFilter={setActiveFilter}
+        onChangeFilter={(filter) =>
+          setActiveFilter(filter, { clear: ["view", "gameId", "archetype"] })
+        }
         customCount={customGames.length}
       />
 

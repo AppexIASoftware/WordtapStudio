@@ -25,16 +25,22 @@ import {
 } from "@/services/api";
 import { NewVaultItemModal } from "../components/new-vault-item-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
+import { useUrlParams, useUrlParam } from "../hooks/use-url-params";
 
 export function VaultView() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"official" | "private">("official");
+  const { get, setParams } = useUrlParams();
+  const [activeTab, setActiveTab] = useUrlParam("tab", ["official", "private"], "official");
+
+  // Filtros y búsqueda viven locales; el resto del estado de vista vive en la URL.
   const [activeBank, setActiveBank] = useState<string>("all");
   const [cefrFilter, setCefrFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [showNewModal, setShowNewModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<ApiVaultItem | null>(null);
+
+  // Estado de vista derivado de la URL (misma convención que juegos y aulas).
+  const view = get("view");
+  const itemId = get("itemId");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -144,6 +150,13 @@ export function VaultView() {
   const items: ApiVaultItem[] = activeTab === "official" ? officialData || [] : privateData || [];
   const isLoading = activeTab === "official" ? loadingOfficial : loadingPrivate;
 
+  // El ítem en edición se resuelve desde la URL contra los datos ya cargados.
+  const editingItem: ApiVaultItem | null =
+    view === "edit" && itemId
+      ? privateData?.find((it) => it.id === itemId) ?? null
+      : null;
+  const isEditorOpen = view === "create" || editingItem !== null;
+
   const speak = (text: string) => {
     if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
       window.speechSynthesis.cancel();
@@ -177,10 +190,7 @@ export function VaultView() {
         {activeTab === "private" && (
           <button
             type="button"
-            onClick={() => {
-              setEditingItem(null);
-              setShowNewModal(true);
-            }}
+            onClick={() => setParams({ view: "create", itemId: null }, "push")}
             className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs flex items-center gap-2 hover:brightness-110 cursor-pointer shadow-lg shadow-emerald-brand/10"
           >
             <Plus className="w-4 h-4" />
@@ -193,7 +203,7 @@ export function VaultView() {
       <div className="flex items-center gap-3 border-b border-border-default pb-3">
         <button
           type="button"
-          onClick={() => setActiveTab("official")}
+          onClick={() => setActiveTab("official", { clear: ["view", "itemId"] })}
           className={`flex items-center gap-2 pb-1.5 text-xs font-bold transition-colors cursor-pointer border-b-2 ${
             activeTab === "official"
               ? "border-emerald-brand text-white"
@@ -206,7 +216,7 @@ export function VaultView() {
 
         <button
           type="button"
-          onClick={() => setActiveTab("private")}
+          onClick={() => setActiveTab("private", { clear: ["view", "itemId"] })}
           className={`flex items-center gap-2 pb-1.5 text-xs font-bold transition-colors cursor-pointer border-b-2 ${
             activeTab === "private"
               ? "border-blue-500 text-white"
@@ -287,10 +297,7 @@ export function VaultView() {
           {activeTab === "private" && (
             <button
               type="button"
-              onClick={() => {
-                setEditingItem(null);
-                setShowNewModal(true);
-              }}
+              onClick={() => setParams({ view: "create", itemId: null }, "push")}
               className="mt-2 px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs inline-flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -331,7 +338,7 @@ export function VaultView() {
                     <>
                       <button
                         type="button"
-                        onClick={() => setEditingItem(item)}
+                        onClick={() => setParams({ view: "edit", itemId: item.id }, "push")}
                         className="p-1.5 rounded-lg bg-canvas hover:bg-canvas-hover text-slate-400 hover:text-blue-400 cursor-pointer"
                         title="Editar término"
                       >
@@ -365,12 +372,9 @@ export function VaultView() {
 
       {/* Modal para Crear/Editar Término Privado */}
       <NewVaultItemModal
-        isOpen={showNewModal || Boolean(editingItem)}
+        isOpen={isEditorOpen}
         initialItem={editingItem}
-        onClose={() => {
-          setShowNewModal(false);
-          setEditingItem(null);
-        }}
+        onClose={() => setParams({ view: null, itemId: null }, "replace")}
         onSave={async (payload, id) => {
           if (id) {
             await updateMutation.mutateAsync({ id, payload });

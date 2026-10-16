@@ -10,6 +10,7 @@ import {
   subscribeSyncedReviews,
 } from "@/services/api";
 import { ApprovalRequest } from "../types";
+import { useUrlParams, useUrlParam } from "./use-url-params";
 
 function mapApiToApproval(req: ApiCourseReviewRequest): ApprovalRequest {
   const shortId = `PR-${req.id.length > 8 ? req.id.slice(0, 6).toUpperCase() : req.id}`;
@@ -52,10 +53,20 @@ function mapApiToApproval(req: ApiCourseReviewRequest): ApprovalRequest {
 
 export type ApprovalTab = "all" | "corrections" | "pending" | "approved" | "rejected" | "attention";
 
+const APPROVAL_TABS: ApprovalTab[] = [
+  "all",
+  "corrections",
+  "pending",
+  "approved",
+  "rejected",
+  "attention",
+];
+
 export function useTeacherApprovals() {
   const [prs, setPrs] = useState<ApprovalRequest[]>([]);
-  const [selectedPrId, setSelectedPrId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<ApprovalTab>("all");
+  const { get } = useUrlParams();
+  const [activeTab, setActiveTab] = useUrlParam<ApprovalTab>("tab", APPROVAL_TABS, "all");
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -148,11 +159,6 @@ export function useTeacherApprovals() {
 
     const combined = Array.from(courseMap.values());
     setPrs(combined);
-    if (combined.length > 0) {
-      setSelectedPrId((prev) => (combined.some((c) => c.id === prev) ? prev : combined[0].id));
-    } else {
-      setSelectedPrId("");
-    }
     setIsLoading(false);
   }, []);
 
@@ -182,18 +188,14 @@ export function useTeacherApprovals() {
     }
   }, [prs, activeTab]);
 
-  // Keep selected PR in sync with filtered list
-  useEffect(() => {
-    if (filteredPrs.length > 0) {
-      const exists = filteredPrs.some((p) => p.id === selectedPrId);
-      if (!exists) {
-        setSelectedPrId(filteredPrs[0].id);
-      }
-    }
-  }, [filteredPrs, selectedPrId]);
+  // El PR seleccionado vive en la URL (?pr=) y cae a la primera fila cuando no existe.
+  const urlPrId = get("pr") ?? "";
+  const selectedPrId = useMemo(() => {
+    return filteredPrs.some((p) => p.id === urlPrId) ? urlPrId : filteredPrs[0]?.id ?? "";
+  }, [filteredPrs, urlPrId]);
 
   const activePr = useMemo(() => {
-    return filteredPrs.find((p) => p.id === selectedPrId) || filteredPrs[0] || null;
+    return filteredPrs.find((p) => p.id === selectedPrId) || null;
   }, [filteredPrs, selectedPrId]);
 
   // Sync feedback thread when active PR changes
@@ -271,7 +273,6 @@ export function useTeacherApprovals() {
     allPrs: prs,
     activePr,
     selectedPrId,
-    setSelectedPrId,
     activeTab,
     setActiveTab,
     isLoading,

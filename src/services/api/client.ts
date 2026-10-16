@@ -137,12 +137,36 @@ export async function apiRequest<T>(
         clearStoredTokens();
       }
       const body = await res.json().catch(() => ({}));
+
+      // Diagnostics only: any technical detail the API may still emit is
+      // logged locally and never concatenated into the message shown to the user.
+      if (body.details) {
+        console.error(`[api] ${res.status} ${url}:`, body.details);
+      }
+
       let errorMsg = body.message;
       if (!errorMsg && body.reason) {
         errorMsg = `Cuenta docente suspendida. Motivo: ${body.reason}`;
       }
+      if (!errorMsg && Array.isArray(body.errors)) {
+        const messages = body.errors
+          .map((item: unknown) =>
+            typeof item === "string"
+              ? item
+              : item && typeof item === "object" && "message" in item
+                ? String((item as { message: unknown }).message)
+                : ""
+          )
+          .filter((text: string) => text.length > 0);
+        if (messages.length > 0) {
+          errorMsg = messages.join(" ");
+        }
+      }
       if (!errorMsg) {
-        errorMsg = body.error || body.details || `HTTP ${res.status}: ${res.statusText}`;
+        // The raw HTTP status text is infrastructure detail: it is logged
+        // locally and never shown to the user.
+        console.error(`[api] ${res.status} ${url}: ${res.statusText}`);
+        errorMsg = body.error || "No se pudo completar la operación.";
       }
       return { data: null, error: errorMsg };
     }

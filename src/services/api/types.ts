@@ -244,3 +244,52 @@ export interface JoinClassroomPayload {
   code: string;
 }
 
+export interface TeacherGameDTO {
+  id: string;
+  teacher_id: string;
+  course_id?: string | null;
+  course_title?: string;
+  base_archetype: string;
+  title: string;
+  description?: string | null;
+  level: string;
+  time_limit_seconds: number;
+  allowed_mistakes: number;
+  reward_xp: number;
+  item_count: number;
+  source_type: string;
+  source_id?: string | null;
+  custom_words_json?: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CreateTeacherGamePayload {
+  course_id?: string | null;
+  base_archetype: string;
+  title: string;
+  description?: string;
+  level?: string;
+  time_limit_seconds?: number;
+  allowed_mistakes?: number;
+  reward_xp?: number;
+  item_count?: number;
+  source_type?: string;
+  source_id?: string | null;
+  custom_words_json?: string | null;
+}
+
+export interface UpdateTeacherGamePayload {
+  course_id?: string | null;
+  title?: string;
+  description?: string;
+  level?: string;
+  time_limit_seconds?: number;
+  allowed_mistakes?: number;
+  reward_xp?: number;
+  item_count?: number;
+  source_type?: string;
+  source_id?: string | null;
+  custom_words_json?: string | null;
+}
+

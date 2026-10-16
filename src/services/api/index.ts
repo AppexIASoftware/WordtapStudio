@@ -7,3 +7,4 @@ export * from "./lessons";
 export * from "./review-sync";
 export * from "./vault";
 export * from "./classroom";
+export * from "./games";

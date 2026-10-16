@@ -1,36 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Search,
-  Plus,
-  Volume2,
-  Globe,
-  Lock,
-  Trash2,
-  Edit3,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
-import {
-  getOfficialVaultItemsApi,
-  getTeacherPrivateVaultApi,
-  createTeacherPrivateVaultApi,
-  updateTeacherPrivateVaultApi,
-  deleteTeacherPrivateVaultApi,
-  CreateVaultItemPayload,
-  UpdateVaultItemPayload,
-  ApiVaultItem,
-} from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import { Search, Plus, Globe, Lock, Loader2, Sparkles } from "lucide-react";
+import { getOfficialVaultItemsApi, getTeacherPrivateVaultApi, ApiVaultItem } from "@/services/api";
 import { NewVaultItemModal } from "../components/new-vault-item-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
-import { useUrlParams, useUrlParam } from "../hooks/use-url-params";
+import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
+import { VaultItemCard } from "@/features/vault/components/vault-item-card";
+import { useVaultMutations } from "@/features/vault/hooks/use-vault-mutations";
+
+const TEACHER_VAULT_TABS = ["official", "private"] as const;
 
 export function VaultView() {
-  const queryClient = useQueryClient();
   const { get, setParams } = useUrlParams();
-  const [activeTab, setActiveTab] = useUrlParam("tab", ["official", "private"], "official");
+  // El banco activo vive en la URL para que la pestaña sea compartible.
+  const [activeTab, setActiveTab] = useUrlParam<"official" | "private">(
+    "tab",
+    TEACHER_VAULT_TABS,
+    "official"
+  );
+  // El docente edita su biblioteca privada; el banco oficial es de solo lectura.
+  const canEdit = activeTab === "private";
 
   // Filtros y búsqueda viven locales; el resto del estado de vista vive en la URL.
   const [activeBank, setActiveBank] = useState<string>("all");
@@ -63,7 +54,7 @@ export function VaultView() {
         bank_type: activeBank,
         cefr_level: cefrFilter,
         q: debouncedSearch,
-        limit: 50,
+        limit: 60,
       });
       return res.data?.items || [];
     },
@@ -88,63 +79,11 @@ export function VaultView() {
     enabled: activeTab === "private",
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (payload: CreateVaultItemPayload) => {
-      const res = await createTeacherPrivateVaultApi(payload);
-      if (res.error || !res.data) throw new Error(res.error || "Error al crear término");
-      return res.data;
-    },
-    onSuccess: (item) => {
-      // Inserción optimista en caché para visualización instantánea (0 ms)
-      queryClient.setQueryData(
-        ["private-vault", activeBank, cefrFilter, debouncedSearch],
-        (old: ApiVaultItem[] | undefined) => (old ? [item, ...old] : [item])
-      );
-      queryClient.invalidateQueries({ queryKey: ["private-vault"] });
-      triggerToast(`¡"${item.target_text}" guardado en tu colección privada!`);
-    },
-    onError: (err: unknown) => {
-      triggerToast(err instanceof Error ? err.message : "Error al guardar término");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: UpdateVaultItemPayload }) => {
-      const res = await updateTeacherPrivateVaultApi(id, payload);
-      if (res.error || !res.data) throw new Error(res.error || "Error al actualizar término");
-      return res.data;
-    },
-    onSuccess: (item) => {
-      // Actualización optimista en caché (0 ms)
-      queryClient.setQueryData(
-        ["private-vault", activeBank, cefrFilter, debouncedSearch],
-        (old: ApiVaultItem[] | undefined) =>
-          old ? old.map((it) => (it.id === item.id ? item : it)) : [item]
-      );
-      queryClient.invalidateQueries({ queryKey: ["private-vault"] });
-      triggerToast(`¡"${item.target_text}" actualizado en tu colección privada!`);
-    },
-    onError: (err: unknown) => {
-      triggerToast(err instanceof Error ? err.message : "Error al actualizar término");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await deleteTeacherPrivateVaultApi(id);
-      if (res.error) throw new Error(res.error);
-      return id;
-    },
-    onSuccess: (_, deletedId) => {
-      // Remoción optimista de la lista en 0 ms
-      queryClient.setQueryData(
-        ["private-vault", activeBank, cefrFilter, debouncedSearch],
-        (old: ApiVaultItem[] | undefined) =>
-          old ? old.filter((it) => it.id !== deletedId) : []
-      );
-      queryClient.invalidateQueries({ queryKey: ["private-vault"] });
-      triggerToast("Término eliminado de tu colección privada");
-    },
+  // Las mutaciones del docente apuntan siempre a su biblioteca privada.
+  const { createMutation, updateMutation, deleteMutation } = useVaultMutations({
+    bank: "private",
+    queryKey: ["private-vault", activeBank, cefrFilter, debouncedSearch],
+    onToast: triggerToast,
   });
 
   const items: ApiVaultItem[] = activeTab === "official" ? officialData || [] : privateData || [];
@@ -152,20 +91,8 @@ export function VaultView() {
 
   // El ítem en edición se resuelve desde la URL contra los datos ya cargados.
   const editingItem: ApiVaultItem | null =
-    view === "edit" && itemId
-      ? privateData?.find((it) => it.id === itemId) ?? null
-      : null;
-  const isEditorOpen = view === "create" || editingItem !== null;
-
-  const speak = (text: string) => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    }
-  };
+    view === "edit" && itemId ? items.find((it) => it.id === itemId) ?? null : null;
+  const isEditorOpen = canEdit && (view === "create" || editingItem !== null);
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
@@ -183,11 +110,11 @@ export function VaultView() {
           <p className="text-xs text-slate-muted mt-1">
             {activeTab === "official"
               ? "Vocabulario, estructuras y fonética oficiales certificadas listas para usar en tus cursos."
-              : "Tu repositorio exclusivo de términos pedagógicos personales con gestión CRUD completa."}
+              : "Tu repositorio exclusivo de términos pedagógicos personales para tus cursos."}
           </p>
         </div>
 
-        {activeTab === "private" && (
+        {canEdit && (
           <button
             type="button"
             onClick={() => setParams({ view: "create", itemId: null }, "push")}
@@ -199,7 +126,7 @@ export function VaultView() {
         )}
       </div>
 
-      {/* Selector de Pestañas de Nivel Superior */}
+      {/* Selector de Pestañas */}
       <div className="flex items-center gap-3 border-b border-border-default pb-3">
         <button
           type="button"
@@ -294,7 +221,7 @@ export function VaultView() {
               ? "Probá ajustando los filtros de búsqueda o nivel CEFR."
               : "Podés añadir términos exclusivos para utilizarlos más tarde en tus cursos."}
           </p>
-          {activeTab === "private" && (
+          {canEdit && (
             <button
               type="button"
               onClick={() => setParams({ view: "create", itemId: null }, "push")}
@@ -308,72 +235,23 @@ export function VaultView() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {items.map((item) => (
-            <div
+            <VaultItemCard
               key={item.id}
-              className="p-4 rounded-2xl bg-card border border-border-default hover:border-slate-400/50 transition-all space-y-2.5 shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-white text-sm">{item.target_text}</span>
-                    {item.ipa && (
-                      <span className="text-[10px] font-mono text-mint-brand bg-mint-brand/10 px-1.5 py-0.5 rounded border border-mint-brand/20">
-                        {item.ipa}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-300 mt-0.5">{item.prompt_text}</p>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => speak(item.target_text)}
-                    className="p-1.5 rounded-lg bg-canvas hover:bg-canvas-hover text-slate-400 hover:text-white cursor-pointer"
-                    title="Escuchar audio nativo"
-                  >
-                    <Volume2 className="w-3.5 h-3.5" />
-                  </button>
-                  {activeTab === "private" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setParams({ view: "edit", itemId: item.id }, "push")}
-                        className="p-1.5 rounded-lg bg-canvas hover:bg-canvas-hover text-slate-400 hover:text-blue-400 cursor-pointer"
-                        title="Editar término"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteMutation.mutate(item.id)}
-                        className="p-1.5 rounded-lg bg-canvas hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 cursor-pointer"
-                        title="Eliminar de mi biblioteca"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-border-default/60 text-[10px] font-mono text-slate-subtle">
-                <span className="uppercase px-1.5 py-0.5 rounded bg-canvas border border-border-default">
-                  {item.bank_type}
-                </span>
-                <span className="px-1.5 py-0.5 rounded bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/20 font-bold">
-                  Nivel {item.cefr_level}
-                </span>
-              </div>
-            </div>
+              item={item}
+              canEdit={canEdit}
+              deleteTitle="Eliminar de mi biblioteca"
+              onEdit={(it) => setParams({ view: "edit", itemId: it.id }, "push")}
+              onDelete={(id) => deleteMutation.mutate(id)}
+            />
           ))}
         </div>
       )}
 
-      {/* Modal para Crear/Editar Término Privado */}
+      {/* Modal para crear o editar el término del banco activo */}
       <NewVaultItemModal
         isOpen={isEditorOpen}
         initialItem={editingItem}
+        isOfficial={activeTab === "official"}
         onClose={() => setParams({ view: null, itemId: null }, "replace")}
         onSave={async (payload, id) => {
           if (id) {

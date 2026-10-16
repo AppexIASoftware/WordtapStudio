@@ -12,7 +12,7 @@ import {
   Award,
 } from "lucide-react";
 import { useTeacherApprovals } from "../hooks/use-teacher-approvals";
-import { useUrlParams } from "../hooks/use-url-params";
+import { useUrlParams } from "@/hooks/use-url-params";
 import { TeacherApprovalDrawer } from "../components/teacher-approval-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
 

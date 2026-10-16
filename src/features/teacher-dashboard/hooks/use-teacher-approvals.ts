@@ -10,7 +10,7 @@ import {
   subscribeSyncedReviews,
 } from "@/services/api";
 import { ApprovalRequest } from "../types";
-import { useUrlParams, useUrlParam } from "./use-url-params";
+import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
 
 function mapApiToApproval(req: ApiCourseReviewRequest): ApprovalRequest {
   const shortId = `PR-${req.id.length > 8 ? req.id.slice(0, 6).toUpperCase() : req.id}`;

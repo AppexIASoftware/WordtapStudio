@@ -23,7 +23,7 @@ import { GamificationCustomCard } from "../components/gamification/gamification-
 import { SupermemoSimulator } from "../components/gamification/supermemo-simulator";
 import { GameCreationWorkspace } from "../components/gamification/game-creation-workspace";
 import { GameSandboxModal } from "../components/gamification/game-sandbox-modal";
-import { useUrlParams, useUrlParam } from "../hooks/use-url-params";
+import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
 
 export function GamificationView() {
   const { get, setParams } = useUrlParams();

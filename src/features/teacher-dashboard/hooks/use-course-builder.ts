@@ -27,7 +27,7 @@ import { useBuilderModals } from "./use-builder-modals";
 import { useBuilderSimulation } from "./use-builder-simulation";
 import { useCardEditor } from "./use-card-editor";
 import { useCourseCrud } from "./use-course-crud";
-import { useUrlMirror } from "./use-url-params";
+import { useUrlMirror } from "@/hooks/use-url-params";
 
 export function useCourseBuilder(initialCourseId?: string) {
   const { user } = useAuth();

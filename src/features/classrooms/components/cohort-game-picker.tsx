@@ -1,7 +1,7 @@
 "use client";
 
 import { Gamepad2, Check, Sparkles } from "lucide-react";
-import { GameModeItem } from "@/features/games/types";;
+import { GameModeItem } from "@/features/games/types";
 import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { TeacherGameDTO } from "@/services/api/types";
 

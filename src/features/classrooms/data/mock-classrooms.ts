@@ -1,4 +1,4 @@
-import { Classroom, GlobalStudent } from "@/features/classrooms/types";;
+import { Classroom, GlobalStudent } from "@/features/classrooms/types";
 
 export const CLASSROOMS_DATA: Classroom[] = [
   {

@@ -15,7 +15,7 @@ import {
   FileText,
   ExternalLink,
 } from "lucide-react";
-import { ModeratorPR } from "@/features/moderation/types";;
+import { ModeratorPR } from "@/features/moderation/types";
 import { PublishCourseModal } from "./publish-course-modal";
 import { ReassignReviewerModal } from "./reassign-reviewer-modal";
 import { RejectCourseModal } from "./reject-course-modal";
@@ -23,7 +23,7 @@ import { RequestChangesModal } from "./request-changes-modal";
 import { CurriculumPreviewTab } from "./curriculum-preview-tab";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
-import { Lesson } from "@/features/courses/types";;
+import { Lesson } from "@/features/courses/types";
 import { getCourseDetailApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { COURSES_DATA } from "@/features/courses/data/mock-courses";

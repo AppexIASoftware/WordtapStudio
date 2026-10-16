@@ -1,5 +1,5 @@
 import { Course } from "@/features/courses/types";
-import { CoursePipelineItem } from "@/features/dashboard/types";;
+import { CoursePipelineItem } from "@/features/courses/types";
 
 export const COURSE_PIPELINE: CoursePipelineItem[] = [
   {

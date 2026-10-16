@@ -21,15 +21,6 @@ export interface HeatmapItem {
   status: "critical" | "warning" | "moderate";
 }
 
-export interface CoursePipelineItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  badge: string;
-  badgeVariant: "emerald" | "amber" | "blue" | "rose";
-  actionLabel?: string;
-}
-
 export interface ModeratorKPI {
   id: string;
   title: string;

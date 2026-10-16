@@ -1,4 +1,4 @@
-import { ContentVaultItem } from "@/features/vault/types/vault";;
+import { ContentVaultItem } from "@/features/vault/types/vault";
 
 export const VAULT_BANK_CONFIGS: Record<
   string,

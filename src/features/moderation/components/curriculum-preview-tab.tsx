@@ -12,7 +12,7 @@ import {
   Layers,
   Sparkles,
 } from "lucide-react";
-import { Lesson, LessonItem } from "@/features/courses/types";;
+import { Lesson, LessonItem } from "@/features/courses/types";
 
 interface CurriculumPreviewTabProps {
   courseTitle: string;

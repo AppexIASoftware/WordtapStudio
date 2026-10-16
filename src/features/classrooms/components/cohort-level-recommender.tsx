@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Sparkles, Check, Wand2 } from "lucide-react";
-import { Course } from "@/features/courses/types";;
+import { Course } from "@/features/courses/types";
 
 const CEFR_LEVELS = [
   { code: "A1", full: "A1 Beginner", label: "Principiante" },

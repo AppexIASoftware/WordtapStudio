@@ -39,3 +39,12 @@ export interface Course {
   lessons: Lesson[];
   isDemo?: boolean;
 }
+
+export interface CoursePipelineItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge: string;
+  badgeVariant: "emerald" | "amber" | "blue" | "rose";
+  actionLabel?: string;
+}

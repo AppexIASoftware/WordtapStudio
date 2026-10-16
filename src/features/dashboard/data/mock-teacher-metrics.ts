@@ -1,4 +1,4 @@
-import { TeacherKPI, HeatmapItem } from "@/features/dashboard/types";;
+import { TeacherKPI, HeatmapItem } from "@/features/dashboard/types";
 
 export const TEACHER_KPIS: TeacherKPI[] = [
   {

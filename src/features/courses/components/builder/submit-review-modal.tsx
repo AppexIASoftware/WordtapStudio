@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, RotateCcw, AlertTriangle, Loader2 } from "lucide-react";
-import { Course } from "@/features/courses/types";;
+import { Course } from "@/features/courses/types";
 
 interface SubmitReviewModalProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Play, CopyPlus } from "lucide-react";
-import { GameModeItem } from "@/features/games/types";;
+import { GameModeItem } from "@/features/games/types";
 
 interface GamificationArchetypeCardProps {
   game: GameModeItem;

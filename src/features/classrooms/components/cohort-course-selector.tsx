@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BookOpen, Check, ChevronDown, ChevronUp, Layers, CheckSquare, Square } from "lucide-react";
-import { Course } from "@/features/courses/types";;
+import { Course } from "@/features/courses/types";
 
 interface CohortCourseSelectorProps {
   availableCourses: Course[];

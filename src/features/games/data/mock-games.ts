@@ -1,4 +1,4 @@
-import { GameModeItem } from "@/features/games/types";;
+import { GameModeItem } from "@/features/games/types";
 
 export const GAMES_DATA: GameModeItem[] = [
   {

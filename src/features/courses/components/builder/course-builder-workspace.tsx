@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BookOpen, Loader2, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
-import { Course, Lesson, LessonItem } from "@/features/courses/types";;
+import { Course, Lesson, LessonItem } from "@/features/courses/types";
 import { ApiCourse } from "@/services/api";
 import { NewCourseModal } from "../new-course-modal";
 import { AddLessonModal } from "../add-lesson-modal";

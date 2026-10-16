@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { X, Sparkles, AlertTriangle, Send, Check } from "lucide-react";
-import { StumbleItem } from "@/features/classrooms/types";;
+import { StumbleItem } from "@/features/classrooms/types";
 
 interface StumbleReinforcementDrawerProps {
   isOpen: boolean;

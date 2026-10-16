@@ -18,7 +18,7 @@ import {
   getTeacherPrivateVaultApi,
   ApiVaultItem,
 } from "@/services/api";
-import { LessonItem, Lesson } from "@/features/courses/types";;
+import { LessonItem, Lesson } from "@/features/courses/types";
 
 interface VaultDrawerProps {
   isOpen: boolean;

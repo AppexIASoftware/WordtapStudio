@@ -1,6 +1,6 @@
 import { API_V1_URL, apiRequest } from "./client";
 import { CreateClassroomPayload, UpdateClassroomPayload, JoinClassroomPayload } from "./types";
-import { Classroom, StumbleItem } from "@/features/teacher-dashboard/types";
+import { Classroom, StumbleItem } from "@/features/classrooms/types";
 
 function unwrapResponse<T>(res: { data: T | { data: T } | null; error: string | null }): { data: T | null; error: string | null } {
   if (res.data && typeof res.data === "object" && "data" in res.data && !Array.isArray(res.data)) {

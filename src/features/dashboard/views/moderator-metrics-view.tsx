@@ -7,7 +7,8 @@ import {
   GitPullRequest,
   Smartphone,
 } from "lucide-react";
-import { MODERATOR_KPIS, MODERATOR_PRS_DATA } from "@/features/moderation/data/mock-moderator-data";
+import { MODERATOR_KPIS } from "@/features/dashboard/data/mock-moderator-kpis";
+import { MODERATOR_PRS_DATA } from "@/features/moderation/data/mock-moderator-data";
 
 export function ModeratorMetricsView() {
   return (

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Sparkles, Plus } from "lucide-react";
 import { GAMES_DATA } from "@/features/games/data/mock-games";
-import { GameModeItem } from "../types";
+import { GameModeItem } from "@/features/teacher-dashboard/types";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { TeacherGameDTO } from "@/services/api/types";
 import {
@@ -13,16 +13,16 @@ import {
   deleteTeacherGameApi,
 } from "@/services/api/games";
 
-import { GamificationHeader } from "../components/gamification/gamification-header";
+import { GamificationHeader } from "../components/gamification-header";
 import {
   GamificationFilterBar,
   GamificationFilter,
-} from "../components/gamification/gamification-filter-bar";
-import { GamificationArchetypeCard } from "../components/gamification/gamification-archetype-card";
-import { GamificationCustomCard } from "../components/gamification/gamification-custom-card";
-import { SupermemoSimulator } from "../components/gamification/supermemo-simulator";
-import { GameCreationWorkspace } from "../components/gamification/game-creation-workspace";
-import { GameSandboxModal } from "../components/gamification/game-sandbox-modal";
+} from "../components/gamification-filter-bar";
+import { GamificationArchetypeCard } from "../components/gamification-archetype-card";
+import { GamificationCustomCard } from "../components/gamification-custom-card";
+import { SupermemoSimulator } from "../components/supermemo-simulator";
+import { GameCreationWorkspace } from "../components/game-creation-workspace";
+import { GameSandboxModal } from "../components/game-sandbox-modal";
 import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
 
 export function GamificationView() {

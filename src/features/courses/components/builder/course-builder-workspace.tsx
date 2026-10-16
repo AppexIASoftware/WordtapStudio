@@ -17,7 +17,7 @@ import { PricingModal } from "./pricing-modal";
 import { ManualCardModal } from "./manual-card-modal";
 import { ExportJsonModal } from "./export-json-modal";
 import { VaultDrawer } from "@/features/vault/components/vault-drawer";
-import { PlaytestDrawer } from "@/features/teacher-dashboard/components/builder/playtest-drawer";
+import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
 import { SubmitReviewModal } from "./submit-review-modal";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 

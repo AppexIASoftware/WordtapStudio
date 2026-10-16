@@ -1,4 +1,4 @@
-import { GamificationView } from "@/features/teacher-dashboard/views/gamification-view";
+import { GamificationView } from "@/features/games/views/gamification-view";
 
 export const metadata = {
   title: "Juegos & Gamificación — Wordtap Studio",

@@ -18,7 +18,7 @@ import { COURSES_DATA } from "@/features/courses/data/mock-courses";
 import { Course, Lesson } from "@/features/teacher-dashboard/types";
 import { getCourseDetailApi, getAdminCourseReviewsApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
-import { PlaytestDrawer } from "@/features/teacher-dashboard/components/builder/playtest-drawer";
+import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { ModeratorLessonInspector } from "@/features/moderator-dashboard/components/moderator-lesson-inspector";
 

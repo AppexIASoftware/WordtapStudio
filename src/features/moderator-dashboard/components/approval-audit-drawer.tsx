@@ -22,7 +22,7 @@ import { RejectCourseModal } from "./reject-course-modal";
 import { RequestChangesModal } from "./request-changes-modal";
 import { CurriculumPreviewTab } from "./curriculum-preview-tab";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
-import { PlaytestDrawer } from "@/features/teacher-dashboard/components/builder/playtest-drawer";
+import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
 import { Lesson } from "@/features/teacher-dashboard/types";
 import { getCourseDetailApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";

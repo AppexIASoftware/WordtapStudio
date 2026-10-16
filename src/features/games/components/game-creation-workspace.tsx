@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Play, Save, BookOpen, Layers, RefreshCw, Loader2, Sparkles } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
-import { useGameForm } from "../../hooks/use-game-form";
+import { useGameForm } from "../hooks/use-game-form";
 import { GamePreviewCard } from "./game-preview-card";
 import { ARCHETYPES } from "./archetypes";
 

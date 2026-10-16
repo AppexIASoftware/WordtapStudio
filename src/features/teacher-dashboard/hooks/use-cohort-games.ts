@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { updateClassroomApi } from "@/services/api/classroom";
-import { useTeacherGames } from "./use-teacher-games";
+import { useTeacherGames } from "@/features/games/hooks/use-teacher-games";
 
 interface UseCohortGamesProps {
   classroomId?: string;

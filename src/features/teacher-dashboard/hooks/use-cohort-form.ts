@@ -6,7 +6,7 @@ import { Classroom, Course } from "../types";
 import { MOCK_COURSES_LIST } from "@/features/courses/data/mock-courses";
 import { getTeacherCoursesApi } from "@/services/api/courses";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
-import { useTeacherGames } from "./use-teacher-games";
+import { useTeacherGames } from "@/features/games/hooks/use-teacher-games";
 
 interface UseCohortFormProps {
   initialClassroom?: Classroom | null;

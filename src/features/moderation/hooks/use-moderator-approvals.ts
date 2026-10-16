@@ -9,7 +9,7 @@ import {
   updateSyncedReview,
   subscribeSyncedReviews,
 } from "@/services/api";
-import { ModeratorPR } from "../types";
+import { ModeratorPR } from "@/features/moderator-dashboard/types";
 
 function mapApiToModeratorPr(req: ApiCourseReviewRequest): ModeratorPR {
   const shortId = `PR-${req.id.length > 8 ? req.id.slice(0, 6).toUpperCase() : req.id}`;

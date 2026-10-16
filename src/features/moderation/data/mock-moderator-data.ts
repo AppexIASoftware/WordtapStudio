@@ -1,4 +1,4 @@
-import { ModeratorKPI, ModeratorPR, ContentReport } from "../types";
+import { ModeratorKPI, ModeratorPR, ContentReport } from "@/features/moderator-dashboard/types";
 
 export const MODERATOR_KPIS: ModeratorKPI[] = [
   {

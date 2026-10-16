@@ -15,7 +15,7 @@ import {
   FileText,
   ExternalLink,
 } from "lucide-react";
-import { ModeratorPR } from "../types";
+import { ModeratorPR } from "@/features/moderator-dashboard/types";
 import { PublishCourseModal } from "./publish-course-modal";
 import { ReassignReviewerModal } from "./reassign-reviewer-modal";
 import { RejectCourseModal } from "./reject-course-modal";

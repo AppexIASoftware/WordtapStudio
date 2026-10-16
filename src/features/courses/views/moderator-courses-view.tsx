@@ -20,7 +20,7 @@ import { getCourseDetailApi, getAdminCourseReviewsApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
-import { ModeratorLessonInspector } from "@/features/moderator-dashboard/components/moderator-lesson-inspector";
+import { ModeratorLessonInspector } from "@/features/moderation/components/moderator-lesson-inspector";
 
 export function ModeratorCoursesView() {
   const searchParams = useSearchParams();

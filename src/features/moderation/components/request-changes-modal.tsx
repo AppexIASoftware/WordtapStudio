@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AlertTriangle, Sparkles } from "lucide-react";
-import { ModeratorPR } from "../types";
+import { ModeratorPR } from "@/features/moderator-dashboard/types";
 
 interface RequestChangesModalProps {
   isOpen: boolean;

@@ -13,7 +13,7 @@ import {
   Award,
   RotateCcw,
 } from "lucide-react";
-import { ApprovalRequest } from "../types";
+import { ApprovalRequest } from "@/features/teacher-dashboard/types";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 
 interface TeacherApprovalDrawerProps {

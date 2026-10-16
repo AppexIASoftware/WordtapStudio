@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
-import { ModeratorApprovalsView } from "@/features/moderator-dashboard/views/moderator-approvals-view";
+import { ModeratorApprovalsView } from "@/features/moderation/views/moderator-approvals-view";
 
 export const metadata: Metadata = {
   title: "Cola de Aprobaciones (PRs) — Wordtap Studio",

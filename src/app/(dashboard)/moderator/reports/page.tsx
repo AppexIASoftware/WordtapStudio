@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ModeratorReportsView } from "@/features/moderator-dashboard/views/moderator-reports-view";
+import { ModeratorReportsView } from "@/features/moderation/views/moderator-reports-view";
 
 export const metadata: Metadata = {
   title: "Mesa de Resolución de Incidencias (ADR-21) — Wordtap Studio",

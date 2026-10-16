@@ -6,7 +6,7 @@ import {
   Search,
 } from "lucide-react";
 import { CONTENT_REPORTS_DATA } from "../data/mock-moderator-data";
-import { ContentReport } from "../types";
+import { ContentReport } from "@/features/moderator-dashboard/types";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
 export function ModeratorReportsView() {

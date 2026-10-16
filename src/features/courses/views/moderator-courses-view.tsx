@@ -21,6 +21,9 @@ import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { ModeratorLessonInspector } from "@/features/moderation/components/moderator-lesson-inspector";
+import { useUrlParam } from "@/hooks/use-url-params";
+
+const COURSE_TABS = ["cards", "simulator", "games"] as const;
 
 export function ModeratorCoursesView() {
   const searchParams = useSearchParams();
@@ -57,7 +60,12 @@ export function ModeratorCoursesView() {
     };
   });
   const [selectedLessonId, setSelectedLessonId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"cards" | "simulator" | "games">("cards");
+  // La pestaña activa vive en la URL para que la vista sea compartible.
+  const [activeTab, setActiveTab] = useUrlParam<"cards" | "simulator" | "games">(
+    "tab",
+    COURSE_TABS,
+    "cards"
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [showPlaytestDrawer, setShowPlaytestDrawer] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);

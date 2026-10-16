@@ -22,12 +22,20 @@ import { TeacherApplicationsTable } from "../components/teacher-applications-tab
 import { PlatformSettingsCard } from "../components/platform-settings-card";
 import { RbacMatrixConsole } from "../components/rbac-matrix-console";
 import { ToastNotification } from "@/components/ui/toast-notification";
+import { useUrlParam } from "@/hooks/use-url-params";
+
+const ROLES_TABS = ["staff", "applications", "matrix"] as const;
 
 export function RolesView() {
   const { currentRole } = useAuth();
   const isAdmin = currentRole === "admin";
 
-  const [activeTab, setActiveTab] = useState<"staff" | "applications" | "matrix">("staff");
+  // La pestaña activa vive en la URL para que la vista sea compartible.
+  const [activeTab, setActiveTab] = useUrlParam<"staff" | "applications" | "matrix">(
+    "tab",
+    ROLES_TABS,
+    "staff"
+  );
   const [staffList, setStaffList] = useState<StaffMember[]>(INITIAL_STAFF_DATA);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 

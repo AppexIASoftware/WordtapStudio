@@ -15,9 +15,17 @@ import { AuditEvent, ContentReport, AuditCategory } from "../types";
 import { MOCK_AUDIT_EVENTS, MOCK_CONTENT_REPORTS } from "../data/audit-data";
 import { AuditInspectorModal } from "../components/audit-inspector-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
+import { useUrlParam } from "@/hooks/use-url-params";
+
+const AUDIT_TABS = ["logs", "reports"] as const;
 
 export function AuditView() {
-  const [activeTab, setActiveTab] = useState<"logs" | "reports">("logs");
+  // La pestaña activa vive en la URL para que la vista sea compartible.
+  const [activeTab, setActiveTab] = useUrlParam<"logs" | "reports">(
+    "tab",
+    AUDIT_TABS,
+    "logs"
+  );
   const [selectedCat, setSelectedCat] = useState<AuditCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
 

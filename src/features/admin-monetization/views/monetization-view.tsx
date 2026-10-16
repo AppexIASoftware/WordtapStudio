@@ -25,9 +25,17 @@ import {
 } from "../data/monetization-data";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { CoursePricingModal } from "../components/course-pricing-modal";
+import { useUrlParam } from "@/hooks/use-url-params";
+
+const MONETIZATION_TABS = ["plans", "admob", "teacher"] as const;
 
 export function MonetizationView() {
-  const [activeTab, setActiveTab] = useState<"plans" | "admob" | "teacher">("plans");
+  // La pestaña activa vive en la URL para que la vista sea compartible.
+  const [activeTab, setActiveTab] = useUrlParam<"plans" | "admob" | "teacher">(
+    "tab",
+    MONETIZATION_TABS,
+    "plans"
+  );
   const [selectedGateway, setSelectedGateway] = useState<"all" | "stripe" | "apple" | "google">("stripe");
 
   // Configuración de Planes

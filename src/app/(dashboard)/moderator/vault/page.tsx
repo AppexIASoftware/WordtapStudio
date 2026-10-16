@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ModeratorVaultView } from "@/features/moderator-dashboard/views/moderator-vault-view";
+import { ModeratorVaultView } from "@/features/vault/views/moderator-vault-view";
 
 export const metadata: Metadata = {
   title: "Content Vault Maestro — Wordtap Studio",

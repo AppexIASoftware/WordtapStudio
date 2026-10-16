@@ -12,7 +12,7 @@ import { useVaultMutations } from "@/features/vault/hooks/use-vault-mutations";
 
 const TEACHER_VAULT_TABS = ["official", "private"] as const;
 
-export function VaultView() {
+export function TeacherVaultView() {
   const { get, setParams } = useUrlParams();
   // El banco activo vive en la URL para que la pestaña sea compartible.
   const [activeTab, setActiveTab] = useUrlParam<"official" | "private">(

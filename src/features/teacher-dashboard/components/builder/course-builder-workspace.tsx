@@ -16,7 +16,7 @@ import { SimulatorTab } from "./simulator-tab";
 import { PricingModal } from "./pricing-modal";
 import { ManualCardModal } from "./manual-card-modal";
 import { ExportJsonModal } from "./export-json-modal";
-import { VaultDrawer } from "./vault-drawer";
+import { VaultDrawer } from "@/features/vault/components/vault-drawer";
 import { PlaytestDrawer } from "./playtest-drawer";
 import { SubmitReviewModal } from "./submit-review-modal";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";

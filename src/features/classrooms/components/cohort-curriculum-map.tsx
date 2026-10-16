@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Crown, Play, Layers, RotateCcw, BookOpen, Zap, HelpCircle } from "lucide-react";
-import { Course } from "../../types";
+import { Course } from "@/features/teacher-dashboard/types";
 import { TeacherGameDTO } from "@/services/api/types";
 import { CohortPedagogicalPath, StationNode } from "./cohort-pedagogical-path";
 import { CohortStationDetail } from "./cohort-station-detail";

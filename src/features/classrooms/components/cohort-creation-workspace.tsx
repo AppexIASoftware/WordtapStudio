@@ -1,10 +1,10 @@
 "use client";
 
 import { ArrowRight, Sparkles, Save, Pencil } from "lucide-react";
-import { Classroom } from "../../types";
+import { Classroom } from "@/features/teacher-dashboard/types";
 import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { createClassroomApi, updateClassroomApi } from "@/services/api/classroom";
-import { useCohortForm } from "../../hooks/use-cohort-form";
+import { useCohortForm } from "../hooks/use-cohort-form";
 import { CohortWorkspaceHeader } from "./cohort-workspace-header";
 import { CohortPreviewCard } from "./cohort-preview-card";
 import { CohortGamePicker } from "./cohort-game-picker";

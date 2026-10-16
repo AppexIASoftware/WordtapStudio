@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, Globe } from "lucide-react";
-import { GlobalStudent } from "../../types";
+import { GlobalStudent } from "@/features/teacher-dashboard/types";
 
 interface GlobalStudentsTableProps {
   students: GlobalStudent[];

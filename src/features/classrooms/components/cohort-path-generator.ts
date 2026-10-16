@@ -1,4 +1,4 @@
-import { Course } from "../../types";
+import { Course } from "@/features/teacher-dashboard/types";
 import { StationNode } from "./cohort-pedagogical-path";
 import { TeacherGameDTO } from "@/services/api/types";
 

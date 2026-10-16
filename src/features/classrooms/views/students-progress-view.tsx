@@ -4,17 +4,17 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Plus, Download, Users, BookOpen, Gamepad2 } from "lucide-react";
 import { CLASSROOMS_DATA, GLOBAL_STUDENTS_DATA } from "@/features/classrooms/data/mock-classrooms";
-import { Classroom } from "../types";
+import { Classroom } from "@/features/teacher-dashboard/types";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { getTeacherClassroomsApi } from "@/services/api/classroom";
-import { CohortCardsGrid } from "../components/cohorts/cohort-cards-grid";
-import { CohortStumbleCards } from "../components/cohorts/cohort-stumble-cards";
-import { CohortStudentTable } from "../components/cohorts/cohort-student-table";
-import { CohortCoursesTab } from "../components/cohorts/cohort-courses-tab";
-import { CohortGamesTab } from "../components/cohorts/cohort-games-tab";
-import { GlobalStudentsTable } from "../components/cohorts/global-students-table";
-import { CohortCreationWorkspace } from "../components/cohorts/cohort-creation-workspace";
-import { StumbleReinforcementDrawer } from "../components/cohorts/stumble-reinforcement-drawer";
+import { CohortCardsGrid } from "../components/cohort-cards-grid";
+import { CohortStumbleCards } from "../components/cohort-stumble-cards";
+import { CohortStudentTable } from "../components/cohort-student-table";
+import { CohortCoursesTab } from "../components/cohort-courses-tab";
+import { CohortGamesTab } from "../components/cohort-games-tab";
+import { GlobalStudentsTable } from "../components/global-students-table";
+import { CohortCreationWorkspace } from "../components/cohort-creation-workspace";
+import { StumbleReinforcementDrawer } from "../components/stumble-reinforcement-drawer";
 
 export function StudentsProgressView() {
   const router = useRouter();

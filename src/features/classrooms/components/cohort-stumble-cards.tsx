@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, Sparkles, CheckCircle2 } from "lucide-react";
-import { StumbleItem } from "../../types";
+import { StumbleItem } from "@/features/teacher-dashboard/types";
 
 interface CohortStumbleCardsProps {
   stumbles: StumbleItem[];

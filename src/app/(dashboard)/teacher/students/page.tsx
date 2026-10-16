@@ -1,4 +1,4 @@
-import { StudentsProgressView } from "@/features/teacher-dashboard/views/students-progress-view";
+import { StudentsProgressView } from "@/features/classrooms/views/students-progress-view";
 
 export const metadata = {
   title: "Progreso de Alumnos & Aulas — Wordtap Studio",

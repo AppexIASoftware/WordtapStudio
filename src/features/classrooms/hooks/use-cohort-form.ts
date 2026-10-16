@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Classroom, Course } from "../types";
+import { Classroom, Course } from "@/features/teacher-dashboard/types";
 import { MOCK_COURSES_LIST } from "@/features/courses/data/mock-courses";
 import { getTeacherCoursesApi } from "@/services/api/courses";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";

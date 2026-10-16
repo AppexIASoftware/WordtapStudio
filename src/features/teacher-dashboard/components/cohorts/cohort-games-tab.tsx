@@ -2,7 +2,7 @@
 
 import { Gamepad2, Check, Clock, Trophy, Star, Sparkles, Loader2 } from "lucide-react";
 import { GameModeItem } from "../../types";
-import { GAMES_DATA } from "../../data/mock-teacher-data";
+import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { useCohortGames } from "../../hooks/use-cohort-games";
 
 interface CohortGamesTabProps {

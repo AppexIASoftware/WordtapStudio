@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Sparkles, Plus } from "lucide-react";
-import { GAMES_DATA } from "../data/mock-teacher-data";
+import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { GameModeItem } from "../types";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { TeacherGameDTO } from "@/services/api/types";

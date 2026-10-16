@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TEACHER_KPIS } from "../data/mock-teacher-data";
+import { TEACHER_KPIS } from "@/features/dashboard/data/mock-teacher-metrics";
 
 export function TeacherKpiGrid() {
   return (

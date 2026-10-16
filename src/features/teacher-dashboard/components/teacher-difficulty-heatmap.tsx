@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { HEATMAP_TERMS } from "../data/mock-teacher-data";
+import { HEATMAP_TERMS } from "@/features/dashboard/data/mock-teacher-metrics";
 import { HeatmapItem } from "../types";
 import { ChevronRight, X, Sparkles, AlertCircle } from "lucide-react";
 

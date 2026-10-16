@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Classroom, Course } from "../types";
-import { MOCK_COURSES_LIST } from "../data/mock-teacher-data";
+import { MOCK_COURSES_LIST } from "../data/mock-courses";
 import { getTeacherCoursesApi } from "@/services/api/courses";
 import { mapApiLessonToLesson } from "../utils/course-mapper";
 import { useTeacherGames } from "./use-teacher-games";

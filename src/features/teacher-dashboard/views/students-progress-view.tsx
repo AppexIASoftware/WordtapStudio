@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Plus, Download, Users, BookOpen, Gamepad2 } from "lucide-react";
-import { CLASSROOMS_DATA, GLOBAL_STUDENTS_DATA } from "../data/mock-teacher-data";
+import { CLASSROOMS_DATA, GLOBAL_STUDENTS_DATA } from "@/features/classrooms/data/mock-classrooms";
 import { Classroom } from "../types";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { getTeacherClassroomsApi } from "@/services/api/classroom";

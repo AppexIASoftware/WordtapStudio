@@ -2,7 +2,7 @@
 
 import { Gamepad2, Check, Sparkles } from "lucide-react";
 import { GameModeItem } from "../../types";
-import { GAMES_DATA } from "../../data/mock-teacher-data";
+import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { TeacherGameDTO } from "@/services/api/types";
 
 interface CohortGamePickerProps {

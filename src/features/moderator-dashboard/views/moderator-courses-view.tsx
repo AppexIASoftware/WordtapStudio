@@ -14,7 +14,7 @@ import {
   Gamepad2,
   ShieldCheck,
 } from "lucide-react";
-import { COURSES_DATA } from "@/features/teacher-dashboard/data/mock-teacher-data";
+import { COURSES_DATA } from "@/features/teacher-dashboard/data/mock-courses";
 import { Course, Lesson } from "@/features/teacher-dashboard/types";
 import { getCourseDetailApi, getAdminCourseReviewsApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/teacher-dashboard/utils/course-mapper";

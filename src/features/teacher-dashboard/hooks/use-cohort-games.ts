@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { GAMES_DATA } from "../data/mock-teacher-data";
+import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { updateClassroomApi } from "@/services/api/classroom";
 import { useTeacherGames } from "./use-teacher-games";
 

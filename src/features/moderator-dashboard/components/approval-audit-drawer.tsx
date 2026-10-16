@@ -26,7 +26,7 @@ import { PlaytestDrawer } from "@/features/teacher-dashboard/components/builder/
 import { Lesson } from "@/features/teacher-dashboard/types";
 import { getCourseDetailApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/teacher-dashboard/utils/course-mapper";
-import { COURSES_DATA } from "@/features/teacher-dashboard/data/mock-teacher-data";
+import { COURSES_DATA } from "@/features/teacher-dashboard/data/mock-courses";
 
 interface ApprovalAuditDrawerProps {
   isOpen: boolean;

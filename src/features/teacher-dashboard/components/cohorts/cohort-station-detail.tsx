@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Star, Flame, ArrowUp, ArrowDown, Trash2, Edit3, Plus } from "lucide-react";
+import { Sparkles, Star, Flame, ArrowUp, ArrowDown, Trash2, Edit3, Plus, Crown } from "lucide-react";
 import { StationNode } from "./cohort-pedagogical-path";
 
 interface CohortStationDetailProps {
@@ -88,6 +88,23 @@ export function CohortStationDetail({
 
       {/* Editor de la Estación */}
       <div className="space-y-4">
+        {station.isCustom && (
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center border border-amber-500/30">
+                <Crown className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-amber-300">Desafío Especial del Docente</p>
+                <p className="text-[10px] text-amber-400/80">Reto de autor calibrado con reglas pedagógicas propias</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+              Personalizado
+            </span>
+          </div>
+        )}
+
         <div>
           <label className="block text-xs font-semibold text-slate-200 mb-1 flex items-center gap-1.5">
             <Edit3 className="w-3.5 h-3.5 text-emerald-brand" />

@@ -44,6 +44,7 @@ export function CohortCreationWorkspace({
     selectedCourseIds,
     selectedLessonIds,
     selectedGameTypes,
+    customGames,
     weeklyGoal,
     setWeeklyGoal,
     activeTab,
@@ -287,6 +288,8 @@ export function CohortCreationWorkspace({
             <CohortGamePicker
               selectedGameTypes={selectedGameTypes}
               onToggleGame={toggleGame}
+              customGames={customGames}
+              isReadOnly={!isEditing}
             />
 
             <CohortGoalSelector
@@ -343,6 +346,7 @@ export function CohortCreationWorkspace({
             selectedGameTypes={selectedGameTypes}
             weeklyGoal={weeklyGoal}
             selectedLessonIds={selectedLessonIds}
+            customGames={customGames}
           />
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border-default shadow-sm">

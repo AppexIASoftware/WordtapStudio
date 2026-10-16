@@ -1,5 +1,6 @@
 import { Course } from "../../types";
 import { StationNode } from "./cohort-pedagogical-path";
+import { TeacherGameDTO } from "@/services/api/types";
 
 export const GAME_NAMES: Record<string, string> = {
   listening: "Listening Lab",
@@ -8,6 +9,12 @@ export const GAME_NAMES: Record<string, string> = {
   match: "WordMatch Express",
   speed_translation: "Traducción Rápida",
   multiple_choice: "Quiz de Reto",
+  hangman: "Ahorcado Fonético",
+  sentence_builder: "Constructor de Oraciones",
+  fill_in: "Rellenar Espacios",
+  phrasal_verbs: "Phrasal Verbs Lab",
+  crossword: "Crucigrama Temático",
+  word_search: "Sopa de Letras",
 };
 
 const X_OFFSETS = [180, 105, 90, 150, 230, 270, 220];
@@ -32,10 +39,15 @@ export function generateCurricularPath(
   course: Course,
   selectedLessonIds: string[],
   selectedGameTypes: string[],
-  weeklyGoal: number
+  weeklyGoal: number,
+  customGames: TeacherGameDTO[] = []
 ): StationNode[] {
   const games = selectedGameTypes.length > 0 ? selectedGameTypes : ["match", "memory"];
   const allLessons = course.lessons && course.lessons.length > 0 ? course.lessons : [];
+
+  const selectedCustomGames = customGames.filter((cg) =>
+    selectedGameTypes.includes(`custom_${cg.id}`) || selectedGameTypes.includes(cg.id)
+  );
 
   // Filtrar solo las lecciones que el docente activó
   const activeLessons =
@@ -52,7 +64,8 @@ export function generateCurricularPath(
 
   effectiveLessons.forEach((lesson, idx) => {
     const words = lesson.items?.map((it) => it.en).filter(Boolean) || [];
-    const gameKey = games[idx % games.length] || "match";
+    const baseGameTypes = games.filter((g) => !g.startsWith("custom_"));
+    const gameKey = (baseGameTypes.length > 0 ? baseGameTypes[idx % baseGameTypes.length] : "match") || "match";
 
     // Nodo 1: Lección Teórica / Conceptual
     raw.push({
@@ -72,7 +85,7 @@ export function generateCurricularPath(
     raw.push({
       id: `game-node-${lesson.id || idx}`,
       type: "game",
-      title: `${GAME_NAMES[gameKey]} • L${idx + 1}`,
+      title: `${GAME_NAMES[gameKey] || "WordMatch"} • L${idx + 1}`,
       subtitle:
         words.length > 0
           ? `Práctica de: ${words.slice(0, 3).join(", ")}`
@@ -81,6 +94,24 @@ export function generateCurricularPath(
       duration: "60 seg",
       xp: 20,
       gameKey,
+    });
+  });
+
+  // Estaciones Destacadas: Retos Personalizados del Docente
+  selectedCustomGames.forEach((cg) => {
+    raw.push({
+      id: `custom-game-${cg.id}`,
+      type: "game",
+      title: cg.title,
+      subtitle: `Reto Especial del Docente • ${cg.time_limit_seconds}s • ${
+        cg.allowed_mistakes === 0 ? "Muerte súbita" : `${cg.allowed_mistakes} vidas`
+      }`,
+      category: "Desafío Especial del Docente",
+      duration: `${cg.time_limit_seconds} seg`,
+      xp: cg.reward_xp || 50,
+      gameKey: `custom_${cg.id}`,
+      isCustom: true,
+      customGameId: cg.id,
     });
   });
 
@@ -116,7 +147,8 @@ export function generateChallengePath(
   course: Course,
   selectedLessonIds: string[],
   selectedGameTypes: string[],
-  weeklyGoal: number
+  weeklyGoal: number,
+  customGames: TeacherGameDTO[] = []
 ): StationNode[] {
   const games = selectedGameTypes.length > 0 ? selectedGameTypes : ["match", "memory", "speed_translation"];
   const allLessons = course.lessons && course.lessons.length > 0 ? course.lessons : [];
@@ -124,6 +156,10 @@ export function generateChallengePath(
     selectedLessonIds.length > 0
       ? allLessons.filter((l) => selectedLessonIds.includes(l.id))
       : allLessons;
+
+  const selectedCustomGames = customGames.filter((cg) =>
+    selectedGameTypes.includes(`custom_${cg.id}`) || selectedGameTypes.includes(cg.id)
+  );
 
   const allWords = activeLessons.flatMap((l) => l.items?.map((it) => it.en) || []).filter(Boolean);
 
@@ -163,8 +199,8 @@ export function generateChallengePath(
     {
       id: "ch-st-3",
       type: "speed",
-      title: "Desafío Tropiezos Spaced Repetition",
-      subtitle: "Algoritmo SM-2 enfocado en palabras de vacilación",
+      title: "Desafío de Tropiezos Frecuentes",
+      subtitle: "Repaso enfocado en las palabras que más se resisten",
       category: "Práctica Adaptativa",
       duration: "3 min",
       xp: 30,
@@ -179,26 +215,46 @@ export function generateChallengePath(
       xp: 30,
       gameKey: games[2 % games.length] || "word_scramble",
     },
-    {
-      id: "ch-st-5",
-      type: "game",
-      title: GAME_NAMES[games[3 % games.length] || "multiple_choice"] || "Quiz de Reto Exprés",
-      subtitle: "Evaluación lúdica de respuestas rápidas",
-      category: "Duelo de Preguntas",
-      duration: "90 seg",
-      xp: 40,
-      gameKey: games[3 % games.length] || "multiple_choice",
-    },
-    {
-      id: "ch-st-6",
-      type: "milestone",
-      title: "Cofre de Conquista Semanal",
-      subtitle: `Meta: Dominar ${weeklyGoal} palabras para la insignia`,
-      category: "Hito Gamificado",
-      duration: "Acreditación",
-      xp: 100,
-    },
   ];
+
+  // Insertar retos especiales del docente
+  selectedCustomGames.forEach((cg) => {
+    raw.push({
+      id: `custom-ch-node-${cg.id}`,
+      type: "game",
+      title: cg.title,
+      subtitle: `Reto Especial del Docente • ${cg.time_limit_seconds}s • ${
+        cg.allowed_mistakes === 0 ? "Muerte súbita" : `${cg.allowed_mistakes} vidas`
+      }`,
+      category: "Desafío Especial del Docente",
+      duration: `${cg.time_limit_seconds} seg`,
+      xp: cg.reward_xp || 50,
+      gameKey: `custom_${cg.id}`,
+      isCustom: true,
+      customGameId: cg.id,
+    });
+  });
+
+  raw.push({
+    id: "ch-st-5",
+    type: "game",
+    title: GAME_NAMES[games[3 % games.length] || "multiple_choice"] || "Quiz de Reto Exprés",
+    subtitle: "Evaluación lúdica de respuestas rápidas",
+    category: "Duelo de Preguntas",
+    duration: "90 seg",
+    xp: 40,
+    gameKey: games[3 % games.length] || "multiple_choice",
+  });
+
+  raw.push({
+    id: "ch-st-6",
+    type: "milestone",
+    title: "Cofre de Conquista Semanal",
+    subtitle: `Meta: Dominar ${weeklyGoal} palabras para la insignia`,
+    category: "Hito Gamificado",
+    duration: "Acreditación",
+    xp: 100,
+  });
 
   return assignCoordinates(raw);
 }

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Crown, Play, Layers, RotateCcw, BookOpen, Zap, HelpCircle } from "lucide-react";
 import { Course } from "../../types";
+import { TeacherGameDTO } from "@/services/api/types";
 import { CohortPedagogicalPath, StationNode } from "./cohort-pedagogical-path";
 import { CohortStationDetail } from "./cohort-station-detail";
 import { CohortRouteComparisonModal } from "./cohort-route-comparison-modal";
@@ -18,6 +19,7 @@ interface CohortCurriculumMapProps {
   selectedGameTypes: string[];
   weeklyGoal: number;
   selectedLessonIds?: string[];
+  customGames?: TeacherGameDTO[];
 }
 
 export function CohortCurriculumMap({
@@ -25,6 +27,7 @@ export function CohortCurriculumMap({
   selectedGameTypes,
   weeklyGoal,
   selectedLessonIds = [],
+  customGames = [],
 }: CohortCurriculumMapProps) {
   const [activeCourseIdx, setActiveCourseIdx] = useState(0);
   const [pathMode, setPathMode] = useState<"lessons" | "challenges">("lessons");
@@ -43,16 +46,18 @@ export function CohortCurriculumMap({
         currentCourse,
         selectedLessonIds,
         selectedGameTypes,
-        weeklyGoal
+        weeklyGoal,
+        customGames
       );
     }
     return generateChallengePath(
       currentCourse,
       selectedLessonIds,
       selectedGameTypes,
-      weeklyGoal
+      weeklyGoal,
+      customGames
     );
-  }, [currentCourse, pathMode, selectedLessonIds, selectedGameTypes, weeklyGoal]);
+  }, [currentCourse, pathMode, selectedLessonIds, selectedGameTypes, weeklyGoal, customGames]);
 
   // Sincronizar ruta al cambiar de curso o de modo de ruta
   useEffect(() => {

@@ -6,6 +6,7 @@ import { Classroom, Course } from "../types";
 import { MOCK_COURSES_LIST } from "../data/mock-teacher-data";
 import { getTeacherCoursesApi } from "@/services/api/courses";
 import { mapApiLessonToLesson } from "../utils/course-mapper";
+import { useTeacherGames } from "./use-teacher-games";
 
 interface UseCohortFormProps {
   initialClassroom?: Classroom | null;
@@ -51,6 +52,7 @@ export function useCohortForm({
     searchParams.get("tab") === "curriculum" ? "curriculum" : "general"
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { customGames } = useTeacherGames();
 
   useEffect(() => {
     if (initialClassroom) {
@@ -266,6 +268,7 @@ export function useCohortForm({
     selectedCourseIds,
     selectedLessonIds,
     selectedGameTypes,
+    customGames,
     weeklyGoal,
     setWeeklyGoal,
     activeTab,

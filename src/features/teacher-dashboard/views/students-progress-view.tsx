@@ -390,6 +390,8 @@ export function StudentsProgressView() {
             <CohortGamesTab
               activeGameSlugs={selectedClass.activeGames}
               classroomName={selectedClass.name}
+              classroomId={selectedClass.id}
+              isDemo={selectedClass.isDemo}
               onUpdateActiveGames={(games) => {
                 setClassrooms((prev) =>
                   prev.map((c) => (c.id === selectedClass.id ? { ...c, activeGames: games } : c))

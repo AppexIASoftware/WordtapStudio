@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-context";
+import { SidebarAdminNav } from "./sidebar-admin-nav";
+import { SidebarUserFooter } from "./sidebar-user-footer";
 import {
   LayoutDashboard,
   BookOpen,
@@ -279,196 +281,23 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
             </>
           )}
 
-          {/* GRUPO 3: NAVEGACIÓN DE SUPER ADMIN (OPEN-DESIGN) */}
+          {/* GRUPO 3: NAVEGACION DE SUPER ADMIN (OPEN-DESIGN) */}
           {currentRole === "admin" && (
-            <div className="space-y-5">
-              {/* 1. SUPERVISIÓN GLOBAL */}
-              <div>
-                {!collapsed && (
-                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-purple-400 mb-1.5 font-mono">
-                    Supervisión Global (Admin)
-                  </p>
-                )}
-                <nav className="space-y-0.5">
-                  <Link href="/admin/dashboard" className={navItemAdminClass("/admin/dashboard")}>
-                    <div className="flex items-center gap-3">
-                      <LayoutDashboard size={18} />
-                      {!collapsed && <span>Dashboard Ejecutivo</span>}
-                    </div>
-                  </Link>
-                </nav>
-              </div>
-
-              {/* 2. CENTRO DE MODERACIÓN */}
-              <div>
-                <div className="flex items-center justify-between px-3 mb-1.5">
-                  {!collapsed && (
-                    <>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-subtle font-mono">
-                        Centro de Moderación
-                      </span>
-                      <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded font-mono font-bold">
-                        2 Pendientes
-                      </span>
-                    </>
-                  )}
-                </div>
-                <nav className="space-y-0.5">
-                  <Link href="/admin/approvals" className={navItemAdminClass("/admin/approvals")}>
-                    <div className="flex items-center gap-3">
-                      <CheckCircle2 size={18} />
-                      {!collapsed && <span>Aprobación de Cursos</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-bold font-mono">
-                        Pendientes
-                      </span>
-                    )}
-                  </Link>
-                </nav>
-              </div>
-
-              {/* 3. GOBERNANZA & SEGURIDAD */}
-              <div>
-                {!collapsed && (
-                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-                    Gobernanza & Seguridad
-                  </p>
-                )}
-                <nav className="space-y-0.5">
-                  <Link href="/admin/roles" className={navItemAdminClass("/admin/roles")}>
-                    <div className="flex items-center gap-3">
-                      <Shield size={18} />
-                      {!collapsed && <span>Roles & Permisos</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-                        Total
-                      </span>
-                    )}
-                  </Link>
-
-                  <Link href="/admin/audit" className={navItemAdminClass("/admin/audit")}>
-                    <div className="flex items-center gap-3">
-                      <Activity size={18} />
-                      {!collapsed && <span>Auditoría & Trazabilidad</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-                        En vivo
-                      </span>
-                    )}
-                  </Link>
-                </nav>
-              </div>
-
-              {/* 4. MONETIZACIÓN & STRIPE */}
-              <div>
-                {!collapsed && (
-                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-                    Monetización & Pagos
-                  </p>
-                )}
-                <nav className="space-y-0.5">
-                  <Link href="/admin/monetization" className={navItemAdminClass("/admin/monetization")}>
-                    <div className="flex items-center gap-3">
-                      <CreditCard size={18} />
-                      {!collapsed && <span>Marketplace & Stripe</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand font-bold">
-                        70 / 30
-                      </span>
-                    )}
-                  </Link>
-                </nav>
-              </div>
-
-              {/* 5. CATÁLOGO GLOBAL */}
-              <div>
-                {!collapsed && (
-                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-                    Catálogo Global
-                  </p>
-                )}
-                <nav className="space-y-0.5">
-                  <Link href="/admin/vault" className={navItemAdminClass("/admin/vault")}>
-                    <div className="flex items-center gap-3">
-                      <Boxes size={18} />
-                      {!collapsed && <span>Content Vault Maestro</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">
-                        Global
-                      </span>
-                    )}
-                  </Link>
-
-                  <Link href="/admin/courses" className={navItemAdminClass("/admin/courses")}>
-                    <div className="flex items-center gap-3">
-                      <Layers size={18} />
-                      {!collapsed && <span>Todos los Cursos</span>}
-                    </div>
-                    {!collapsed && (
-                      <span className="text-[9px] font-mono text-slate-subtle font-bold">
-                        Supervisar
-                      </span>
-                    )}
-                  </Link>
-                </nav>
-              </div>
-            </div>
+            <SidebarAdminNav
+              collapsed={collapsed}
+              navItemAdminClass={navItemAdminClass}
+            />
           )}
         </div>
 
         {/* Perfil del usuario en el pie del sidebar */}
-        <div className="p-3 border-t border-border-default bg-card/60">
-          <div className="flex items-center justify-between gap-2.5">
-            <div
-              onClick={onOpenDemoModal}
-              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer hover:opacity-85 transition-opacity"
-              title="Ver perfil o cambiar usuario (Login Demo)"
-            >
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-canvas font-bold text-xs flex-shrink-0 shadow-sm ${
-                  currentRole === "instructor"
-                    ? "bg-gradient-to-tr from-emerald-brand to-mint-brand"
-                    : currentRole === "moderator"
-                    ? "bg-gradient-to-tr from-blue-500 to-cyan-400"
-                    : "bg-gradient-to-tr from-purple-500 to-indigo-600"
-                }`}
-              >
-                {user.avatarInitials}
-              </div>
-              {!collapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-slate-200 truncate">
-                    {user.name}
-                  </p>
-                  <p className="text-[10px] text-slate-subtle truncate">
-                    {user.title}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={onOpenDemoModal}
-              className="p-1.5 rounded-lg text-slate-muted hover:text-slate-200 hover:bg-card-hover transition-colors cursor-pointer flex-shrink-0"
-              title="Cambiar Usuario / Login Demo (RF-S27)"
-            >
-              <UserCheck size={15} />
-            </button>
-
-            <button
-              onClick={logout}
-              className="p-1.5 rounded-lg text-slate-muted hover:text-rose-400 hover:bg-card-hover transition-colors cursor-pointer flex-shrink-0"
-              title="Cerrar Sesión"
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
-        </div>
+        <SidebarUserFooter
+          user={user}
+          currentRole={currentRole}
+          collapsed={collapsed}
+          onOpenDemoModal={onOpenDemoModal}
+          onLogout={logout}
+        />
       </aside>
     </>
   );

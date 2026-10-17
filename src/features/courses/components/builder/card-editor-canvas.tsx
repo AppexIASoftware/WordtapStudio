@@ -52,24 +52,24 @@ export function CardEditorCanvas({
 }: CardEditorCanvasProps) {
   return (
     <div className="rounded-2xl bg-card border border-border-default overflow-hidden shadow-sm">
-      <div className="p-4 border-b border-border-default bg-card-hover/50 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-border-default bg-card-hover/50 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-brand/10 text-emerald-brand flex items-center justify-center font-bold">
-            {isCreating ? <PlusCircle className="w-4 h-4" /> : <FileEdit className="w-4 h-4" />}
+          <div className="w-7 h-7 rounded-lg bg-emerald-brand/10 text-emerald-brand flex items-center justify-center font-bold">
+            {isCreating ? <PlusCircle className="w-3.5 h-3.5" /> : <FileEdit className="w-3.5 h-3.5" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-xs font-bold text-white">
                 {isCreating
                   ? "Añadir Nueva Tarjeta a la Lección"
                   : `Editar ${stepForm.itemType || "Elemento"}: '${stepForm.en}'`}
               </h3>
               {isCreating ? (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-brand/15 text-emerald-brand border border-emerald-brand/25">
+                <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-emerald-brand/15 text-emerald-brand border border-emerald-brand/25">
                   Modo Creación
                 </span>
               ) : stepForm.contentBankItemId ? (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/25">
                   🌐 Content Vault
                 </span>
               ) : null}
@@ -87,7 +87,7 @@ export function CardEditorCanvas({
           <select
             value={activeItemType}
             onChange={(e) => updateField("itemType", e.target.value as LessonItem["itemType"])}
-            className="bg-canvas border border-border-default rounded-xl px-3 py-1.5 text-xs text-mint-brand font-mono font-semibold cursor-pointer focus:outline-none focus:border-emerald-brand"
+            className="bg-canvas border border-border-default rounded-xl px-2.5 py-1 text-xs text-mint-brand font-mono font-semibold cursor-pointer focus:outline-none focus:border-emerald-brand"
           >
             <option value="word">word (Vocabulario)</option>
             <option value="phrase">phrase (Frase)</option>
@@ -99,11 +99,11 @@ export function CardEditorCanvas({
       </div>
 
       {/* Formulario en 2 columnas - 100% idéntico para crear y editar */}
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Columna Izquierda */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
               Término / Palabra en Inglés (Target)
             </label>
             <div className="relative">
@@ -111,55 +111,55 @@ export function CardEditorCanvas({
                 type="text"
                 value={activeEn}
                 onChange={(e) => updateField("en", e.target.value)}
-                className="w-full bg-canvas border border-border-default rounded-xl px-4 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-emerald-brand pr-10"
+                className="w-full bg-canvas border border-border-default rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-emerald-brand pr-9"
                 placeholder="Ej: be, take, have, know..."
               />
               <button
                 type="button"
                 onClick={() => onSpeak(activeEn)}
-                className="absolute right-3 top-2.5 p-1 text-slate-muted hover:text-mint-brand transition-colors cursor-pointer"
+                className="absolute right-2.5 top-2 p-1 text-slate-muted hover:text-mint-brand transition-colors cursor-pointer"
                 title="Escuchar pronunciación"
               >
-                <Volume2 className="w-4 h-4" />
+                <Volume2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
               Traducción al Español (Prompt)
             </label>
             <input
               type="text"
               value={activeEs}
               onChange={(e) => updateField("es", e.target.value)}
-              className="w-full bg-canvas border border-border-default rounded-xl px-4 py-2.5 text-sm text-white font-medium focus:outline-none focus:border-emerald-brand"
+              className="w-full bg-canvas border border-border-default rounded-xl px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-emerald-brand"
               placeholder="Ej: ser / estar, saber / conocer..."
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
                 Transcripción Fonética (IPA)
               </label>
               <input
                 type="text"
                 value={activeIpa}
                 onChange={(e) => updateField("ipa", e.target.value)}
-                className="w-full bg-canvas border border-border-default rounded-xl px-3.5 py-2.5 text-xs font-mono text-mint-brand focus:outline-none focus:border-emerald-brand"
+                className="w-full bg-canvas border border-border-default rounded-xl px-3 py-1.5 text-xs font-mono text-mint-brand focus:outline-none focus:border-emerald-brand"
                 placeholder="/noʊ/"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
                 Categoría Gramatical
               </label>
               <input
                 type="text"
                 value={activePos}
                 onChange={(e) => updateField("pos", e.target.value)}
-                className="w-full bg-canvas border border-border-default rounded-xl px-3.5 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-brand"
+                className="w-full bg-canvas border border-border-default rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-brand"
                 placeholder="Verbo irregular, adjetivo..."
               />
             </div>
@@ -167,22 +167,22 @@ export function CardEditorCanvas({
         </div>
 
         {/* Columna Derecha */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
               Oración de Ejemplo en Contexto
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={activeExample}
               onChange={(e) => updateField("example", e.target.value)}
-              className="w-full bg-canvas border border-border-default rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-brand italic resize-none"
+              className="w-full bg-canvas border border-border-default rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-brand italic resize-none"
               placeholder='Ej: "I know the answer to this question"'
             />
           </div>
 
           {/* Nota Pedagógica / Tip */}
-          <div className="p-4 rounded-xl bg-canvas border border-border-default space-y-2.5">
+          <div className="p-3 rounded-xl bg-canvas border border-border-default space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <span className="text-amber-400">💡</span>
@@ -217,8 +217,8 @@ export function CardEditorCanvas({
               type="text"
               value={activeNote}
               onChange={(e) => updateField("note", e.target.value)}
-              className="w-full bg-card border border-border-default rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-brand"
-              placeholder="Nota de aprendizaje o advertencia..."
+              className="w-full bg-card border border-border-default rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-brand"
+              placeholder='Ej: "Se usa para personas o hechos conocidos..."'
             />
           </div>
         </div>

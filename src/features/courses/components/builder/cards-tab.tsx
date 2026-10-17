@@ -95,7 +95,7 @@ export function CardsTab({
 
 
   return (
-    <div className="p-5 md:p-6 space-y-6">
+    <div className="p-3.5 sm:p-4 space-y-4">
       <CardStrip
         items={currentLesson.items}
         currentStepId={currentStepId}

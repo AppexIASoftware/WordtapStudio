@@ -29,7 +29,7 @@ export function CourseStructurePanel({
 }: CourseStructurePanelProps) {
   return (
     <div className="col-span-12 lg:col-span-4 xl:col-span-3 border-r border-border-default bg-card/40 flex flex-col overflow-y-auto">
-      <div className="p-3.5 border-b border-border-default flex items-center justify-between bg-card-hover/40 flex-shrink-0">
+      <div className="p-3 border-b border-border-default flex items-center justify-between bg-card-hover/40 flex-shrink-0">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-muted font-mono">
             Estructura del Curso
@@ -51,7 +51,7 @@ export function CourseStructurePanel({
 
       {/* Alerta de Tropiezos del Aula Vinculada */}
       {linkedClassroom?.stumble?.[0] && (
-        <div className="mx-3 mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs space-y-1 flex-shrink-0">
+        <div className="mx-2.5 mt-2.5 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs space-y-1 flex-shrink-0">
           <div className="flex items-center gap-1.5 font-bold">
             <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
             <span>Alerta de Aula Vinculada (Stumble List)</span>
@@ -65,14 +65,14 @@ export function CourseStructurePanel({
       )}
 
       {/* Árbol dinámico de lecciones */}
-      <div className="p-3 space-y-2 flex-1 overflow-y-auto">
+      <div className="p-2.5 space-y-1.5 flex-1 overflow-y-auto">
         {currentCourse.lessons.map((lesson) => {
           const isSelected = lesson.id === currentLessonId;
           return (
             <div
               key={lesson.id}
               onClick={() => onSelectLesson(lesson)}
-              className={`p-3 rounded-xl border transition-all cursor-pointer ${
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
                 isSelected
                   ? "bg-card border-emerald-brand text-white shadow-sm ring-1 ring-emerald-brand/30"
                   : "bg-canvas border-border-default text-slate-300 hover:border-border-subtle"
@@ -105,10 +105,10 @@ export function CourseStructurePanel({
                   )}
                 </div>
               </div>
-              <p className="text-[10px] text-slate-subtle mt-1 truncate">
+              <p className="text-[10px] text-slate-subtle mt-0.5 truncate">
                 {lesson.subtitle}
               </p>
-              <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-slate-muted">
+              <div className="mt-1.5 flex items-center justify-between text-[10px] font-mono text-slate-muted">
                 <span>{lesson.items.length} tarjetas</span>
                 <span className="text-emerald-brand">{lesson.tier}</span>
               </div>
@@ -118,11 +118,11 @@ export function CourseStructurePanel({
       </div>
 
       {/* Acciones inferiores de la estructura */}
-      <div className="p-3 border-t border-border-default bg-card/60 space-y-2 flex-shrink-0">
+      <div className="p-2.5 border-t border-border-default bg-card/60 space-y-1.5 flex-shrink-0">
         <button
           type="button"
           onClick={onOpenVaultDrawer}
-          className="w-full py-2.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          className="w-full py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
         >
           <Database className="w-3.5 h-3.5" />
           <span>+ Importar desde Content Vault</span>
@@ -130,7 +130,7 @@ export function CourseStructurePanel({
         <button
           type="button"
           onClick={onOpenAddStepModal}
-          className="w-full py-2 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/40 text-xs font-semibold text-slate-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+          className="w-full py-1.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/40 text-xs font-semibold text-slate-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Redactar Tarjeta Manual</span>

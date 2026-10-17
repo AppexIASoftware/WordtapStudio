@@ -65,12 +65,12 @@ export function SubmitReviewModal({
         </div>
 
         {isResubmission && course.feedbackNotes && (
-          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 space-y-1.5">
-            <div className="flex items-center gap-1.5 font-bold text-amber-300 text-xs">
-              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 space-y-1.5">
+            <div className="flex items-center gap-1.5 font-bold text-amber-950 dark:text-amber-300 text-xs">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
               <span>Observaciones del Revisor a Resolver:</span>
             </div>
-            <p className="text-[11px] text-amber-100/90 leading-relaxed italic line-clamp-3">
+            <p className="text-[11px] text-slate-800 dark:text-amber-100/90 leading-relaxed italic line-clamp-3">
               &quot;{course.feedbackNotes}&quot;
             </p>
           </div>

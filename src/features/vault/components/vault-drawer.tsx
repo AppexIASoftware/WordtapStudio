@@ -25,6 +25,11 @@ interface VaultDrawerProps {
   currentLesson: Lesson;
   onClose: () => void;
   onImportItem: (item: Omit<LessonItem, "id">, contentBankItemId?: string) => void;
+  /**
+   * "Mi Colección" es la biblioteca privada del docente. El admin cura el
+   * catálogo en lugar de tener colección propia, así que no debe verla.
+   */
+  showPrivateCollection?: boolean;
 }
 
 export function VaultDrawer({
@@ -32,6 +37,7 @@ export function VaultDrawer({
   currentLesson,
   onClose,
   onImportItem,
+  showPrivateCollection = true,
 }: VaultDrawerProps) {
   const [activeSource, setActiveSource] = useState<"official" | "private">("official");
   const [search, setSearch] = useState("");
@@ -47,6 +53,13 @@ export function VaultDrawer({
     }, 250);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Sin fuente privada disponible, la única fuente válida es la oficial.
+  useEffect(() => {
+    if (!showPrivateCollection && activeSource !== "official") {
+      setActiveSource("official");
+    }
+  }, [showPrivateCollection, activeSource]);
 
   const { data: officialData, isLoading: loadingOfficial } = useQuery({
     queryKey: ["vault-official", debouncedSearch, bankType, cefrLevel],
@@ -77,7 +90,7 @@ export function VaultDrawer({
     },
     staleTime: 60 * 1000,
     placeholderData: (prev) => prev,
-    enabled: isOpen && activeSource === "private",
+    enabled: isOpen && activeSource === "private" && showPrivateCollection,
   });
 
   const items: ApiVaultItem[] = activeSource === "official" ? officialData || [] : privateData || [];
@@ -140,7 +153,9 @@ export function VaultDrawer({
           </div>
 
           {/* Selector de Fuente: Oficial vs Privado */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-canvas rounded-xl border border-border-default">
+          <div
+            className={`grid ${showPrivateCollection ? "grid-cols-2" : "grid-cols-1"} gap-2 p-1 bg-canvas rounded-xl border border-border-default`}
+          >
             <button
               type="button"
               onClick={() => setActiveSource("official")}
@@ -153,18 +168,20 @@ export function VaultDrawer({
               <Globe className="w-3.5 h-3.5" />
               <span>Banco Wordtap</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setActiveSource("private")}
-              className={`py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                activeSource === "private"
-                  ? "bg-card text-blue-400 shadow-sm border border-border-default"
-                  : "text-slate-muted hover:text-white"
-              }`}
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>Mi Colección</span>
-            </button>
+            {showPrivateCollection && (
+              <button
+                type="button"
+                onClick={() => setActiveSource("private")}
+                className={`py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  activeSource === "private"
+                    ? "bg-card text-blue-400 shadow-sm border border-border-default"
+                    : "text-slate-muted hover:text-white"
+                }`}
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Mi Colección</span>
+              </button>
+            )}
           </div>
 
           {/* Barra de búsqueda */}

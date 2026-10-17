@@ -4,8 +4,16 @@ import { useCourseBuilder } from "../hooks/use-course-builder";
 import { CourseBuilderWorkspace } from "../components/builder/course-builder-workspace";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
-export function CourseBuilderView() {
-  const b = useCourseBuilder();
+interface CourseBuilderViewProps {
+  initialCourseId?: string;
+  scope?: "teacher" | "admin";
+}
+
+export function CourseBuilderView({
+  initialCourseId,
+  scope = "teacher",
+}: CourseBuilderViewProps = {}) {
+  const b = useCourseBuilder(initialCourseId, { scope });
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden relative">

@@ -15,7 +15,10 @@ import { useUrlMirror } from "@/hooks/use-url-params";
  * Hook orquestador principal del editor y constructor de cursos (Course Builder).
  * Conecta estado de sesion, navegacion en URL, leccion activa y sub-hooks modulares.
  */
-export function useCourseBuilder(initialCourseId?: string) {
+export function useCourseBuilder(
+  initialCourseId?: string,
+  options?: { scope?: "teacher" | "admin" }
+) {
   const { user } = useAuth();
   const [currentLessonId, setCurrentLessonId] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -59,6 +62,7 @@ export function useCourseBuilder(initialCourseId?: string) {
   } = useBuilderLoader({
     initialCourseId,
     userName: user?.name,
+    scope: options?.scope,
     syncSelectedLesson,
     triggerToast,
   });

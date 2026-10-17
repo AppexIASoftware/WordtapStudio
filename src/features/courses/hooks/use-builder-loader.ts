@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Dispatch, SetStateAction } from "reac
 import { Course, Lesson } from "@/features/courses/types";
 import {
   getTeacherCoursesApi,
+  getAdminCoursesApi,
   getTeacherCourseReviewsApi,
   getCourseLessonsApi,
   getSyncedReviews,
@@ -15,6 +16,7 @@ import { COURSES_DATA } from "../data/mock-courses";
 interface UseBuilderLoaderProps {
   initialCourseId?: string;
   userName?: string;
+  scope?: "teacher" | "admin";
   syncSelectedLesson: (lesson: Lesson | null, requestedStepId?: string) => void;
   triggerToast: (msg: string) => void;
 }
@@ -23,6 +25,7 @@ interface UseBuilderLoaderProps {
 export function useBuilderLoader({
   initialCourseId,
   userName,
+  scope = "teacher",
   syncSelectedLesson,
   triggerToast,
 }: UseBuilderLoaderProps) {
@@ -32,8 +35,9 @@ export function useBuilderLoader({
 
   const loadCoursesData = useCallback(async () => {
     setIsLoading(true);
+    const fetchCourses = scope === "admin" ? getAdminCoursesApi : getTeacherCoursesApi;
     const [res, reviewsRes] = await Promise.all([
-      getTeacherCoursesApi(),
+      fetchCourses(),
       getTeacherCourseReviewsApi(),
     ]);
     const syncedReviews = getSyncedReviews();
@@ -137,7 +141,7 @@ export function useBuilderLoader({
       });
       setIsLoading(false);
     }
-  }, [userName, initialCourseId, syncSelectedLesson]);
+  }, [userName, initialCourseId, scope, syncSelectedLesson]);
 
   useEffect(() => {
     loadCoursesData();

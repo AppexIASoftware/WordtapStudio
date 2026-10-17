@@ -8,3 +8,4 @@ export * from "./review-sync";
 export * from "./vault";
 export * from "./classroom";
 export * from "./games";
+export * from "./admin";

@@ -7,6 +7,9 @@ import {
   deleteCourseApi,
   updateLessonApi,
   deleteLessonApi,
+  createLessonApi,
+  saveLessonItemApi,
+  ApiCourse,
 } from "@/services/api";
 
 interface UseCourseCrudProps {
@@ -17,6 +20,7 @@ interface UseCourseCrudProps {
   setCurrentCourseId: Dispatch<SetStateAction<string>>;
   syncSelectedLesson: (lesson: Lesson | null) => void;
   triggerToast: (msg: string) => void;
+  userName?: string;
 }
 
 export function useCourseCrud({
@@ -27,6 +31,7 @@ export function useCourseCrud({
   setCurrentCourseId,
   syncSelectedLesson,
   triggerToast,
+  userName,
 }: UseCourseCrudProps) {
   const handleEditCourse = async (updated: { title: string; level: string; price: number }) => {
     const res = await updateCourseApi(currentCourseId, {
@@ -162,7 +167,85 @@ export function useCourseCrud({
     triggerToast(`Precio actualizado a $${newPrice.toFixed(2)} USD`);
   };
 
+  const handleCourseCreated = async (newApiCourse: ApiCourse) => {
+    const initialCard = {
+      en: "learn",
+      es: "aprender",
+      ipa: "/lɜːrn/",
+      pos: "Verbo",
+      example: '"I learn English"',
+      note: "Verbo esencial",
+      noteType: "bulb" as const,
+      itemType: "word" as const,
+    };
+
+    // 1. Placeholder reactivo inmediato para feedback instantáneo (0 ms en UI)
+    const placeholderLesson: Lesson = {
+      id: `lesson-pending-${Date.now()}`,
+      title: "1. Lección Inicial",
+      subtitle: "Introducción al curso",
+      duration: "10 min",
+      tier: "Draft",
+      isPublished: false,
+      intro: "Bienvenido a este curso interactivo.",
+      sectionTitle: "Vocabulario esencial",
+      items: [{ id: `card-pending-${Date.now()}`, ...initialCard }],
+    };
+
+    const createdCourse: Course = {
+      id: newApiCourse.id,
+      title: newApiCourse.title,
+      level: newApiCourse.level,
+      tier: "draft",
+      price: typeof newApiCourse.price_cents === "number" ? newApiCourse.price_cents / 100 : 19.99,
+      currency: "USD",
+      author: userName || "Docente",
+      lessons: [placeholderLesson],
+    };
+
+    // Actualización inmediata sin congelar el editor
+    setCourses((prev) => ({ [newApiCourse.id]: createdCourse, ...prev }));
+    setCurrentCourseId(newApiCourse.id);
+    syncSelectedLesson(placeholderLesson);
+    triggerToast(`¡Curso "${newApiCourse.title}" creado con éxito!`);
+
+    // 2. Persistencia en segundo plano de la lección y tarjeta inicial
+    createLessonApi(newApiCourse.id, {
+      title: "1. Lección Inicial",
+      description: "Introducción al curso",
+      sort_order: 1,
+    })
+      .then(async (lessonRes) => {
+        if (lessonRes.data) {
+          const itemRes = await saveLessonItemApi(lessonRes.data.id, {
+            item_type: "word",
+            content_text: JSON.stringify(initialCard),
+            sort_order: 1,
+            is_required: true,
+          });
+
+          const persistedLesson: Lesson = {
+            ...placeholderLesson,
+            id: lessonRes.data.id,
+            items: itemRes.data ? [{ id: itemRes.data.id, ...initialCard }] : placeholderLesson.items,
+          };
+
+          setCourses((prev) => ({
+            ...prev,
+            [newApiCourse.id]: {
+              ...prev[newApiCourse.id],
+              lessons: [persistedLesson],
+            },
+          }));
+
+          syncSelectedLesson(persistedLesson);
+        }
+      })
+      .catch(() => {});
+  };
+
   return {
+    handleCourseCreated,
     handleEditCourse,
     handleDeleteCourse,
     handleSaveLesson,

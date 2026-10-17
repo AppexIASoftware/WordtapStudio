@@ -210,6 +210,7 @@ export interface CreateVaultItemPayload {
 }
 
 export interface UpdateVaultItemPayload {
+  bank_type?: string;
   prompt_text?: string;
   target_text?: string;
   ipa?: string;

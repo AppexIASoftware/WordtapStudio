@@ -36,6 +36,8 @@ export function NewVaultItemModal({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const speak = useSpeak();
+
   useEffect(() => {
     if (initialItem) {
       setBankType(initialItem.bank_type || "vocabulary");
@@ -125,8 +127,6 @@ export function NewVaultItemModal({
     bankType === "phrase"
       ? "Traducción o Equivalente en Español (Prompt) *"
       : "Traducción al Español (Prompt) *";
-
-  const speak = useSpeak();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

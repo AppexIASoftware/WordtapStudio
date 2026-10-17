@@ -20,10 +20,9 @@ export function ManualCardModal({ isOpen, onClose, onAddCard }: ManualCardModalP
   const [example, setExample] = useState("");
   const [note, setNote] = useState("");
   const [noteType, setNoteType] = useState<"bulb" | "pin">("bulb");
+  const handleSpeak = useSpeak();
 
   if (!isOpen) return null;
-
-  const handleSpeak = useSpeak();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

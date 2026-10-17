@@ -100,22 +100,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setIsAuthenticated(true);
-    getMeApi().then(({ data, error }) => {
-      setIsLoading(false);
-      if (data?.user) {
-        const profile = mapBackendUserToProfile(data.user);
-        setUser(profile);
-        setCurrentRole(profile.role);
-        setStoredRole(profile.role);
-        setIsAuthenticated(true);
-        if (profile.role === "candidate" && typeof window !== "undefined" && !window.location.pathname.startsWith("/pending-approval")) {
-          router.push("/pending-approval");
+    setIsLoading(false);
+
+    getMeApi()
+      .then(({ data, error }) => {
+        if (data?.user) {
+          const profile = mapBackendUserToProfile(data.user);
+          setUser(profile);
+          setCurrentRole(profile.role);
+          setStoredRole(profile.role);
+          setIsAuthenticated(true);
+          if (profile.role === "candidate" && typeof window !== "undefined" && !window.location.pathname.startsWith("/pending-approval")) {
+            router.push("/pending-approval");
+          }
+        } else if (error) {
+          clearStoredTokens();
+          setIsAuthenticated(false);
         }
-      } else if (error) {
-        clearStoredTokens();
-        setIsAuthenticated(false);
-      }
-    });
+      })
+      .catch(() => {});
   }, []);
 
   const switchRole = (role: UserRole) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { DemoLoginModal } from "@/components/layout/demo-login-modal";
@@ -9,6 +10,9 @@ import { RoleGuard } from "@/features/auth/components/role-guard";
 export default function StudioLayout({ children }: { children: React.ReactNode }) {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isFullBleed = pathname.startsWith("/admin/courses");
 
   return (
     <RoleGuard allowedRoles={["admin"]}>
@@ -29,11 +33,17 @@ export default function StudioLayout({ children }: { children: React.ReactNode }
           />
 
           {/* Contenido principal de la vista */}
-          <main className="flex-1 overflow-y-auto relative bg-canvas p-6 md:p-8">
-            <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-150">
+          {isFullBleed ? (
+            <main className="flex-1 overflow-hidden relative bg-canvas flex flex-col">
               {children}
-            </div>
-          </main>
+            </main>
+          ) : (
+            <main className="flex-1 overflow-y-auto relative bg-canvas p-6 md:p-8">
+              <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-150">
+                {children}
+              </div>
+            </main>
+          )}
         </div>
 
         {/* Modal de conmutación de cuentas demo */}

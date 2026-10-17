@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Lesson } from "@/features/courses/types";
+import { useState, useCallback, useRef } from "react";
+import { Lesson, LessonItem } from "@/features/courses/types";
 import { useAuth } from "@/features/auth/auth-context";
 import { useBuilderModals } from "./use-builder-modals";
 import { useBuilderSimulation } from "./use-builder-simulation";
@@ -10,6 +10,7 @@ import { useCourseCrud } from "./use-course-crud";
 import { useBuilderLoader } from "./use-builder-loader";
 import { useBuilderReviews } from "./use-builder-reviews";
 import { useUrlMirror } from "@/hooks/use-url-params";
+import { updateCourseApi, getSyncedReviews, saveSyncedReview } from "@/services/api";
 
 /**
  * Hook orquestador principal del editor y constructor de cursos (Course Builder).
@@ -22,6 +23,8 @@ export function useCourseBuilder(
   const { user } = useAuth();
   const [currentLessonId, setCurrentLessonId] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const handleStepSelectRef = useRef<(step: LessonItem) => void>(() => {});
+  const resetStepFormRef = useRef<() => void>(() => {});
 
   const triggerToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -37,16 +40,15 @@ export function useCourseBuilder(
           ? items.find((item) => item.id === requestedStepId)
           : undefined;
         if (requested || items.length > 0) {
-          handleStepSelect(requested || items[0]);
+          handleStepSelectRef.current(requested || items[0]);
         } else {
-          resetStepForm();
+          resetStepFormRef.current();
         }
       } else {
         setCurrentLessonId("");
-        resetStepForm();
+        resetStepFormRef.current();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -76,6 +78,8 @@ export function useCourseBuilder(
   const modals = useBuilderModals(currentCourse?.lessons);
   const sim = useBuilderSimulation(setCurrentLessonId, triggerToast);
   const cards = useCardEditor(currentCourseId, currentLesson, setCourses, triggerToast);
+  handleStepSelectRef.current = cards.handleStepSelect;
+  resetStepFormRef.current = cards.resetStepForm;
   const { handleStepSelect, resetStepForm } = cards;
 
   // Reflejo reactivo en URL de la leccion, tarjeta y pestana activa
@@ -119,6 +123,44 @@ export function useCourseBuilder(
     triggerToast,
   });
 
+  const isAdmin = options?.scope === "admin";
+
+  const handleAdminPublish = async () => {
+    if (!currentCourseId || !currentCourse) return;
+    try {
+      const synced = getSyncedReviews();
+      const activePr = synced.find(
+        (r) => r.courseId === currentCourseId || r.originalId === currentCourseId
+      );
+      if (activePr) {
+        saveSyncedReview({
+          ...activePr,
+          status: "approved",
+          statusLabel: "Aprobado",
+        });
+      }
+
+      const res = await updateCourseApi(currentCourseId, {
+        title: currentCourse.title,
+        level: currentCourse.level,
+        status: "published",
+      });
+      if (res.error) throw new Error(res.error);
+
+      setCourses((prev) => ({
+        ...prev,
+        [currentCourseId]: {
+          ...prev[currentCourseId],
+          status: "published",
+          reviewStatus: "approved",
+        },
+      }));
+      triggerToast(`¡"${currentCourse.title}" publicado y activo en el catálogo oficial!`);
+    } catch (err: unknown) {
+      triggerToast(err instanceof Error ? err.message : "Error al publicar curso");
+    }
+  };
+
   return {
     courses,
     currentCourseId,
@@ -127,6 +169,8 @@ export function useCourseBuilder(
     currentLesson,
     isLoading,
     toastMessage,
+    isAdmin,
+    scope: options?.scope || "teacher",
     ...cards,
     ...sim,
     ...modals,
@@ -136,6 +180,7 @@ export function useCourseBuilder(
     handleSelectLesson,
     handleSubmitReview,
     handleWithdrawReview,
+    handleAdminPublish,
     handleRefreshCourses: loadCoursesData,
     handleEditCourse,
     handleDeleteCourse,

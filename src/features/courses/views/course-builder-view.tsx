@@ -16,7 +16,7 @@ export function CourseBuilderView({
   const b = useCourseBuilder(initialCourseId, { scope });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden relative">
+    <div className="flex-1 flex flex-col h-full overflow-hidden relative">
       <ToastNotification message={b.toastMessage} variant="emerald" />
       <CourseBuilderWorkspace
         courses={b.courses}
@@ -27,6 +27,7 @@ export function CourseBuilderView({
         currentStepId={b.currentStepId}
         stepForm={b.stepForm}
         isLoading={b.isLoading}
+        isAdmin={b.isAdmin}
         activeCanvasTab={b.activeCanvasTab}
         simScreen={b.simScreen}
         simTier={b.simTier}
@@ -56,6 +57,7 @@ export function CourseBuilderView({
         onSpeak={b.speak}
         onSubmitReview={b.handleSubmitReview}
         onWithdrawReview={b.handleWithdrawReview}
+        onAdminPublish={b.handleAdminPublish}
         onRefresh={b.handleRefreshCourses}
         onSaveCourse={b.handleEditCourse}
         onDeleteCourse={b.handleDeleteCourse}

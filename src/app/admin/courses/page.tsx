@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function CoursesPage() {
   return (
-    <Suspense fallback={<div className="min-h-[400px]" />}>
+    <Suspense fallback={<div className="h-full w-full bg-canvas" />}>
       <CourseBuilderView scope="admin" />
     </Suspense>
   );

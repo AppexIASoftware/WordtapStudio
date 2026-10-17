@@ -12,7 +12,7 @@ export default async function CourseDetailPage({
 }) {
   const { courseId } = await params;
   return (
-    <Suspense fallback={<div className="min-h-[400px]" />}>
+    <Suspense fallback={<div className="h-full w-full bg-canvas" />}>
       <CourseBuilderView initialCourseId={courseId} scope="admin" />
     </Suspense>
   );

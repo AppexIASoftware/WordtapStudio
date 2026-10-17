@@ -6,6 +6,7 @@ import {
   getTeacherCoursesApi,
   getAdminCoursesApi,
   getTeacherCourseReviewsApi,
+  getAdminCourseReviewsApi,
   getCourseLessonsApi,
   getSyncedReviews,
   subscribeSyncedReviews,
@@ -35,64 +36,73 @@ export function useBuilderLoader({
 
   const loadCoursesData = useCallback(async () => {
     setIsLoading(true);
-    const fetchCourses = scope === "admin" ? getAdminCoursesApi : getTeacherCoursesApi;
-    const [res, reviewsRes] = await Promise.all([
-      fetchCourses(),
-      getTeacherCourseReviewsApi(),
-    ]);
-    const syncedReviews = getSyncedReviews();
+    try {
+      const fetchCourses = scope === "admin" ? getAdminCoursesApi : getTeacherCoursesApi;
+      const fetchReviews = scope === "admin" ? getAdminCourseReviewsApi : getTeacherCourseReviewsApi;
+      const [res, reviewsRes] = await Promise.all([
+        fetchCourses().catch(() => ({ data: null, error: "Network error" })),
+        fetchReviews().catch(() => ({ data: null, error: "Network error" })),
+      ]);
+      const syncedReviews = getSyncedReviews();
 
-    if (res.data && res.data.length > 0) {
-      const mapped: Record<string, Course> = {};
-      for (const c of res.data) {
-        const courseLessons: Lesson[] =
-          c.lessons && c.lessons.length > 0
-            ? c.lessons.map(mapApiLessonToLesson)
-            : [];
+      if (res.data && res.data.length > 0) {
+        const mapped: Record<string, Course> = {};
+        for (const c of res.data) {
+          const courseLessons: Lesson[] =
+            c.lessons && c.lessons.length > 0
+              ? c.lessons.map(mapApiLessonToLesson)
+              : [];
 
-        const apiRev = reviewsRes.data?.find((r) => r.course_id === c.id);
-        const syncRev = syncedReviews.find(
-          (r) => r.courseId === c.id || r.originalId === c.id
-        );
+          const apiRev = reviewsRes.data?.find((r) => r.course_id === c.id);
+          const syncRev = syncedReviews.find(
+            (r) => r.courseId === c.id || r.originalId === c.id
+          );
 
-        const revStatus = apiRev?.status || syncRev?.status;
-        const feedback = apiRev?.feedback_notes || syncRev?.feedback;
-        const reviewer = apiRev?.reviewer_admin_id
-          ? `Admin (${apiRev.reviewer_admin_id.slice(0, 6)})`
-          : syncRev?.reviewer;
+          const revStatus = apiRev?.status || syncRev?.status;
+          const feedback = apiRev?.feedback_notes || syncRev?.feedback;
+          const reviewer = apiRev?.reviewer_admin_id
+            ? `Admin (${apiRev.reviewer_admin_id.slice(0, 6)})`
+            : syncRev?.reviewer;
 
-        mapped[c.id] = {
-          id: c.id,
-          title: c.title,
-          level: c.level,
-          tier:
-            c.status === "draft"
-              ? "draft"
-              : c.access_tier === "course"
-              ? "course"
-              : "free",
-          price:
-            typeof c.price_cents === "number" ? c.price_cents / 100 : 19.99,
-          currency: "USD",
-          author: c.author?.name || userName || "Prof. Mateo Silva",
-          status: c.status,
-          reviewStatus:
-            (revStatus as any) || (c.status === "in_review" ? "pending" : undefined),
-          feedbackNotes: feedback || undefined,
-          reviewerName: reviewer || undefined,
-          lessons: courseLessons,
-        };
-      }
+          mapped[c.id] = {
+            id: c.id,
+            title: c.title,
+            level: c.level,
+            tier:
+              c.status === "draft"
+                ? "draft"
+                : c.access_tier === "course"
+                ? "course"
+                : "free",
+            price:
+              typeof c.price_cents === "number" ? c.price_cents / 100 : 19.99,
+            currency: "USD",
+            author: c.author?.name || userName || "Prof. Mateo Silva",
+            status: c.status,
+            reviewStatus:
+              (revStatus as any) || (c.status === "in_review" ? "pending" : undefined),
+            feedbackNotes: feedback || undefined,
+            reviewerName: reviewer || undefined,
+            lessons: courseLessons,
+          };
+        }
 
-      setCourses(mapped);
-      setCurrentCourseId((prev) => {
-        if (prev && mapped[prev]) return prev;
+        setCourses(mapped);
+
         const urlParams =
           typeof window !== "undefined"
             ? new URLSearchParams(window.location.search)
             : null;
         const reqId = initialCourseId || urlParams?.get("courseId");
-        const nextId = reqId && mapped[reqId] ? reqId : res.data![0].id;
+        const nextId =
+          currentCourseId && mapped[currentCourseId]
+            ? currentCourseId
+            : reqId && mapped[reqId]
+            ? reqId
+            : res.data![0].id;
+
+        setCurrentCourseId(nextId);
+
         const activeLessons = mapped[nextId]?.lessons ?? [];
         const reqLesson = activeLessons.find(
           (lesson) => lesson.id === urlParams?.get("lessonId")
@@ -101,34 +111,37 @@ export function useBuilderLoader({
           reqLesson || activeLessons[0] || null,
           urlParams?.get("stepId") ?? undefined
         );
-        return nextId;
-      });
-      setIsLoading(false);
-    } else {
-      const fallback: Record<string, Course> = {};
-      for (const [key, val] of Object.entries(COURSES_DATA)) {
-        const syncRev = syncedReviews.find(
-          (r) => r.courseId === key || r.originalId === key
-        );
-        fallback[key] = {
-          ...val,
-          reviewStatus:
-            (syncRev?.status as any) ||
-            (val.status === "in_review" ? "pending" : undefined),
-          feedbackNotes: syncRev?.feedback,
-          reviewerName: syncRev?.reviewer,
-        };
-      }
-      setCourses(fallback);
-      setCurrentCourseId((prev) => {
-        if (prev && fallback[prev]) return prev;
+      } else {
+        const fallback: Record<string, Course> = {};
+        for (const [key, val] of Object.entries(COURSES_DATA)) {
+          const syncRev = syncedReviews.find(
+            (r) => r.courseId === key || r.originalId === key
+          );
+          fallback[key] = {
+            ...val,
+            reviewStatus:
+              (syncRev?.status as any) ||
+              (val.status === "in_review" ? "pending" : undefined),
+            feedbackNotes: syncRev?.feedback,
+            reviewerName: syncRev?.reviewer,
+          };
+        }
+        setCourses(fallback);
+
         const urlParams =
           typeof window !== "undefined"
             ? new URLSearchParams(window.location.search)
             : null;
         const reqId = initialCourseId || urlParams?.get("courseId");
         const nextId =
-          reqId && fallback[reqId] ? reqId : Object.keys(fallback)[0] || "";
+          currentCourseId && fallback[currentCourseId]
+            ? currentCourseId
+            : reqId && fallback[reqId]
+            ? reqId
+            : Object.keys(fallback)[0] || "";
+
+        setCurrentCourseId(nextId);
+
         const activeLessons = fallback[nextId]?.lessons ?? [];
         const reqLesson = activeLessons.find(
           (lesson) => lesson.id === urlParams?.get("lessonId")
@@ -137,8 +150,11 @@ export function useBuilderLoader({
           reqLesson || activeLessons[0] || null,
           urlParams?.get("stepId") ?? undefined
         );
-        return nextId;
-      });
+      }
+    } catch (err) {
+      console.error("Error loading courses data:", err);
+      setCourses(COURSES_DATA);
+    } finally {
       setIsLoading(false);
     }
   }, [userName, initialCourseId, scope, syncSelectedLesson]);

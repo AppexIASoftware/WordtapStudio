@@ -14,6 +14,7 @@ import {
   Activity,
   CreditCard,
   Boxes,
+  Gamepad2,
   Layers,
 } from "lucide-react";
 
@@ -152,6 +153,18 @@ export function SidebarAdminNav({ collapsed, navItemAdminClass }: SidebarAdminNa
                 <div className="flex items-center gap-3">
                   <Layers size={18} />
                   {!collapsed && <span>Todos los Cursos</span>}
+                </div>
+                {!collapsed && (
+                  <span className="text-[9px] font-mono text-slate-subtle font-bold">
+                    Supervisar
+                  </span>
+                )}
+              </Link>
+
+              <Link href="/admin/games" className={navItemAdminClass("/admin/games")}>
+                <div className="flex items-center gap-3">
+                  <Gamepad2 size={18} />
+                  {!collapsed && <span>Todos los Minijuegos</span>}
                 </div>
                 {!collapsed && (
                   <span className="text-[9px] font-mono text-slate-subtle font-bold">

@@ -23,9 +23,19 @@ import { GamificationCustomCard } from "../components/gamification-custom-card";
 import { SupermemoSimulator } from "../components/supermemo-simulator";
 import { GameCreationWorkspace } from "../components/game-creation-workspace";
 import { GameSandboxModal } from "../components/game-sandbox-modal";
+import { AdminGamificationView } from "./admin-gamification-view";
 import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
 
-export function GamificationView() {
+interface GamificationViewProps {
+  /**
+   * Modo de la vista: el docente gestiona sus propias actividades,
+   * el administrador supervisa el catálogo completo de todos los docentes.
+   */
+  scope?: "teacher" | "admin";
+}
+
+export function GamificationView({ scope = "teacher" }: GamificationViewProps = {}) {
+  const isAdmin = scope === "admin";
   const { get, setParams } = useUrlParams();
 
   const [baseGames] = useState<GameModeItem[]>(GAMES_DATA);
@@ -64,8 +74,9 @@ export function GamificationView() {
   }, []);
 
   useEffect(() => {
+    if (isAdmin) return;
     fetchCustomGames();
-  }, [fetchCustomGames]);
+  }, [isAdmin, fetchCustomGames]);
 
   // El juego en edición se resuelve contra la lista ya cargada (id corto de fila).
   const selectedGame: TeacherGameDTO | null =
@@ -120,6 +131,13 @@ export function GamificationView() {
       await fetchCustomGames();
     }
   };
+
+  // Modo supervisión: la experiencia administrativa completa (juegos globales de
+  // la plataforma y supervisión de las actividades docentes) se delega en su
+  // propia vista, que ya no comparte estado con la gestión del docente.
+  if (isAdmin) {
+    return <AdminGamificationView />;
+  }
 
   // Renderizar Workspace de Creación/Edición
   if (resolvedMode === "create" || resolvedMode === "edit") {

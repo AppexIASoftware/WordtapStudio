@@ -8,6 +8,7 @@ import {
   Activity,
   CreditCard,
   Boxes,
+  Gamepad2,
   Layers,
 } from "lucide-react";
 
@@ -117,6 +118,15 @@ export function AppSidebarAdminNav({ getLinkClasses }: AppSidebarAdminNavProps) 
             <div className="flex items-center gap-3">
               <Layers className="w-4 h-4" />
               <span>Todos los Cursos</span>
+            </div>
+            <span className="text-[9px] font-mono text-slate-subtle font-bold">
+              Supervisar
+            </span>
+          </Link>
+          <Link href="/admin/games" className={getLinkClasses("/admin/games")}>
+            <div className="flex items-center gap-3">
+              <Gamepad2 className="w-4 h-4" />
+              <span>Todos los Minijuegos</span>
             </div>
             <span className="text-[9px] font-mono text-slate-subtle font-bold">
               Supervisar

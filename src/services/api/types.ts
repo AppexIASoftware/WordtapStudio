@@ -249,6 +249,10 @@ export interface JoinClassroomPayload {
 export interface TeacherGameDTO {
   id: string;
   teacher_id: string;
+  /** Nombre del docente autor. Solo lo entrega el catálogo administrativo. */
+  teacher_name?: string;
+  /** Correo del docente autor. Solo lo entrega el catálogo administrativo. */
+  teacher_email?: string;
   course_id?: string | null;
   course_title?: string;
   base_archetype: string;
@@ -263,6 +267,12 @@ export interface TeacherGameDTO {
   source_id?: string | null;
   custom_words_json?: string | null;
   is_active: boolean;
+  /**
+   * True when the game belongs to the platform instead of a teacher.
+   * Global games have no author nor course and the administrative catalog
+   * reports this flag on every item it returns.
+   */
+  is_global?: boolean;
   created_at: string;
 }
 

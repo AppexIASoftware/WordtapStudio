@@ -31,6 +31,17 @@ export async function getTeacherGamesApi(): Promise<{
   return unwrapResponse(res);
 }
 
+// GET /api/v1/admin/games
+export async function getAdminGamesApi(): Promise<{
+  data: TeacherGameDTO[] | null;
+  error: string | null;
+}> {
+  const res = await apiRequest<TeacherGameDTO[]>(`${API_V1_URL}/admin/games`, {
+    cache: "no-store",
+  });
+  return unwrapResponse(res);
+}
+
 // GET /api/v1/teacher/games/:id
 export async function getTeacherGameDetailApi(
   id: string
@@ -87,6 +98,48 @@ export async function deleteTeacherGameApi(
   error: string | null;
 }> {
   const res = await apiRequest<unknown>(`${API_V1_URL}/teacher/games/${id}`, {
+    method: "DELETE",
+  });
+  return unwrapResponse(res);
+}
+
+// POST /api/v1/admin/games
+export async function createGlobalGameApi(
+  payload: CreateTeacherGamePayload
+): Promise<{
+  data: TeacherGameDTO | null;
+  error: string | null;
+}> {
+  const res = await apiRequest<TeacherGameDTO>(`${API_V1_URL}/admin/games`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return unwrapResponse(res);
+}
+
+// PUT /api/v1/admin/games/:id
+export async function updateGlobalGameApi(
+  id: string,
+  payload: UpdateTeacherGamePayload
+): Promise<{
+  data: TeacherGameDTO | null;
+  error: string | null;
+}> {
+  const res = await apiRequest<TeacherGameDTO>(`${API_V1_URL}/admin/games/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return unwrapResponse(res);
+}
+
+// DELETE /api/v1/admin/games/:id
+export async function deleteGlobalGameApi(
+  id: string
+): Promise<{
+  data: unknown | null;
+  error: string | null;
+}> {
+  const res = await apiRequest<unknown>(`${API_V1_URL}/admin/games/${id}`, {
     method: "DELETE",
   });
   return unwrapResponse(res);

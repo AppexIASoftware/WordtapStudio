@@ -31,6 +31,18 @@ export async function getTeacherGamesApi(): Promise<{
   return unwrapResponse(res);
 }
 
+// GET /api/v1/teacher/games/global
+export async function getTeacherGlobalGamesApi(): Promise<{
+  data: TeacherGameDTO[] | null;
+  error: string | null;
+}> {
+  const res = await apiRequest<TeacherGameDTO[]>(
+    `${API_V1_URL}/teacher/games/global`,
+    { cache: "no-store" }
+  );
+  return unwrapResponse(res);
+}
+
 // GET /api/v1/admin/games
 export async function getAdminGamesApi(): Promise<{
   data: TeacherGameDTO[] | null;
@@ -133,14 +145,19 @@ export async function updateGlobalGameApi(
 }
 
 // DELETE /api/v1/admin/games/:id
+export interface DeleteGameResult {
+  archived: boolean;
+  usage_count: number;
+}
+
 export async function deleteGlobalGameApi(
   id: string
-): Promise<{
-  data: unknown | null;
-  error: string | null;
-}> {
-  const res = await apiRequest<unknown>(`${API_V1_URL}/admin/games/${id}`, {
-    method: "DELETE",
-  });
+): Promise<{ data: DeleteGameResult | null; error: string | null }> {
+  const res = await apiRequest<DeleteGameResult>(
+    `${API_V1_URL}/admin/games/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
   return unwrapResponse(res);
 }

@@ -39,6 +39,7 @@ export interface ApiCourse {
   source_lang: string;
   target_lang: string;
   created_by?: string | null;
+  owner_type?: "platform" | "teacher";
   author?: BackendUser | null;
   created_at: string;
   updated_at: string;
@@ -267,6 +268,10 @@ export interface TeacherGameDTO {
   source_id?: string | null;
   custom_words_json?: string | null;
   is_active: boolean;
+  /** Cantidad de lecciones que tienen esta actividad vinculada. */
+  usage_count?: number;
+  /** Platform-owned games are visible to every teacher and cannot be edited by them. */
+  owner_type?: "platform" | "teacher";
   /**
    * True when the game belongs to the platform instead of a teacher.
    * Global games have no author nor course and the administrative catalog
@@ -303,5 +308,38 @@ export interface UpdateTeacherGamePayload {
   source_type?: string;
   source_id?: string | null;
   custom_words_json?: string | null;
+}
+
+export interface LessonGameDTO {
+  id: string;
+  game_id: string;
+  title: string;
+  description?: string | null;
+  base_archetype: string;
+  level: string;
+  reward_xp: number;
+  time_limit_seconds: number;
+  allowed_mistakes: number;
+  item_count: number;
+  /** Cantidad de lecciones que tienen esta actividad vinculada. */
+  usage_count?: number;
+  /** Aviso del backend cuando el nivel de la actividad no coincide con el del curso. */
+  level_warning?: string;
+  owner_type?: "platform" | "teacher";
+  is_global: boolean;
+  is_active: boolean;
+  is_required: boolean;
+  sort_order: number;
+}
+
+export interface LinkLessonGamePayload {
+  game_id: string;
+  sort_order?: number;
+  is_required?: boolean;
+}
+
+export interface UpdateLessonGamePayload {
+  sort_order?: number;
+  is_required?: boolean;
 }
 

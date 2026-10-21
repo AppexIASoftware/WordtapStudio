@@ -126,6 +126,9 @@ export async function apiRequest<T>(
               headers.set("Authorization", `Bearer ${devData.access_token}`);
               const retryRes = await fetch(url, { ...options, headers });
               if (retryRes.ok) {
+                if (retryRes.status === 204) {
+                  return { data: null, error: null };
+                }
                 const retryData: T = await retryRes.json();
                 return { data: retryData, error: null };
               }
@@ -169,6 +172,10 @@ export async function apiRequest<T>(
         errorMsg = body.error || "No se pudo completar la operación.";
       }
       return { data: null, error: errorMsg };
+    }
+
+    if (res.status === 204) {
+      return { data: null, error: null };
     }
 
     const data: T = await res.json();

@@ -1,6 +1,16 @@
 "use client";
 
-import { Gamepad2, Globe2, Heart, Pencil, Play, Plus, RefreshCw, Trash2 } from "lucide-react";
+import {
+  Archive,
+  Gamepad2,
+  Globe2,
+  Heart,
+  Pencil,
+  Play,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
 import { ARCHETYPE_LABELS, normalizeArchetype } from "./archetypes";
 
@@ -27,6 +37,9 @@ interface GlobalGameCardProps {
  * eliminar sin depender de la cuenta de un docente.
  */
 function GlobalGameCard({ game, onPlayTest, onEdit, onDelete }: GlobalGameCardProps) {
+  const usageCount = game.usage_count ?? 0;
+  const isInUse = usageCount > 0;
+
   return (
     <div className="p-4 rounded-2xl bg-card border border-mint-brand/30 space-y-3 shadow-sm hover:border-mint-brand/60 transition-all flex flex-col justify-between relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-24 h-24 bg-mint-brand/5 rounded-bl-full pointer-events-none" />
@@ -72,6 +85,9 @@ function GlobalGameCard({ game, onPlayTest, onEdit, onDelete }: GlobalGameCardPr
           <span className="px-2 py-0.5 rounded bg-canvas text-amber-300 border border-border-default">
             {game.item_count} palabras
           </span>
+          <span className="px-2 py-0.5 rounded bg-canvas text-slate-300 border border-border-default">
+            Usado en {usageCount} lección(es)
+          </span>
         </div>
       </div>
 
@@ -93,7 +109,7 @@ function GlobalGameCard({ game, onPlayTest, onEdit, onDelete }: GlobalGameCardPr
                 : "bg-canvas text-slate-subtle border-border-default"
             }`}
           >
-            {game.is_active ? "Activo" : "Pausado"}
+            {game.is_active ? "Activo" : "Archivado"}
           </span>
 
           <button
@@ -108,9 +124,22 @@ function GlobalGameCard({ game, onPlayTest, onEdit, onDelete }: GlobalGameCardPr
             type="button"
             onClick={() => onDelete(game.id)}
             className="p-1.5 rounded-lg bg-card border border-border-default hover:border-rose-500/40 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
-            title="Eliminar juego global"
+            title={
+              isInUse
+                ? "Archivar juego global (está en uso)"
+                : "Eliminar juego global"
+            }
+            aria-label={
+              isInUse
+                ? `Archivar ${game.title} porque está en uso`
+                : `Eliminar ${game.title}`
+            }
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            {isInUse ? (
+              <Archive className="w-3.5 h-3.5" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
       </div>

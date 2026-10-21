@@ -91,6 +91,9 @@ function AdminGameCard({ game, onPlayTest }: AdminGameCardProps) {
           <span className="px-2 py-0.5 rounded bg-canvas text-amber-300 border border-border-default">
             {game.item_count} palabras
           </span>
+          <span className="px-2 py-0.5 rounded bg-canvas text-slate-300 border border-border-default">
+            {game.usage_count ?? 0} usos
+          </span>
         </div>
       </div>
 
@@ -117,7 +120,7 @@ function AdminGameCard({ game, onPlayTest }: AdminGameCardProps) {
               : "bg-canvas text-slate-subtle border-border-default"
           }`}
         >
-          {game.is_active ? "Habilitada" : "Pausada"}
+          {game.is_active ? "Habilitada" : "Archivada"}
         </span>
       </div>
     </div>

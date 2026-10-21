@@ -70,8 +70,8 @@ export function AdminGamificationView() {
 
   // El catálogo llega unificado: los juegos de la plataforma se separan de los
   // que pertenecen a un docente para dar a cada grupo su propio tratamiento.
-  const globalGames = games.filter((game) => game.is_global === true);
-  const teacherGames = games.filter((game) => game.is_global !== true);
+  const globalGames = games.filter((game) => game.owner_type === "platform");
+  const teacherGames = games.filter((game) => game.owner_type !== "platform");
 
   const teachersCount = new Set(teacherGames.map((game) => game.teacher_id)).size;
   const coursesCount = new Set(
@@ -128,11 +128,17 @@ export function AdminGamificationView() {
   };
 
   const handleDeleteGlobalGame = async (id: string) => {
-    if (
-      !window.confirm(
-        "¿Seguro que deseas eliminar este juego global? Se quitará para toda la plataforma."
-      )
-    ) {
+    const game = games.find((item) => item.id === id);
+    const usage = game?.usage_count ?? 0;
+
+    // Con vínculos activos la actividad no se borra: se archiva y las lecciones
+    // que ya la usan la conservan.
+    const confirmation =
+      usage > 0
+        ? `Esta actividad está vinculada en ${usage} lección(es). Se archivará: dejará de estar disponible para nuevas lecciones, pero las lecciones que ya la usan la conservan. ¿Deseas continuar?`
+        : "¿Seguro que deseas eliminar este juego global? Se quitará para toda la plataforma.";
+
+    if (!window.confirm(confirmation)) {
       return;
     }
 
@@ -142,7 +148,15 @@ export function AdminGamificationView() {
       return;
     }
 
-    triggerToast("Juego global eliminado correctamente");
+    if (res.data?.archived) {
+      const archivedUsage = res.data.usage_count ?? usage;
+      triggerToast(
+        `Actividad archivada: está en uso en ${archivedUsage} lección(es).`
+      );
+    } else {
+      triggerToast("Juego global eliminado correctamente");
+    }
+
     await fetchGames();
   };
 

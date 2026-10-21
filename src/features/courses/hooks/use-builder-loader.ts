@@ -79,6 +79,7 @@ export function useBuilderLoader({
             currency: "USD",
             author: c.author?.name || userName || "Prof. Mateo Silva",
             status: c.status,
+            ownerType: c.owner_type,
             reviewStatus:
               (revStatus as any) || (c.status === "in_review" ? "pending" : undefined),
             feedbackNotes: feedback || undefined,
@@ -94,12 +95,16 @@ export function useBuilderLoader({
             ? new URLSearchParams(window.location.search)
             : null;
         const reqId = initialCourseId || urlParams?.get("courseId");
+        const defaultCourseId =
+          scope === "admin"
+            ? res.data.find((c) => c.owner_type === "platform")?.id ?? res.data[0].id
+            : res.data[0].id;
         const nextId =
           currentCourseId && mapped[currentCourseId]
             ? currentCourseId
             : reqId && mapped[reqId]
             ? reqId
-            : res.data![0].id;
+            : defaultCourseId;
 
         setCurrentCourseId(nextId);
 

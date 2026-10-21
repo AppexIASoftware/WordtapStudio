@@ -33,6 +33,7 @@ export interface Course {
   currency: string;
   author: string;
   status?: "draft" | "in_review" | "published" | "archived";
+  ownerType?: "platform" | "teacher";
   reviewStatus?: "pending" | "in_review" | "approved" | "changes_requested" | "rejected";
   feedbackNotes?: string;
   reviewerName?: string;

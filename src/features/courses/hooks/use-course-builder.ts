@@ -141,8 +141,6 @@ export function useCourseBuilder(
       }
 
       const res = await updateCourseApi(currentCourseId, {
-        title: currentCourse.title,
-        level: currentCourse.level,
         status: "published",
       });
       if (res.error) throw new Error(res.error);

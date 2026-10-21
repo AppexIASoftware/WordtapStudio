@@ -7,6 +7,7 @@ interface CardStripProps {
   items: LessonItem[];
   currentStepId: string;
   isCreating: boolean;
+  readOnly?: boolean;
   onSelectStep: (step: LessonItem) => void;
   onStartAddCard: () => void;
 }
@@ -16,6 +17,7 @@ export function CardStrip({
   items,
   currentStepId,
   isCreating,
+  readOnly = false,
   onSelectStep,
   onStartAddCard,
 }: CardStripProps) {
@@ -28,14 +30,18 @@ export function CardStrip({
             {items.length} tarjetas
           </span>
         </span>
-        <button
-          type="button"
-          onClick={onStartAddCard}
-          className="text-xs text-emerald-brand hover:underline font-semibold cursor-pointer flex items-center gap-1"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Añadir Tarjeta</span>
-        </button>
+        {readOnly ? (
+          <span className="text-[10px] font-mono text-slate-muted">Solo lectura</span>
+        ) : (
+          <button
+            type="button"
+            onClick={onStartAddCard}
+            className="text-xs text-emerald-brand hover:underline font-semibold cursor-pointer flex items-center gap-1"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Añadir Tarjeta</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
@@ -85,18 +91,20 @@ export function CardStrip({
         })}
 
         {/* Tarjeta botón interactiva para añadir nueva tarjeta */}
-        <button
-          type="button"
-          onClick={onStartAddCard}
-          className={`p-2.5 rounded-xl border border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center min-h-[72px] ${
-            isCreating
-              ? "border-emerald-brand bg-emerald-brand/10 text-emerald-brand ring-1 ring-emerald-brand/30"
-              : "border-border-default hover:border-emerald-brand/40 text-slate-400 hover:text-white bg-canvas/50"
-          }`}
-        >
-          <Plus className="w-4 h-4 mb-0.5" />
-          <span className="text-[10px] font-bold">+ Nueva Tarjeta</span>
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={onStartAddCard}
+            className={`p-2.5 rounded-xl border border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center min-h-[72px] ${
+              isCreating
+                ? "border-emerald-brand bg-emerald-brand/10 text-emerald-brand ring-1 ring-emerald-brand/30"
+                : "border-border-default hover:border-emerald-brand/40 text-slate-400 hover:text-white bg-canvas/50"
+            }`}
+          >
+            <Plus className="w-4 h-4 mb-0.5" />
+            <span className="text-[10px] font-bold">+ Nueva Tarjeta</span>
+          </button>
+        )}
       </div>
     </div>
   );

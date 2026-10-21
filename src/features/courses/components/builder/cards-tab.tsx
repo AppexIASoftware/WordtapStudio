@@ -10,6 +10,7 @@ interface CardsTabProps {
   currentStepId: string;
   stepForm: LessonItem;
   isSavingStep?: boolean;
+  readOnly?: boolean;
   onSelectStep: (step: LessonItem) => void;
   onStepFormChange: (updater: (prev: LessonItem) => LessonItem) => void;
   onSaveStep: () => void;
@@ -35,6 +36,7 @@ export function CardsTab({
   currentStepId,
   stepForm,
   isSavingStep = false,
+  readOnly = false,
   onSelectStep,
   onStepFormChange,
   onSaveStep,
@@ -46,7 +48,7 @@ export function CardsTab({
   const [isCreatingState, setIsCreatingState] = useState(false);
   const [newCardForm, setNewCardForm] = useState<Omit<LessonItem, "id">>(DEFAULT_NEW_CARD);
 
-  const isCreating = isCreatingState || currentLesson.items.length === 0;
+  const isCreating = !readOnly && (isCreatingState || currentLesson.items.length === 0);
 
   const handleStartAddCard = () => {
     setNewCardForm(DEFAULT_NEW_CARD);
@@ -93,6 +95,13 @@ export function CardsTab({
     }
   };
 
+  if (readOnly && currentLesson.items.length === 0) {
+    return (
+      <div className="p-8 text-center text-xs text-slate-muted">
+        Esta lección todavía no tiene tarjetas.
+      </div>
+    );
+  }
 
   return (
     <div className="p-3.5 sm:p-4 space-y-4">
@@ -100,12 +109,14 @@ export function CardsTab({
         items={currentLesson.items}
         currentStepId={currentStepId}
         isCreating={isCreating}
+        readOnly={readOnly}
         onSelectStep={handleSelectExisting}
         onStartAddCard={handleStartAddCard}
       />
 
       <CardEditorCanvas
         isCreating={isCreating}
+        readOnly={readOnly}
         itemsCount={currentLesson.items.length}
         activeItemType={activeItemType}
         activeEn={activeEn}

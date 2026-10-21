@@ -11,7 +11,7 @@ import { EditLessonModal } from "../edit-lesson-modal";
 import { BuilderHeader } from "./builder-header";
 import { CourseStructurePanel } from "./course-structure-panel";
 import { CardsTab } from "./cards-tab";
-import { GamesTab } from "./games-tab";
+import { LessonGamesTab } from "./lesson-games-tab";
 import { SimulatorTab } from "./simulator-tab";
 import { PricingModal } from "./pricing-modal";
 import { ManualCardModal } from "./manual-card-modal";
@@ -99,6 +99,16 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
     setIsFeedbackExpanded(true);
   }, [currentCourseId]);
 
+  // Platform courses are edited by administrators; teacher courses belong to
+  // their author. Staff may supervise a teacher course but never edit it.
+  const isPlatformCourse = currentCourse?.ownerType === "platform" || (!currentCourse?.ownerType && currentCourse?.author === "Wordtap");
+  const canEditContent = props.isAdmin ? isPlatformCourse : !isPlatformCourse;
+  const readOnlyReason = canEditContent
+    ? null
+    : props.isAdmin
+      ? "Los administradores supervisan los cursos de docentes pero no editan su contenido directamente."
+      : "Los docentes solo pueden editar sus propios cursos.";
+
   return (
     <>
       <BuilderHeader
@@ -106,6 +116,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
         currentCourseId={currentCourseId}
         currentCourse={currentCourse}
         isAdmin={props.isAdmin}
+        canEditCourse={canEditContent}
         isLoading={isLoading}
         onRefresh={props.onRefresh}
         onSelectCourse={props.onSelectCourse}
@@ -147,6 +158,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
             currentCourse={currentCourse}
             currentLessonId={currentLessonId}
             onSelectLesson={props.onSelectLesson}
+            canEdit={canEditContent}
             onOpenAddLessonModal={() => props.onOpenModal("addLesson")}
             onEditLesson={(lesson) => props.onOpenModal(`editLesson:${lesson.id}`)}
             onOpenVaultDrawer={() => props.onOpenModal("vault")}
@@ -240,8 +252,33 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   </div>
                 )
               )}
-              {activeCanvasTab === "cards" && <CardsTab currentLesson={currentLesson} currentStepId={currentStepId} stepForm={stepForm} isSavingStep={props.isSavingStep} onSelectStep={props.onSelectStep} onStepFormChange={props.onStepFormChange} onSaveStep={props.onSaveStep} onDeleteStep={props.onDeleteStep} onAddCard={props.onAddCard} onOpenAddStepModal={() => props.onOpenModal("addStep")} onSpeak={props.onSpeak} />}
-              {activeCanvasTab === "games" && <GamesTab onTestGames={() => props.onSetSimScreen("game")} />}
+              {activeCanvasTab === "cards" && (
+                <CardsTab
+                  currentLesson={currentLesson}
+                  currentStepId={currentStepId}
+                  stepForm={stepForm}
+                  isSavingStep={props.isSavingStep}
+                  readOnly={!canEditContent}
+                  onSelectStep={props.onSelectStep}
+                  onStepFormChange={props.onStepFormChange}
+                  onSaveStep={props.onSaveStep}
+                  onDeleteStep={props.onDeleteStep}
+                  onAddCard={props.onAddCard}
+                  onOpenAddStepModal={() => props.onOpenModal("addStep")}
+                  onSpeak={props.onSpeak}
+                />
+              )}
+              {activeCanvasTab === "games" && (
+                <LessonGamesTab
+                  lessonId={currentLessonId}
+                  canEdit={canEditContent}
+                  includeMine={!props.isAdmin}
+                  courseLevel={currentCourse?.level}
+                  readOnlyReason={readOnlyReason}
+                  onTestGames={() => props.onSetSimScreen("game")}
+                  onToast={props.onToast}
+                />
+              )}
               {activeCanvasTab === "preview" && (
                 <SimulatorTab
                   currentCourse={currentCourse} currentLesson={currentLesson} simScreen={simScreen} simTier={simTier}

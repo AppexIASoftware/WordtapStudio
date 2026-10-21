@@ -16,6 +16,7 @@ interface CardEditorCanvasProps {
   activeNoteType?: LessonItem["noteType"];
   stepForm: LessonItem;
   isSavingStep?: boolean;
+  readOnly?: boolean;
   updateField: <K extends keyof Omit<LessonItem, "id">>(
     field: K,
     val: Omit<LessonItem, "id">[K]
@@ -42,6 +43,7 @@ export function CardEditorCanvas({
   activeNoteType,
   stepForm,
   isSavingStep,
+  readOnly = false,
   updateField,
   onSpeak,
   onCancelCreate,
@@ -60,11 +62,17 @@ export function CardEditorCanvas({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-xs font-bold text-white">
-                {isCreating
+                {readOnly
+                  ? `Tarjeta: '${stepForm.en}'`
+                  : isCreating
                   ? "Añadir Nueva Tarjeta a la Lección"
                   : `Editar ${stepForm.itemType || "Elemento"}: '${stepForm.en}'`}
               </h3>
-              {isCreating ? (
+              {readOnly ? (
+                <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-slate-500/15 text-slate-400 border border-slate-500/25">
+                  Solo lectura
+                </span>
+              ) : isCreating ? (
                 <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-emerald-brand/15 text-emerald-brand border border-emerald-brand/25">
                   Modo Creación
                 </span>
@@ -75,7 +83,9 @@ export function CardEditorCanvas({
               ) : null}
             </div>
             <p className="text-[11px] text-slate-subtle">
-              {isCreating
+              {readOnly
+                ? "Vista de supervisión: no podés modificar el contenido."
+                : isCreating
                 ? "Definí los parámetros pedagógicos, fonéticos y ejemplos del nuevo término"
                 : "Configuración pedagógica y fonética del elemento"}
             </p>
@@ -86,8 +96,9 @@ export function CardEditorCanvas({
           <span className="text-[11px] text-slate-subtle font-mono">Tipo:</span>
           <select
             value={activeItemType}
+            disabled={readOnly}
             onChange={(e) => updateField("itemType", e.target.value as LessonItem["itemType"])}
-            className="bg-canvas border border-border-default rounded-xl px-2.5 py-1 text-xs text-mint-brand font-mono font-semibold cursor-pointer focus:outline-none focus:border-emerald-brand"
+            className="bg-canvas border border-border-default rounded-xl px-2.5 py-1 text-xs text-mint-brand font-mono font-semibold cursor-pointer focus:outline-none focus:border-emerald-brand disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="word">word (Vocabulario)</option>
             <option value="phrase">phrase (Frase)</option>
@@ -99,7 +110,7 @@ export function CardEditorCanvas({
       </div>
 
       {/* Formulario en 2 columnas - 100% idéntico para crear y editar */}
-      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={`p-4 grid grid-cols-1 md:grid-cols-2 gap-4 ${readOnly ? "opacity-70" : ""}`}>
         {/* Columna Izquierda */}
         <div className="space-y-3">
           <div>
@@ -109,6 +120,7 @@ export function CardEditorCanvas({
             <div className="relative">
               <input
                 type="text"
+                disabled={readOnly}
                 value={activeEn}
                 onChange={(e) => updateField("en", e.target.value)}
                 className="w-full bg-canvas border border-border-default rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-emerald-brand pr-9"
@@ -131,6 +143,7 @@ export function CardEditorCanvas({
             </label>
             <input
               type="text"
+              disabled={readOnly}
               value={activeEs}
               onChange={(e) => updateField("es", e.target.value)}
               className="w-full bg-canvas border border-border-default rounded-xl px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-emerald-brand"
@@ -145,6 +158,7 @@ export function CardEditorCanvas({
               </label>
               <input
                 type="text"
+                disabled={readOnly}
                 value={activeIpa}
                 onChange={(e) => updateField("ipa", e.target.value)}
                 className="w-full bg-canvas border border-border-default rounded-xl px-3 py-1.5 text-xs font-mono text-mint-brand focus:outline-none focus:border-emerald-brand"
@@ -157,6 +171,7 @@ export function CardEditorCanvas({
               </label>
               <input
                 type="text"
+                disabled={readOnly}
                 value={activePos}
                 onChange={(e) => updateField("pos", e.target.value)}
                 className="w-full bg-canvas border border-border-default rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-brand"
@@ -174,6 +189,7 @@ export function CardEditorCanvas({
             </label>
             <textarea
               rows={2}
+              disabled={readOnly}
               value={activeExample}
               onChange={(e) => updateField("example", e.target.value)}
               className="w-full bg-canvas border border-border-default rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-brand italic resize-none"
@@ -194,6 +210,7 @@ export function CardEditorCanvas({
                     type="radio"
                     name="noteType"
                     value="bulb"
+                    disabled={readOnly}
                     checked={activeNoteType !== "pin"}
                     onChange={() => updateField("noteType", "bulb")}
                     className="accent-emerald-brand"
@@ -205,6 +222,7 @@ export function CardEditorCanvas({
                     type="radio"
                     name="noteType"
                     value="pin"
+                    disabled={readOnly}
                     checked={activeNoteType === "pin"}
                     onChange={() => updateField("noteType", "pin")}
                     className="accent-emerald-brand"
@@ -215,6 +233,7 @@ export function CardEditorCanvas({
             </div>
             <input
               type="text"
+              disabled={readOnly}
               value={activeNote}
               onChange={(e) => updateField("note", e.target.value)}
               className="w-full bg-card border border-border-default rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-brand"
@@ -225,6 +244,7 @@ export function CardEditorCanvas({
       </div>
 
       {/* Pie de acciones del formulario */}
+      {!readOnly && (
       <div className="p-4 bg-card-hover/40 border-t border-border-default flex items-center justify-between">
         {isCreating ? (
           <>
@@ -285,6 +305,7 @@ export function CardEditorCanvas({
           </>
         )}
       </div>
+      )}
     </div>
   );
 }

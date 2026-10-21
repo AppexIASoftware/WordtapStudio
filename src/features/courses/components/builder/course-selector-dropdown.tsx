@@ -7,6 +7,7 @@ import { Course } from "@/features/courses/types";
 interface CourseSelectorDropdownProps {
   courses: Course[];
   currentCourseId: string;
+  isAdmin?: boolean;
   onSelectCourse: (id: string) => void;
   disabled?: boolean;
 }
@@ -14,15 +15,24 @@ interface CourseSelectorDropdownProps {
 export function CourseSelectorDropdown({
   courses,
   currentCourseId,
+  isAdmin = false,
   onSelectCourse,
   disabled = false,
 }: CourseSelectorDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [includeTeachers, setIncludeTeachers] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selectedCourse = courses.find((c) => c.id === currentCourseId) || courses[0] || null;
+
+  // The admin works on Wordtap platform courses by default. Courses authored by
+  // teachers are only listed when the admin asks for them, or when one is the
+  // current selection and must stay visible.
+  const visibleCourses = !isAdmin || includeTeachers
+    ? courses
+    : courses.filter((c) => c.ownerType === "platform" || c.id === currentCourseId || c.author === "Wordtap");
 
   // Cerrar al hacer clic fuera
   useEffect(() => {
@@ -48,7 +58,7 @@ export function CourseSelectorDropdown({
     };
   }, [isOpen]);
 
-  const filteredCourses = courses.filter((c) => {
+  const filteredCourses = visibleCourses.filter((c) => {
     if (!searchTerm.trim()) return true;
     const q = searchTerm.toLowerCase();
     return c.title.toLowerCase().includes(q) || (c.level && c.level.toLowerCase().includes(q));

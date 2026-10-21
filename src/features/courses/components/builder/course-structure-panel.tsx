@@ -6,6 +6,7 @@ import { Course, Lesson, LessonItem } from "@/features/courses/types";
 interface CourseStructurePanelProps {
   currentCourse: Course;
   currentLessonId: string;
+  canEdit?: boolean;
   linkedClassroom?: {
     name: string;
     stumble: Array<{ term: string; failRate: string }>;
@@ -20,6 +21,7 @@ interface CourseStructurePanelProps {
 export function CourseStructurePanel({
   currentCourse,
   currentLessonId,
+  canEdit = true,
   linkedClassroom,
   onSelectLesson,
   onOpenAddLessonModal,
@@ -39,14 +41,16 @@ export function CourseStructurePanel({
             {currentCourse.lessons.length === 1 ? "" : "es"} programadas
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onOpenAddLessonModal}
-          className="px-2.5 py-1 rounded-lg bg-canvas border border-border-default hover:border-emerald-brand text-xs font-semibold text-slate-200 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
-        >
-          <Plus className="w-3 h-3 stroke-[2.5]" />
-          <span>Lección</span>
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={onOpenAddLessonModal}
+            className="px-2.5 py-1 rounded-lg bg-canvas border border-border-default hover:border-emerald-brand text-xs font-semibold text-slate-200 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <Plus className="w-3 h-3 stroke-[2.5]" />
+            <span>Lección</span>
+          </button>
+        )}
       </div>
 
       {/* Alerta de Tropiezos del Aula Vinculada */}
@@ -90,7 +94,7 @@ export function CourseStructurePanel({
                   >
                     {lesson.duration}
                   </span>
-                  {onEditLesson && (
+                  {canEdit && onEditLesson && (
                     <button
                       type="button"
                       onClick={(e) => {
@@ -118,24 +122,30 @@ export function CourseStructurePanel({
       </div>
 
       {/* Acciones inferiores de la estructura */}
-      <div className="p-2.5 border-t border-border-default bg-card/60 space-y-1.5 flex-shrink-0">
-        <button
-          type="button"
-          onClick={onOpenVaultDrawer}
-          className="w-full py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-        >
-          <Database className="w-3.5 h-3.5" />
-          <span>+ Importar desde Content Vault</span>
-        </button>
-        <button
-          type="button"
-          onClick={onOpenAddStepModal}
-          className="w-full py-1.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/40 text-xs font-semibold text-slate-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Redactar Tarjeta Manual</span>
-        </button>
-      </div>
+      {canEdit ? (
+        <div className="p-2.5 border-t border-border-default bg-card/60 space-y-1.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onOpenVaultDrawer}
+            className="w-full py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>+ Importar desde Content Vault</span>
+          </button>
+          <button
+            type="button"
+            onClick={onOpenAddStepModal}
+            className="w-full py-1.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/40 text-xs font-semibold text-slate-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Redactar Tarjeta Manual</span>
+          </button>
+        </div>
+      ) : (
+        <div className="p-3 border-t border-border-default bg-card/40 text-center text-[10px] text-slate-muted flex-shrink-0">
+          Contenido de solo lectura durante la supervisión.
+        </div>
+      )}
     </div>
   );
 }

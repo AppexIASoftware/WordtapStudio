@@ -11,6 +11,7 @@ import {
   Clock,
   FileText,
   AlertTriangle,
+  Eye,
   RefreshCw,
   RotateCcw,
 } from "lucide-react";
@@ -22,6 +23,7 @@ interface BuilderHeaderProps {
   currentCourseId: string;
   currentCourse: Course | null;
   isAdmin?: boolean;
+  canEditCourse?: boolean;
   isLoading?: boolean;
   onRefresh?: () => void;
   onSelectCourse: (id: string) => void;
@@ -40,6 +42,7 @@ export function BuilderHeader({
   currentCourseId,
   currentCourse,
   isAdmin = false,
+  canEditCourse = true,
   isLoading = false,
   onRefresh,
   onSelectCourse,
@@ -67,6 +70,7 @@ export function BuilderHeader({
         <CourseSelectorDropdown
           courses={courseList}
           currentCourseId={currentCourseId}
+          isAdmin={isAdmin}
           onSelectCourse={onSelectCourse}
           disabled={courseList.length === 0}
         />
@@ -111,6 +115,16 @@ export function BuilderHeader({
           )
         )}
 
+        {currentCourse && !canEditCourse && (
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-500/10 border border-slate-500/20 text-slate-400 font-mono text-[10px] font-semibold flex-shrink-0"
+            title="Curso de docente: podés revisar y aprobar, pero no editar su contenido"
+          >
+            <Eye className="w-2.5 h-2.5 text-slate-400" />
+            <span className="hidden xl:inline">Solo supervisión</span>
+          </span>
+        )}
+
         {onRefresh && (
           <button
             type="button"
@@ -123,7 +137,7 @@ export function BuilderHeader({
           </button>
         )}
 
-        {currentCourse && (
+        {currentCourse && canEditCourse && (
           <button
             type="button"
             onClick={onOpenEditCourseModal}
@@ -147,7 +161,7 @@ export function BuilderHeader({
 
       {/* Lado Derecho: Acciones de Curso */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
-        {currentCourse && (
+        {currentCourse && canEditCourse && (
           <button
             type="button"
             onClick={onOpenPricingModal}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BookOpen, Loader2, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw, CheckCircle2 } from "lucide-react";
+import { BookOpen, Loader2, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw, CheckCircle2, Crown } from "lucide-react";
 import { Course, Lesson, LessonItem } from "@/features/courses/types";
 import { ApiCourse } from "@/services/api";
 import { NewCourseModal } from "../new-course-modal";
@@ -67,7 +67,7 @@ interface CourseBuilderWorkspaceProps {
   onDeleteCourse: () => Promise<void>;
   onSaveLesson: (id: string, title: string, subtitle: string, duration: string) => Promise<void>;
   onDeleteLesson: (id: string) => Promise<void>;
-  onSavePrice: (price: number) => Promise<void>;
+  onSavePrice: (price: number, tier?: "free" | "course" | "subscription") => Promise<void>;
   onCloseModal: (name: string) => void;
   onOpenModal: (name: string) => void;
   onSetCanvasTab: (tab: CanvasTab) => void;
@@ -169,7 +169,16 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
               <div className="px-4 py-3 border-b border-border-default bg-card/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 flex-shrink-0">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono uppercase text-emerald-brand font-bold px-2 py-0.5 rounded bg-emerald-brand/10 border border-emerald-brand/20">{currentLesson.tier.toUpperCase()}</span>
+                    {currentCourse.tier === "subscription" ? (
+                      <span className="text-[10px] font-mono uppercase text-amber-400 font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 flex items-center gap-1">
+                        <Crown className="w-2.5 h-2.5 text-amber-400" />
+                        <span>PRO SUBSCRIPTION</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono uppercase text-emerald-brand font-bold px-2 py-0.5 rounded bg-emerald-brand/10 border border-emerald-brand/20">
+                        {currentCourse.price > 0 ? "PAID" : currentLesson.tier.toUpperCase()}
+                      </span>
+                    )}
                     <span className="text-xs text-slate-subtle font-mono">{currentLesson.duration}</span>
                   </div>
                   <h2 className="text-base font-bold text-white mt-0.5">{currentLesson.title}</h2>
@@ -319,7 +328,23 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
       {showEditCourseModal && currentCourse && <EditCourseModal isOpen course={currentCourse} onClose={() => props.onCloseModal("editCourse")} onSave={props.onSaveCourse} onDelete={props.onDeleteCourse} />}
       <AddLessonModal isOpen={showAddLessonModal} courseId={currentCourseId} onClose={() => props.onCloseModal("addLesson")} onCreated={props.onLessonCreated} />
       {editingLesson && <EditLessonModal isOpen lesson={editingLesson} onClose={() => props.onCloseModal("editLesson")} onSave={props.onSaveLesson} onDelete={props.onDeleteLesson} />}
-      {showPricingModal && currentCourse && <PricingModal isOpen course={currentCourse} onClose={() => props.onCloseModal("pricing")} onSavePrice={(price) => { void props.onSavePrice(price).catch((error: unknown) => props.onToast(`No se pudo actualizar el precio: ${error instanceof Error ? error.message : "error desconocido"}`)); }} />}
+      {showPricingModal && currentCourse && (
+        <PricingModal
+          isOpen
+          course={currentCourse}
+          isAdmin={props.isAdmin}
+          onClose={() => props.onCloseModal("pricing")}
+          onSavePrice={(price, tier) => {
+            void props.onSavePrice(price, tier).catch((error: unknown) =>
+              props.onToast(
+                `No se pudo actualizar la tarifa: ${
+                  error instanceof Error ? error.message : "error desconocido"
+                }`
+              )
+            );
+          }}
+        />
+      )}
       <ManualCardModal isOpen={showAddStepModal} onClose={() => props.onCloseModal("addStep")} onAddCard={props.onAddCard} />
       {currentCourse && <ExportJsonModal isOpen={showExportModal} course={currentCourse} onClose={() => props.onCloseModal("export")} onCopied={props.onCopyExport} />}
       {currentLesson && <VaultDrawer isOpen={showVaultDrawer} currentLesson={currentLesson} onClose={() => props.onCloseModal("vault")} onImportItem={props.onAddCard} showPrivateCollection={!props.isAdmin} />}

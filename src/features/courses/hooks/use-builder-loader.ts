@@ -71,11 +71,17 @@ export function useBuilderLoader({
             tier:
               c.status === "draft"
                 ? "draft"
+                : c.access_tier === "subscription"
+                ? "subscription"
                 : c.access_tier === "course"
                 ? "course"
                 : "free",
             price:
-              typeof c.price_cents === "number" ? c.price_cents / 100 : 19.99,
+              c.access_tier === "subscription"
+                ? 0
+                : typeof c.price_cents === "number"
+                ? c.price_cents / 100
+                : 19.99,
             currency: "USD",
             author: c.author?.name || userName || "Prof. Mateo Silva",
             status: c.status,

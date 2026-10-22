@@ -28,7 +28,7 @@ export interface Course {
   id: string;
   title: string;
   level: string;
-  tier: "free" | "course" | "draft";
+  tier: "free" | "course" | "subscription" | "draft";
   price: number;
   currency: string;
   author: string;

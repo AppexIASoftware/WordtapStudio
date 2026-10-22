@@ -114,7 +114,21 @@ export function CourseStructurePanel({
               </p>
               <div className="mt-1.5 flex items-center justify-between text-[10px] font-mono text-slate-muted">
                 <span>{lesson.items.length} tarjetas</span>
-                <span className="text-emerald-brand">{lesson.tier}</span>
+                <span
+                  className={
+                    currentCourse.tier === "subscription"
+                      ? "text-amber-400 font-bold"
+                      : currentCourse.price > 0
+                      ? "text-emerald-brand font-bold"
+                      : "text-slate-400 font-medium"
+                  }
+                >
+                  {currentCourse.tier === "subscription"
+                    ? "PRO"
+                    : currentCourse.price > 0
+                    ? "PAID"
+                    : "FREE"}
+                </span>
               </div>
             </div>
           );

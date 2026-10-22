@@ -33,12 +33,27 @@ export function useCourseCrud({
   triggerToast,
   userName,
 }: UseCourseCrudProps) {
-  const handleEditCourse = async (updated: { title: string; level: string; price: number }) => {
+  const handleEditCourse = async (updated: {
+    title: string;
+    level: string;
+    price: number;
+    tier?: "free" | "course" | "subscription";
+  }) => {
+    const currentCourse = courses[currentCourseId];
+    const finalTier =
+      updated.tier ||
+      (currentCourse?.tier === "subscription"
+        ? "subscription"
+        : updated.price > 0
+        ? "course"
+        : "free");
+    const priceCents = finalTier === "subscription" ? 0 : Math.round(updated.price * 100);
+
     const res = await updateCourseApi(currentCourseId, {
       title: updated.title,
       level: updated.level,
-      access_tier: updated.price > 0 ? "course" : "free",
-      price_cents: Math.round(updated.price * 100),
+      access_tier: finalTier,
+      price_cents: priceCents,
     });
     if (res.error || !res.data)
       throw new Error(res.error || "La API no confirmó la actualización del curso");
@@ -49,7 +64,12 @@ export function useCourseCrud({
         title: res.data!.title,
         level: res.data!.level,
         price: (res.data!.price_cents ?? 0) / 100,
-        tier: res.data!.access_tier === "course" ? "course" : "free",
+        tier:
+          res.data!.access_tier === "subscription"
+            ? "subscription"
+            : res.data!.access_tier === "course"
+            ? "course"
+            : "free",
         status: res.data!.status,
       },
     }));
@@ -149,10 +169,16 @@ export function useCourseCrud({
     triggerToast(`¡Lección "${newLesson.title}" creada con éxito!`);
   };
 
-  const handleSavePrice = async (newPrice: number) => {
+  const handleSavePrice = async (
+    newPrice: number,
+    tier?: "free" | "course" | "subscription"
+  ) => {
+    const finalTier = tier || (newPrice > 0 ? "course" : "free");
+    const priceCents = finalTier === "subscription" ? 0 : Math.round(newPrice * 100);
+
     const res = await updateCourseApi(currentCourseId, {
-      access_tier: newPrice > 0 ? "course" : "free",
-      price_cents: Math.round(newPrice * 100),
+      access_tier: finalTier,
+      price_cents: priceCents,
     });
     if (res.error || !res.data)
       throw new Error(res.error || "La API no confirmó el cambio de precio");
@@ -160,11 +186,15 @@ export function useCourseCrud({
       ...prev,
       [currentCourseId]: {
         ...prev[currentCourseId],
-        price: newPrice,
-        tier: newPrice > 0 ? "course" : "free",
+        price: finalTier === "subscription" ? 0 : newPrice,
+        tier: finalTier,
       },
     }));
-    triggerToast(`Precio actualizado a $${newPrice.toFixed(2)} USD`);
+    triggerToast(
+      finalTier === "subscription"
+        ? "Curso incluido en Suscripción Pro Mensual"
+        : `Precio actualizado a $${newPrice.toFixed(2)} USD`
+    );
   };
 
   const handleCourseCreated = async (newApiCourse: ApiCourse) => {

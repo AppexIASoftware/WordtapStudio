@@ -14,6 +14,7 @@ import {
   Eye,
   RefreshCw,
   RotateCcw,
+  Crown,
 } from "lucide-react";
 import { Course } from "@/features/courses/types";
 import { CourseSelectorDropdown } from "./course-selector-dropdown";
@@ -165,13 +166,28 @@ export function BuilderHeader({
           <button
             type="button"
             onClick={onOpenPricingModal}
-            className="px-2.5 py-1.5 rounded-lg bg-canvas border border-border-default hover:border-emerald-brand text-xs font-semibold text-slate-200 hover:text-white transition-colors hidden xl:flex items-center gap-1 cursor-pointer"
-            title="Configurar precio de venta"
+            className={`px-2.5 py-1.5 rounded-lg bg-canvas border text-xs font-semibold hover:text-white transition-colors hidden xl:flex items-center gap-1.5 cursor-pointer ${
+              currentCourse.tier === "subscription"
+                ? "border-amber-500/40 text-amber-300 hover:border-amber-400 bg-amber-500/10"
+                : "border-border-default hover:border-emerald-brand text-slate-200"
+            }`}
+            title="Configurar precio de venta o modelo de suscripción"
           >
-            <DollarSign className="w-3 h-3 text-emerald-brand" />
-            <span className="text-emerald-brand font-mono font-bold">
-              {currentCourse.price > 0 ? `$${currentCourse.price.toFixed(2)}` : "Gratis"}
-            </span>
+            {currentCourse.tier === "subscription" ? (
+              <>
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-amber-300 font-mono font-bold">
+                  Suscripción Pro
+                </span>
+              </>
+            ) : (
+              <>
+                <DollarSign className="w-3 h-3 text-emerald-brand" />
+                <span className="text-emerald-brand font-mono font-bold">
+                  {currentCourse.price > 0 ? `$${currentCourse.price.toFixed(2)}` : "Gratis"}
+                </span>
+              </>
+            )}
           </button>
         )}
 

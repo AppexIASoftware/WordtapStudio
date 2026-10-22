@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Download,
   Smartphone,
@@ -16,6 +17,7 @@ import {
   RotateCcw,
   Crown,
   Gift,
+  ArrowLeft,
 } from "lucide-react";
 import { Course } from "@/features/courses/types";
 import { CourseSelectorDropdown } from "./course-selector-dropdown";
@@ -66,6 +68,17 @@ export function BuilderHeader({
     <div className="h-13 border-b border-border-default bg-card px-3 md:px-4 flex items-center justify-between flex-shrink-0 gap-2 text-xs">
       {/* Lado Izquierdo: Selector de Curso y Estado */}
       <div className="flex items-center gap-2 min-w-0">
+        {isAdmin && (
+          <Link
+            href="/admin/courses"
+            className="h-8.5 px-2.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors flex-shrink-0"
+            title="Volver al catálogo general de cursos"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-emerald-brand" />
+            <span className="hidden sm:inline">Catálogo</span>
+          </Link>
+        )}
+
         <span className="text-[11px] font-mono text-slate-muted uppercase tracking-wider flex-shrink-0 hidden xl:inline">
           Curso:
         </span>

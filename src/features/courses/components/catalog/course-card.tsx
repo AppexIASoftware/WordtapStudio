@@ -8,27 +8,28 @@ import {
   Gift,
   DollarSign,
   Globe2,
-  Clock,
   User,
-  Sparkles,
+  CheckCircle2,
+  UploadCloud,
+  FileText,
+  Clock,
 } from "lucide-react";
 import { ApiCourse } from "@/services/api";
 
 interface CourseCardProps {
   course: ApiCourse;
   onEditPricing?: (course: ApiCourse) => void;
+  onTogglePublish?: (course: ApiCourse) => void;
 }
 
-export function CourseCard({ course, onEditPricing }: CourseCardProps) {
+export function CourseCard({ course, onEditPricing, onTogglePublish }: CourseCardProps) {
   const isSubscription = course.access_tier === "subscription";
   const isFree = course.access_tier === "free" || (!course.price_cents && !isSubscription);
   const price = (course.price_cents ?? 0) / 100;
   const isTeacher = course.owner_type === "teacher";
+  const isPublished = course.status === "published";
+  const isInReview = course.status === "in_review";
   const lessonCount = course.lessons?.length ?? 0;
-
-  // Calculo de tarjetas totales si estan pobladas
-  const totalCards =
-    course.lessons?.reduce((acc, l) => acc + (l.items?.length ?? 0), 0) ?? 0;
 
   return (
     <div className="bg-card border border-border-default hover:border-emerald-brand/50 rounded-2xl p-5 shadow-card-soft transition-all duration-200 hover:shadow-xl hover:translate-y-[-2px] flex flex-col justify-between group relative overflow-hidden text-xs space-y-4">
@@ -98,18 +99,32 @@ export function CourseCard({ course, onEditPricing }: CourseCardProps) {
         </div>
 
         <div className="flex items-center justify-between text-[10px] text-slate-subtle pt-1">
-          <div className="flex items-center gap-1.5 truncate max-w-[170px]">
+          <div className="flex items-center gap-1.5 truncate max-w-[150px]">
             <User className="w-3 h-3 text-slate-subtle flex-shrink-0" />
             <span className="truncate">{course.author?.name || (isTeacher ? "Docente" : "Wordtap Core")}</span>
           </div>
 
-          <span className="font-mono text-[9px] uppercase px-1.5 py-0.2 rounded bg-canvas border border-border-default text-slate-400">
-            {course.status === "published" ? "Publicado" : course.status === "in_review" ? "En Revisión" : "Borrador"}
-          </span>
+          {/* Insignia de Estado Real */}
+          {isPublished ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-[9px] font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Publicado (Live)</span>
+            </span>
+          ) : isInReview ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 font-mono text-[9px] font-semibold">
+              <Clock className="w-2.5 h-2.5" />
+              <span>En Revisión</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-500/15 border border-slate-500/20 text-slate-400 font-mono text-[9px] font-semibold">
+              <FileText className="w-2.5 h-2.5" />
+              <span>Borrador</span>
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Botón de Acción Principal */}
+      {/* Botones de Acción */}
       <div className="pt-2 flex items-center gap-2">
         <Link
           href={`/admin/courses/${course.id}`}
@@ -119,12 +134,35 @@ export function CourseCard({ course, onEditPricing }: CourseCardProps) {
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
         </Link>
 
+        {/* Botón rápido para Publicar / Despublicar en 1 clic */}
+        {onTogglePublish && (
+          <button
+            type="button"
+            onClick={() => onTogglePublish(course)}
+            className={`py-2 px-2.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1 ${
+              isPublished
+                ? "bg-canvas border-border-default hover:border-rose-500/40 text-slate-400 hover:text-rose-400"
+                : "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-300 font-bold"
+            }`}
+            title={isPublished ? "Despublicar curso (volver a borrador)" : "Publicar curso inmediatamente en la app móvil"}
+          >
+            {isPublished ? (
+              <FileText className="w-3.5 h-3.5" />
+            ) : (
+              <UploadCloud className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">
+              {isPublished ? "Borrador" : "Publicar"}
+            </span>
+          </button>
+        )}
+
         {onEditPricing && (
           <button
             type="button"
             onClick={() => onEditPricing(course)}
             className="p-2 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-slate-400 hover:text-white transition-colors cursor-pointer"
-            title="Cambiar tarifa / acceso"
+            title="Cambiar tarifa / modelo Pro"
           >
             {isSubscription ? (
               <Crown className="w-3.5 h-3.5 text-amber-400" />

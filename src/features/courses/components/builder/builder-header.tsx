@@ -60,7 +60,8 @@ export function BuilderHeader({
   onAdminPublish,
 }: BuilderHeaderProps) {
   const courseList = Object.values(courses);
-  const isApproved = currentCourse?.status === "published" || currentCourse?.reviewStatus === "approved";
+  const isPublished = currentCourse?.status === "published";
+  const isApproved = isPublished || currentCourse?.reviewStatus === "approved";
   const isChangesRequested = currentCourse?.reviewStatus === "changes_requested";
   const isInReview = currentCourse?.reviewStatus === "pending" || (!isChangesRequested && !isApproved && currentCourse?.status === "in_review");
 
@@ -95,7 +96,25 @@ export function BuilderHeader({
             admin ve el estado de publicación del curso (Borrador), no la tarea
             pendiente del autor. */}
         {currentCourse && (
-          isApproved ? (
+          isAdmin ? (
+            isPublished ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold shadow-xs flex-shrink-0"
+                title="Curso publicado y activo en el catálogo oficial de Wordtap"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="hidden xl:inline">Publicado (Live)</span>
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-500/15 border border-slate-500/20 text-slate-400 font-mono text-[10px] font-semibold flex-shrink-0"
+                title="Borrador en edición privada (aún no publicado)"
+              >
+                <FileText className="w-2.5 h-2.5 text-slate-400" />
+                <span className="hidden xl:inline">Borrador</span>
+              </span>
+            )
+          ) : isApproved ? (
             <span
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-bold shadow-sm flex-shrink-0"
               title="Insignia oficial: Curso auditado y aprobado en el catálogo de Wordtap"
@@ -103,7 +122,7 @@ export function BuilderHeader({
               <Award className="w-3 h-3 text-emerald-400" />
               <span className="hidden xl:inline">Aprobado</span>
             </span>
-          ) : isChangesRequested && !isAdmin ? (
+          ) : isChangesRequested ? (
             <span
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[11px] font-bold flex-shrink-0"
               title="El revisor solicitó correcciones antes de publicar"
@@ -251,21 +270,35 @@ export function BuilderHeader({
         )}
 
         {currentCourse && (
-          isApproved ? (
+          isAdmin ? (
+            isPublished ? (
+              <button
+                type="button"
+                onClick={onAdminPublish}
+                className="px-2.5 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-rose-500/15 hover:text-rose-400 hover:border-rose-500/30 transition-all cursor-pointer group"
+                title="Hacé clic para despublicar el curso (mover a borrador)"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 group-hover:hidden" />
+                <RotateCcw className="w-3.5 h-3.5 text-rose-400 hidden group-hover:inline" />
+                <span className="group-hover:hidden">Publicado (Live)</span>
+                <span className="hidden group-hover:inline">Despublicar</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onAdminPublish}
+                className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer bg-emerald-brand text-canvas hover:bg-mint-brand shadow-glow-emerald"
+                title="Publicar curso inmediatamente en el catálogo oficial de Wordtap"
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Publicar Curso</span>
+              </button>
+            )
+          ) : isApproved ? (
             <span className="px-2.5 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
               <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-              <span>{isAdmin ? "Publicado" : "Aprobado"}</span>
+              <span>Aprobado</span>
             </span>
-          ) : isAdmin ? (
-            <button
-              type="button"
-              onClick={onAdminPublish}
-              className="px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer bg-emerald-brand text-canvas hover:bg-mint-brand shadow-glow-emerald"
-              title="Aprobar y publicar curso directamente en el catálogo oficial de Wordtap"
-            >
-              <CheckCircle2 className="w-3 h-3" />
-              <span>Aprobar & Publicar</span>
-            </button>
           ) : (
             <button
               type="button"

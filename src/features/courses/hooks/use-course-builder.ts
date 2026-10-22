@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Lesson, LessonItem } from "@/features/courses/types";
 import { useAuth } from "@/features/auth/auth-context";
 import { useBuilderModals } from "./use-builder-modals";
@@ -21,6 +22,7 @@ export function useCourseBuilder(
   options?: { scope?: "teacher" | "admin" }
 ) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentLessonId, setCurrentLessonId] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const handleStepSelectRef = useRef<(step: LessonItem) => void>(() => {});
@@ -127,6 +129,7 @@ export function useCourseBuilder(
 
   const handleAdminPublish = async () => {
     if (!currentCourseId || !currentCourse) return;
+    const nextStatus = currentCourse.status === "published" ? "draft" : "published";
     try {
       const synced = getSyncedReviews();
       const activePr = synced.find(
@@ -135,13 +138,13 @@ export function useCourseBuilder(
       if (activePr) {
         saveSyncedReview({
           ...activePr,
-          status: "approved",
-          statusLabel: "Aprobado",
+          status: nextStatus === "published" ? "approved" : "open",
+          statusLabel: nextStatus === "published" ? "Aprobado" : "Borrador",
         });
       }
 
       const res = await updateCourseApi(currentCourseId, {
-        status: "published",
+        status: nextStatus,
       });
       if (res.error) throw new Error(res.error);
 
@@ -149,13 +152,18 @@ export function useCourseBuilder(
         ...prev,
         [currentCourseId]: {
           ...prev[currentCourseId],
-          status: "published",
-          reviewStatus: "approved",
+          status: nextStatus,
+          reviewStatus: nextStatus === "published" ? "approved" : "pending",
         },
       }));
-      triggerToast(`¡"${currentCourse.title}" publicado y activo en el catálogo oficial!`);
+      queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
+      triggerToast(
+        nextStatus === "published"
+          ? `¡"${currentCourse.title}" publicado y activo en el catálogo oficial!`
+          : `"${currentCourse.title}" despublicado (movido a borrador).`
+      );
     } catch (err: unknown) {
-      triggerToast(err instanceof Error ? err.message : "Error al publicar curso");
+      triggerToast(err instanceof Error ? err.message : "Error al actualizar estado del curso");
     }
   };
 

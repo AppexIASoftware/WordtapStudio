@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Crown, GraduationCap } from "lucide-react";
+import { Loader2, Plus, Crown, GraduationCap, ArrowRight, Sparkles } from "lucide-react";
 import { getAdminCoursesApi, updateCourseApi, ApiCourse } from "@/services/api";
 import { Course } from "@/features/courses/types";
 import { CourseCard } from "../components/catalog/course-card";
@@ -20,6 +20,7 @@ export function AdminCoursesCatalogView() {
   const [activeTab, setActiveTab] = useState<"platform" | "teacher">("platform");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [showNewCourseModal, setShowNewCourseModal] = useState(false);
   const [editingPricingCourse, setEditingPricingCourse] = useState<ApiCourse | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export function AdminCoursesCatalogView() {
     staleTime: 1000 * 60 * 3, // 3 minutos de caché fresca
   });
 
-  // Contadores para métricas
+  // Segmentación básica por plataforma vs docentes
   const platformCourses = useMemo(
     () => courses.filter((c) => c.owner_type !== "teacher"),
     [courses]
@@ -48,6 +49,20 @@ export function AdminCoursesCatalogView() {
   const teacherCourses = useMemo(
     () => courses.filter((c) => c.owner_type === "teacher"),
     [courses]
+  );
+
+  // Métricas globales para la cabecera
+  const publishedCount = useMemo(
+    () => courses.filter((c) => c.status === "published").length,
+    [courses]
+  );
+  const platformPublishedCount = useMemo(
+    () => platformCourses.filter((c) => c.status === "published").length,
+    [platformCourses]
+  );
+  const teacherPublishedCount = useMemo(
+    () => teacherCourses.filter((c) => c.status === "published").length,
+    [teacherCourses]
   );
   const proCount = useMemo(
     () => courses.filter((c) => c.access_tier === "subscription").length,
@@ -61,10 +76,33 @@ export function AdminCoursesCatalogView() {
     [courses]
   );
 
-  // Filtrado reactivo por Tab, Búsqueda y Nivel
+  // Conteos contextuales según la pestaña activa (para que los pills coincidan exactamente con las tarjetas)
   const currentTabCourses = activeTab === "platform" ? platformCourses : teacherCourses;
+  const tabPublishedCount = useMemo(
+    () => currentTabCourses.filter((c) => c.status === "published").length,
+    [currentTabCourses]
+  );
+  const tabDraftCount = useMemo(
+    () => currentTabCourses.filter((c) => c.status === "draft" || !c.status).length,
+    [currentTabCourses]
+  );
+  const tabInReviewCount = useMemo(
+    () => currentTabCourses.filter((c) => c.status === "in_review").length,
+    [currentTabCourses]
+  );
+
+  // Cuántos publicados hay en la otra pestaña
+  const otherTabPublishedCount =
+    activeTab === "platform" ? teacherPublishedCount : platformPublishedCount;
+
+  // Filtrado reactivo por Tab, Búsqueda, Estado y Nivel
   const filteredCourses = useMemo(() => {
     return currentTabCourses.filter((c) => {
+      // Filtro por estado
+      if (selectedStatus) {
+        const courseStatus = c.status || "draft";
+        if (courseStatus !== selectedStatus) return false;
+      }
       // Filtro por nivel
       if (selectedLevel && c.level?.toUpperCase() !== selectedLevel.toUpperCase()) {
         return false;
@@ -77,13 +115,28 @@ export function AdminCoursesCatalogView() {
       const matchDesc = c.description?.toLowerCase().includes(q);
       return matchTitle || matchAuthor || matchDesc;
     });
-  }, [currentTabCourses, selectedLevel, searchQuery]);
+  }, [currentTabCourses, selectedStatus, selectedLevel, searchQuery]);
 
   const handleCourseCreated = (newApiCourse: ApiCourse) => {
     triggerToast(`¡Curso "${newApiCourse.title}" creado con éxito!`);
     queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
     // Redirigir de inmediato al editor de ese curso
     router.push(`/admin/courses/${newApiCourse.id}`);
+  };
+
+  const handleTogglePublish = async (course: ApiCourse) => {
+    const nextStatus = course.status === "published" ? "draft" : "published";
+    const res = await updateCourseApi(course.id, { status: nextStatus });
+    if (res.error) {
+      triggerToast(`No se pudo actualizar el estado: ${res.error}`);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
+    triggerToast(
+      nextStatus === "published"
+        ? `¡Curso "${course.title}" publicado y activo en la app móvil!`
+        : `Curso "${course.title}" movido a borrador.`
+    );
   };
 
   const handleSavePrice = async (
@@ -135,16 +188,25 @@ export function AdminCoursesCatalogView() {
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-canvas p-4 sm:p-6 lg:p-8 space-y-6">
       <ToastNotification message={toastMessage} variant="emerald" />
 
-      {/* Cabecera & Métricas */}
+      {/* Cabecera, Métricas & Filtros de Estado */}
       <CatalogHeader
         totalCourses={courses.length}
+        publishedCount={publishedCount}
+        platformPublishedCount={platformPublishedCount}
+        teacherPublishedCount={teacherPublishedCount}
         proCount={proCount}
         freeCount={freeCount}
         teacherCount={teacherCourses.length}
+        tabTotal={currentTabCourses.length}
+        tabPublishedCount={tabPublishedCount}
+        tabDraftCount={tabDraftCount}
+        tabInReviewCount={tabInReviewCount}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         selectedLevel={selectedLevel}
         onLevelChange={setSelectedLevel}
+        selectedStatus={selectedStatus}
+        onStatusChange={setSelectedStatus}
         onOpenNewCourseModal={() => setShowNewCourseModal(true)}
       />
 
@@ -155,6 +217,29 @@ export function AdminCoursesCatalogView() {
         platformCount={platformCourses.length}
         teacherCount={teacherCourses.length}
       />
+
+      {/* Aviso interactivo si hay publicados en la otra pestaña */}
+      {selectedStatus === "published" && otherTabPublishedCount > 0 && (
+        <div className="p-3 px-4 rounded-2xl bg-card border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300 shadow-xs">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <span>
+              Tenés <strong>{otherTabPublishedCount}</strong> curso{otherTabPublishedCount === 1 ? "" : "s"} publicado{otherTabPublishedCount === 1 ? "" : "s"} en la pestaña{" "}
+              <strong className="text-white">
+                {activeTab === "platform" ? "Cursos de Docentes" : "Cursos de Plataforma"}
+              </strong>.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab(activeTab === "platform" ? "teacher" : "platform")}
+            className="text-emerald-brand hover:underline font-bold cursor-pointer flex items-center gap-1 self-start sm:self-auto"
+          >
+            <span>Ver en {activeTab === "platform" ? "Cursos de Docentes" : "Cursos de Plataforma"}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Grilla de Cursos */}
       {isLoading && courses.length === 0 ? (
@@ -173,21 +258,25 @@ export function AdminCoursesCatalogView() {
           </div>
           <div className="space-y-1">
             <h3 className="text-base font-bold text-white">
-              {searchQuery || selectedLevel
+              {selectedStatus === "published"
+                ? "No hay más cursos publicados en esta pestaña"
+                : searchQuery || selectedLevel || selectedStatus
                 ? "No se encontraron cursos con estos filtros"
                 : activeTab === "platform"
                 ? "Aún no hay cursos de plataforma creados"
                 : "Aún no hay cursos de docentes enviados"}
             </h3>
             <p className="text-xs text-slate-muted leading-relaxed">
-              {searchQuery || selectedLevel
-                ? "Probá limpiando el buscador o cambiando el nivel seleccionado."
+              {selectedStatus === "published"
+                ? "Podés publicar cualquiera de los otros cursos borrador con el botón 'Publicar' para activarlo en la app móvil."
+                : searchQuery || selectedLevel || selectedStatus
+                ? "Probá limpiando los filtros de estado o nivel."
                 : activeTab === "platform"
                 ? "Comenzá creando el primer curso oficial del currículo de Wordtap."
                 : "Los cursos creados por docentes independientes aparecerán aquí para tu supervisión."}
             </p>
           </div>
-          {activeTab === "platform" && (
+          {activeTab === "platform" && !selectedStatus && (
             <button
               type="button"
               onClick={() => setShowNewCourseModal(true)}
@@ -205,6 +294,7 @@ export function AdminCoursesCatalogView() {
               key={c.id}
               course={c}
               onEditPricing={(c) => setEditingPricingCourse(c)}
+              onTogglePublish={handleTogglePublish}
             />
           ))}
         </div>

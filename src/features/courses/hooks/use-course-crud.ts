@@ -210,12 +210,17 @@ export function useCourseCrud({
     };
 
     // 1. Placeholder reactivo inmediato para feedback instantáneo (0 ms en UI)
+    const isSubscription = newApiCourse.access_tier === "subscription";
     const placeholderLesson: Lesson = {
       id: `lesson-pending-${Date.now()}`,
       title: "1. Lección Inicial",
       subtitle: "Introducción al curso",
       duration: "10 min",
-      tier: "Draft",
+      tier: isSubscription
+        ? "PRO"
+        : newApiCourse.price_cents && newApiCourse.price_cents > 0
+        ? "PAID"
+        : "FREE",
       isPublished: false,
       intro: "Bienvenido a este curso interactivo.",
       sectionTitle: "Vocabulario esencial",
@@ -226,10 +231,20 @@ export function useCourseCrud({
       id: newApiCourse.id,
       title: newApiCourse.title,
       level: newApiCourse.level,
-      tier: "draft",
-      price: typeof newApiCourse.price_cents === "number" ? newApiCourse.price_cents / 100 : 19.99,
+      tier: isSubscription
+        ? "subscription"
+        : newApiCourse.access_tier === "course"
+        ? "course"
+        : "free",
+      price: isSubscription
+        ? 0
+        : typeof newApiCourse.price_cents === "number"
+        ? newApiCourse.price_cents / 100
+        : 0,
       currency: "USD",
-      author: userName || "Docente",
+      author: newApiCourse.author?.name || userName || "Wordtap",
+      ownerType: newApiCourse.owner_type || "platform",
+      status: newApiCourse.status || "draft",
       lessons: [placeholderLesson],
     };
 

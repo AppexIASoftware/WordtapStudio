@@ -324,7 +324,12 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
         </div>
       )}
 
-      <NewCourseModal isOpen={showNewCourseModal} onClose={() => props.onCloseModal("newCourse")} onCreated={props.onCreateCourse} />
+      <NewCourseModal
+        isOpen={showNewCourseModal}
+        isAdmin={props.isAdmin}
+        onClose={() => props.onCloseModal("newCourse")}
+        onCreated={props.onCreateCourse}
+      />
       {showEditCourseModal && currentCourse && <EditCourseModal isOpen course={currentCourse} onClose={() => props.onCloseModal("editCourse")} onSave={props.onSaveCourse} onDelete={props.onDeleteCourse} />}
       <AddLessonModal isOpen={showAddLessonModal} courseId={currentCourseId} onClose={() => props.onCloseModal("addLesson")} onCreated={props.onLessonCreated} />
       {editingLesson && <EditLessonModal isOpen lesson={editingLesson} onClose={() => props.onCloseModal("editLesson")} onSave={props.onSaveLesson} onDelete={props.onDeleteLesson} />}

@@ -27,12 +27,8 @@ export function CourseSelectorDropdown({
 
   const selectedCourse = courses.find((c) => c.id === currentCourseId) || courses[0] || null;
 
-  // The admin works on Wordtap platform courses by default. Courses authored by
-  // teachers are only listed when the admin asks for them, or when one is the
-  // current selection and must stay visible.
-  const visibleCourses = !isAdmin || includeTeachers
-    ? courses
-    : courses.filter((c) => c.ownerType === "platform" || c.id === currentCourseId || c.author === "Wordtap");
+  // List all available courses without artificially hiding newly created or supervised courses.
+  const visibleCourses = courses;
 
   // Cerrar al hacer clic fuera
   useEffect(() => {
@@ -155,11 +151,32 @@ export function CourseSelectorDropdown({
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold truncate text-white leading-tight">
-                          {c.title}
+                        <div className="font-bold truncate text-white leading-tight flex items-center gap-1.5">
+                          <span className="truncate">{c.title}</span>
+                          {c.tier === "subscription" && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex-shrink-0">
+                              👑 PRO
+                            </span>
+                          )}
                         </div>
                         <div className="text-[10px] text-slate-muted flex items-center gap-2 mt-0.5 font-mono">
-                          <span>{lessonCount} lecciones</span>
+                          <span>{lessonCount} lección{lessonCount === 1 ? "" : "es"}</span>
+                          <span>•</span>
+                          <span
+                            className={
+                              c.tier === "subscription"
+                                ? "text-amber-400 font-bold"
+                                : c.price > 0
+                                ? "text-emerald-brand font-bold"
+                                : "text-slate-400"
+                            }
+                          >
+                            {c.tier === "subscription"
+                              ? "Plan Pro"
+                              : c.price > 0
+                              ? `$${c.price.toFixed(2)}`
+                              : "Gratis"}
+                          </span>
                           {c.author && (
                             <>
                               <span>•</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Download,
   Smartphone,
@@ -60,6 +61,9 @@ export function BuilderHeader({
   onAdminPublish,
 }: BuilderHeaderProps) {
   const courseList = Object.values(courses);
+  const searchParams = useSearchParams();
+  const returnCatalogUrl = searchParams?.get("from") || "/admin/courses";
+
   const isPublished = currentCourse?.status === "published";
   const isApproved = isPublished || currentCourse?.reviewStatus === "approved";
   const isChangesRequested = currentCourse?.reviewStatus === "changes_requested";
@@ -71,7 +75,7 @@ export function BuilderHeader({
       <div className="flex items-center gap-2 min-w-0">
         {isAdmin && (
           <Link
-            href="/admin/courses"
+            href={returnCatalogUrl}
             className="h-8.5 px-2.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors flex-shrink-0"
             title="Volver al catálogo general de cursos"
           >

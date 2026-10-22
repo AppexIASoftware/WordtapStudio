@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Crown, GraduationCap, ArrowRight, Sparkles } from "lucide-react";
 import { getAdminCoursesApi, updateCourseApi, ApiCourse } from "@/services/api";
 import { Course } from "@/features/courses/types";
+import { useUrlParam } from "@/hooks/use-url-params";
 import { CourseCard } from "../components/catalog/course-card";
 import { CatalogHeader } from "../components/catalog/catalog-header";
 import { CatalogTabs } from "../components/catalog/catalog-tabs";
@@ -13,14 +14,33 @@ import { NewCourseModal } from "../components/new-course-modal";
 import { PricingModal } from "../components/builder/pricing-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
+const CATALOG_TABS = ["platform", "teacher"] as const;
+const STATUS_OPTIONS = ["", "published", "draft", "in_review"] as const;
+const LEVEL_OPTIONS = ["", "A1", "A2", "B1", "B2", "C1"] as const;
+
 export function AdminCoursesCatalogView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<"platform" | "teacher">("platform");
+  // Enrutado reactivo respaldado por la URL (pestañas y filtros persistentes ante 'Atrás' / recarga)
+  const [activeTab, setActiveTab] = useUrlParam<"platform" | "teacher">(
+    "tab",
+    CATALOG_TABS,
+    "platform"
+  );
+  const [selectedStatus, setSelectedStatus] = useUrlParam<string>(
+    "status",
+    STATUS_OPTIONS,
+    ""
+  );
+  const [selectedLevel, setSelectedLevel] = useUrlParam<string>(
+    "level",
+    LEVEL_OPTIONS,
+    ""
+  );
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
   const [showNewCourseModal, setShowNewCourseModal] = useState(false);
   const [editingPricingCourse, setEditingPricingCourse] = useState<ApiCourse | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -29,6 +49,12 @@ export function AdminCoursesCatalogView() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   }, []);
+
+  // Construccion del enlace de retorno exacto con los parametros activos
+  const currentQueryString = searchParams?.toString();
+  const currentCatalogUrl = currentQueryString
+    ? `/admin/courses?${currentQueryString}`
+    : "/admin/courses";
 
   // TanStack Query: Caché reactiva en memoria (0 ms de latencia al volver del editor)
   const { data: courses = [], isLoading } = useQuery<ApiCourse[]>({
@@ -120,8 +146,8 @@ export function AdminCoursesCatalogView() {
   const handleCourseCreated = (newApiCourse: ApiCourse) => {
     triggerToast(`¡Curso "${newApiCourse.title}" creado con éxito!`);
     queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
-    // Redirigir de inmediato al editor de ese curso
-    router.push(`/admin/courses/${newApiCourse.id}`);
+    // Redirigir de inmediato al editor de ese curso preservando origen
+    router.push(`/admin/courses/${newApiCourse.id}?from=${encodeURIComponent(currentCatalogUrl)}`);
   };
 
   const handleTogglePublish = async (course: ApiCourse) => {
@@ -293,6 +319,7 @@ export function AdminCoursesCatalogView() {
             <CourseCard
               key={c.id}
               course={c}
+              returnUrl={currentCatalogUrl}
               onEditPricing={(c) => setEditingPricingCourse(c)}
               onTogglePublish={handleTogglePublish}
             />

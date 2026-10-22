@@ -18,11 +18,12 @@ import { ApiCourse } from "@/services/api";
 
 interface CourseCardProps {
   course: ApiCourse;
+  returnUrl?: string;
   onEditPricing?: (course: ApiCourse) => void;
   onTogglePublish?: (course: ApiCourse) => void;
 }
 
-export function CourseCard({ course, onEditPricing, onTogglePublish }: CourseCardProps) {
+export function CourseCard({ course, returnUrl, onEditPricing, onTogglePublish }: CourseCardProps) {
   const isSubscription = course.access_tier === "subscription";
   const isFree = course.access_tier === "free" || (!course.price_cents && !isSubscription);
   const price = (course.price_cents ?? 0) / 100;
@@ -127,7 +128,11 @@ export function CourseCard({ course, onEditPricing, onTogglePublish }: CourseCar
       {/* Botones de Acción */}
       <div className="pt-2 flex items-center gap-2">
         <Link
-          href={`/admin/courses/${course.id}`}
+          href={
+            returnUrl
+              ? `/admin/courses/${course.id}?from=${encodeURIComponent(returnUrl)}`
+              : `/admin/courses/${course.id}`
+          }
           className="flex-1 py-2 px-3 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-slate-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all group-hover:bg-emerald-brand group-hover:text-canvas cursor-pointer shadow-xs"
         >
           <span>Entrar al Editor</span>

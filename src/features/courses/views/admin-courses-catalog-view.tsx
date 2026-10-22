@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, BookOpen, Crown, GraduationCap, RefreshCw } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Plus, Crown, GraduationCap } from "lucide-react";
 import { getAdminCoursesApi, updateCourseApi, ApiCourse } from "@/services/api";
 import { Course } from "@/features/courses/types";
 import { CourseCard } from "../components/catalog/course-card";
@@ -14,8 +15,8 @@ import { ToastNotification } from "@/components/ui/toast-notification";
 
 export function AdminCoursesCatalogView() {
   const router = useRouter();
-  const [courses, setCourses] = useState<ApiCourse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [activeTab, setActiveTab] = useState<"platform" | "teacher">("platform");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
@@ -28,23 +29,16 @@ export function AdminCoursesCatalogView() {
     setTimeout(() => setToastMessage(null), 3500);
   }, []);
 
-  const loadCourses = useCallback(async () => {
-    setIsLoading(true);
-    try {
+  // TanStack Query: Caché reactiva en memoria (0 ms de latencia al volver del editor)
+  const { data: courses = [], isLoading } = useQuery<ApiCourse[]>({
+    queryKey: ["admin", "courses"],
+    queryFn: async () => {
       const res = await getAdminCoursesApi();
-      if (res.data) {
-        setCourses(res.data);
-      }
-    } catch {
-      triggerToast("No se pudo cargar la lista administrativa de cursos.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [triggerToast]);
-
-  useEffect(() => {
-    loadCourses();
-  }, [loadCourses]);
+      if (res.error) throw new Error(res.error);
+      return res.data || [];
+    },
+    staleTime: 1000 * 60 * 3, // 3 minutos de caché fresca
+  });
 
   // Contadores para métricas
   const platformCourses = useMemo(
@@ -87,7 +81,7 @@ export function AdminCoursesCatalogView() {
 
   const handleCourseCreated = (newApiCourse: ApiCourse) => {
     triggerToast(`¡Curso "${newApiCourse.title}" creado con éxito!`);
-    loadCourses();
+    queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
     // Redirigir de inmediato al editor de ese curso
     router.push(`/admin/courses/${newApiCourse.id}`);
   };
@@ -109,13 +103,7 @@ export function AdminCoursesCatalogView() {
       return;
     }
 
-    setCourses((prev) =>
-      prev.map((c) =>
-        c.id === editingPricingCourse.id
-          ? { ...c, access_tier: finalTier, price_cents: priceCents }
-          : c
-      )
-    );
+    queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
     triggerToast(
       finalTier === "subscription"
         ? "Curso incluido en Suscripción Pro Mensual"
@@ -169,7 +157,7 @@ export function AdminCoursesCatalogView() {
       />
 
       {/* Grilla de Cursos */}
-      {isLoading ? (
+      {isLoading && courses.length === 0 ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-muted">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-brand" />
           <span className="text-xs font-mono">Cargando catálogo oficial de Wordtap...</span>

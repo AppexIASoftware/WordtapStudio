@@ -67,7 +67,10 @@ export function useBuilderLoader({
           mapped[c.id] = {
             id: c.id,
             title: c.title,
+            description: c.description,
             level: c.level,
+            sourceLang: c.source_lang,
+            targetLang: c.target_lang,
             tier:
               c.status === "draft"
                 ? "draft"

@@ -63,6 +63,8 @@ export interface UpdateCoursePayload {
   level?: string;
   access_tier?: string;
   price_cents?: number;
+  source_lang?: string;
+  target_lang?: string;
   status?: "draft" | "in_review" | "published" | "archived" | string;
   cover_image_url?: string;
   change_summary?: string;

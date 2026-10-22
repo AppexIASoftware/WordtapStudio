@@ -35,9 +35,12 @@ export function useCourseCrud({
 }: UseCourseCrudProps) {
   const handleEditCourse = async (updated: {
     title: string;
+    description?: string;
     level: string;
     price: number;
     tier?: "free" | "course" | "subscription";
+    sourceLang?: string;
+    targetLang?: string;
   }) => {
     const currentCourse = courses[currentCourseId];
     const finalTier =
@@ -51,9 +54,12 @@ export function useCourseCrud({
 
     const res = await updateCourseApi(currentCourseId, {
       title: updated.title,
+      description: updated.description,
       level: updated.level,
       access_tier: finalTier,
       price_cents: priceCents,
+      source_lang: updated.sourceLang,
+      target_lang: updated.targetLang,
     });
     if (res.error || !res.data)
       throw new Error(res.error || "La API no confirmó la actualización del curso");
@@ -62,7 +68,10 @@ export function useCourseCrud({
       [currentCourseId]: {
         ...prev[currentCourseId],
         title: res.data!.title,
+        description: res.data!.description,
         level: res.data!.level,
+        sourceLang: res.data!.source_lang,
+        targetLang: res.data!.target_lang,
         price: (res.data!.price_cents ?? 0) / 100,
         tier:
           res.data!.access_tier === "subscription"

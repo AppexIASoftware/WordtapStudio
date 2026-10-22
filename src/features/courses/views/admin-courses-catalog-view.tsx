@@ -4,13 +4,14 @@ import { useState, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Crown, GraduationCap, ArrowRight, Sparkles } from "lucide-react";
-import { getAdminCoursesApi, updateCourseApi, ApiCourse } from "@/services/api";
+import { getAdminCoursesApi, updateCourseApi, deleteCourseApi, ApiCourse } from "@/services/api";
 import { Course } from "@/features/courses/types";
 import { useUrlParam } from "@/hooks/use-url-params";
 import { CourseCard } from "../components/catalog/course-card";
 import { CatalogHeader } from "../components/catalog/catalog-header";
 import { CatalogTabs } from "../components/catalog/catalog-tabs";
 import { NewCourseModal } from "../components/new-course-modal";
+import { EditCourseModal } from "../components/edit-course-modal";
 import { PricingModal } from "../components/builder/pricing-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
@@ -43,6 +44,7 @@ export function AdminCoursesCatalogView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewCourseModal, setShowNewCourseModal] = useState(false);
   const [editingPricingCourse, setEditingPricingCourse] = useState<ApiCourse | null>(null);
+  const [editingDetailsCourse, setEditingDetailsCourse] = useState<ApiCourse | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const triggerToast = useCallback((msg: string) => {
@@ -191,6 +193,50 @@ export function AdminCoursesCatalogView() {
     setEditingPricingCourse(null);
   };
 
+  const handleSaveCourseDetails = async (updated: {
+    title: string;
+    description?: string;
+    level: string;
+    price: number;
+    tier?: "free" | "course" | "subscription";
+    sourceLang?: string;
+    targetLang?: string;
+  }) => {
+    if (!editingDetailsCourse) return;
+    const finalTier = updated.tier || (updated.price > 0 ? "course" : "free");
+    const priceCents = finalTier === "subscription" || finalTier === "free" ? 0 : Math.round(updated.price * 100);
+
+    const res = await updateCourseApi(editingDetailsCourse.id, {
+      title: updated.title,
+      description: updated.description,
+      level: updated.level,
+      access_tier: finalTier,
+      price_cents: priceCents,
+      source_lang: updated.sourceLang,
+      target_lang: updated.targetLang,
+    });
+    if (res.error) {
+      triggerToast(`Error al actualizar curso: ${res.error}`);
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
+    triggerToast(`¡Curso "${updated.title}" actualizado con éxito!`);
+    setEditingDetailsCourse(null);
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!editingDetailsCourse) return;
+    const res = await deleteCourseApi(editingDetailsCourse.id);
+    if (res.error) {
+      triggerToast(`Error al eliminar curso: ${res.error}`);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
+    triggerToast(`Curso "${editingDetailsCourse.title}" eliminado`);
+    setEditingDetailsCourse(null);
+  };
+
   // Adapter para PricingModal
   const selectedCourseForModal: Course | null = editingPricingCourse
     ? {
@@ -320,6 +366,7 @@ export function AdminCoursesCatalogView() {
               key={c.id}
               course={c}
               returnUrl={currentCatalogUrl}
+              onEditDetails={(c) => setEditingDetailsCourse(c)}
               onEditPricing={(c) => setEditingPricingCourse(c)}
               onTogglePublish={handleTogglePublish}
             />
@@ -343,6 +390,35 @@ export function AdminCoursesCatalogView() {
           isAdmin={true}
           onClose={() => setEditingPricingCourse(null)}
           onSavePrice={handleSavePrice}
+        />
+      )}
+
+      {/* Modal para Editar Todos los Datos del Curso */}
+      {editingDetailsCourse && (
+        <EditCourseModal
+          isOpen={true}
+          course={{
+            id: editingDetailsCourse.id,
+            title: editingDetailsCourse.title,
+            description: editingDetailsCourse.description,
+            level: editingDetailsCourse.level,
+            sourceLang: editingDetailsCourse.source_lang,
+            targetLang: editingDetailsCourse.target_lang,
+            tier:
+              editingDetailsCourse.access_tier === "subscription"
+                ? "subscription"
+                : editingDetailsCourse.access_tier === "course"
+                ? "course"
+                : "free",
+            price: (editingDetailsCourse.price_cents ?? 0) / 100,
+            currency: "USD",
+            author: editingDetailsCourse.author?.name || "Wordtap Core",
+            lessons: [],
+          }}
+          isAdmin={true}
+          onClose={() => setEditingDetailsCourse(null)}
+          onSave={handleSaveCourseDetails}
+          onDelete={handleDeleteCourse}
         />
       )}
     </div>

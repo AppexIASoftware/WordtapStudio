@@ -27,7 +27,10 @@ export interface Lesson {
 export interface Course {
   id: string;
   title: string;
+  description?: string | null;
   level: string;
+  sourceLang?: string;
+  targetLang?: string;
   tier: "free" | "course" | "subscription" | "draft";
   price: number;
   currency: string;

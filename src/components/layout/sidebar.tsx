@@ -11,6 +11,7 @@ import {
   BookOpen,
   Boxes,
   Users,
+  Flame,
   GitPullRequest,
   Shield,
   GraduationCap,
@@ -67,15 +68,16 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
 
       <aside
         className={`fixed lg:static top-0 left-0 h-full flex-shrink-0 bg-card border-r border-border-default flex flex-col justify-between transition-all duration-300 z-50 ${
-          collapsed ? "w-18" : "w-64"
+          collapsed ? "w-20" : "w-64"
         } ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Cabecera superior y conmutador de rol */}
-        <div className="p-4 border-b border-border-default space-y-3">
-          <div className="flex items-center justify-between">
+        <div className={`border-b border-border-default space-y-3 ${collapsed ? "px-2 py-4" : "p-4"}`}>
+          <div className={`flex items-center ${collapsed ? "justify-center gap-1.5" : "justify-between"}`}>
             <Link
               href="/admin/dashboard"
-              className="flex items-center gap-2.5 overflow-hidden cursor-pointer"
+              className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer"
+              title="Wordtap Studio"
             >
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-brand to-mint-brand flex items-center justify-center text-canvas font-black text-base shadow-glow-emerald flex-shrink-0">
                 W
@@ -96,37 +98,49 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
             </Link>
 
             <button
+              type="button"
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex p-1 rounded-lg text-slate-muted hover:text-slate-200 hover:bg-card-hover transition-colors cursor-pointer"
-              title={collapsed ? "Expandir menú" : "Colapsar menú"}
+              className="hidden lg:flex p-1 rounded-lg text-slate-muted hover:text-slate-200 hover:bg-card-hover transition-colors cursor-pointer flex-shrink-0"
+              title={collapsed ? "Expandir menú" : "Colapsar menú (solo iconos)"}
             >
               {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
           </div>
 
           {/* Role badge */}
-          {!collapsed && (
-            <div className="p-1 bg-canvas rounded-xl border border-border-default text-xs font-medium">
-              {currentRole === "instructor" && (
-                <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-emerald-brand shadow-sm font-semibold border border-border-default">
-                  <GraduationCap size={14} className="flex-shrink-0" />
-                  <span className="truncate">Docente</span>
-                </div>
-              )}
-              {currentRole === "moderator" && (
-                <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-blue-400 shadow-sm font-semibold border border-border-default">
-                  <ShieldCheck size={14} className="flex-shrink-0" />
-                  <span className="truncate">Mod</span>
-                </div>
-              )}
-              {currentRole === "admin" && (
-                <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-purple-400 shadow-sm font-semibold border border-border-default">
-                  <Shield size={14} className="flex-shrink-0" />
-                  <span className="truncate">Admin</span>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="p-1 bg-canvas rounded-xl border border-border-default text-xs font-medium">
+            {!collapsed ? (
+              <>
+                {currentRole === "instructor" && (
+                  <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-emerald-brand shadow-sm font-semibold border border-border-default">
+                    <GraduationCap size={14} className="flex-shrink-0" />
+                    <span className="truncate">Docente</span>
+                  </div>
+                )}
+                {currentRole === "moderator" && (
+                  <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-blue-400 shadow-sm font-semibold border border-border-default">
+                    <ShieldCheck size={14} className="flex-shrink-0" />
+                    <span className="truncate">Mod</span>
+                  </div>
+                )}
+                {currentRole === "admin" && (
+                  <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-card text-purple-400 shadow-sm font-semibold border border-border-default">
+                    <Shield size={14} className="flex-shrink-0" />
+                    <span className="truncate">Admin</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div
+                className="flex items-center justify-center py-1.5 text-center"
+                title={`Rol activo: ${currentRole}`}
+              >
+                {currentRole === "instructor" && <GraduationCap size={14} className="text-emerald-brand" />}
+                {currentRole === "moderator" && <ShieldCheck size={14} className="text-blue-400" />}
+                {currentRole === "admin" && <Shield size={14} className="text-purple-400" />}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Listas de navegación */}
@@ -134,10 +148,11 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
           {/* GRUPO 1: NAVEGACIÓN DE DOCENTE */}
           {currentRole === "instructor" && (
             <>
+              {/* Espacio Educativo */}
               <div>
                 {!collapsed && (
                   <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-                    Mi Espacio Docente
+                    Espacio Educativo
                   </p>
                 )}
                 <nav className="space-y-0.5">
@@ -147,16 +162,7 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                       {!collapsed && <span>Dashboard Pedagógico</span>}
                     </div>
                   </Link>
-                </nav>
-              </div>
 
-              <div>
-                {!collapsed && (
-                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-                    Gestión Educativa (CMS)
-                  </p>
-                )}
-                <nav className="space-y-0.5">
                   <Link href="/admin/courses" className={navItemClass("/admin/courses")}>
                     <div className="flex items-center gap-3">
                       <BookOpen size={18} />
@@ -168,7 +174,17 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                       </span>
                     )}
                   </Link>
+                </nav>
+              </div>
 
+              {/* Biblioteca & Recursos */}
+              <div>
+                {!collapsed && (
+                  <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+                    Biblioteca & Recursos
+                  </p>
+                )}
+                <nav className="space-y-0.5">
                   <Link href="/admin/vault" className={navItemClass("/admin/vault")}>
                     <div className="flex items-center gap-3">
                       <Boxes size={18} />
@@ -183,10 +199,11 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                 </nav>
               </div>
 
+              {/* Aulas & Seguimiento */}
               <div>
                 {!collapsed && (
                   <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-                    Mis Estudiantes
+                    Aulas & Seguimiento
                   </p>
                 )}
                 <nav className="space-y-0.5">
@@ -198,6 +215,18 @@ export function Sidebar({ onOpenDemoModal, isMobileOpen, onCloseMobile }: Sideba
                     {!collapsed && (
                       <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-card border border-border-default text-emerald-brand">
                         WT-Code
+                      </span>
+                    )}
+                  </Link>
+
+                  <Link href="/admin/dashboard#heatmap" className={navItemClass("/admin/dashboard#heatmap")}>
+                    <div className="flex items-center gap-3">
+                      <Flame size={18} className="text-orange-400" />
+                      {!collapsed && <span>Diagnóstico & Heatmap</span>}
+                    </div>
+                    {!collapsed && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-bold">
+                        En vivo
                       </span>
                     )}
                   </Link>

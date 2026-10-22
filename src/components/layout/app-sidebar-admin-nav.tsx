@@ -10,127 +10,188 @@ import {
   Boxes,
   Gamepad2,
   Layers,
+  Flame,
 } from "lucide-react";
 
 interface AppSidebarAdminNavProps {
   getLinkClasses: (route: string) => string;
+  collapsed?: boolean;
 }
 
 /** Seccion de navegacion admin para AppSidebar (dashboard-shell). */
-export function AppSidebarAdminNav({ getLinkClasses }: AppSidebarAdminNavProps) {
+export function AppSidebarAdminNav({ getLinkClasses, collapsed }: AppSidebarAdminNavProps) {
   return (
     <>
-      {/* 1. SUPERVISIÓN GLOBAL */}
+      {/* 1. SUPERVISIÓN & REVISIÓN */}
       <div>
-        <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-purple-400 mb-1.5 font-mono">
-          Supervisión Global (Admin)
-        </p>
+        {!collapsed && (
+          <div className="flex items-center justify-between px-3 mb-1.5 gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-400 font-mono truncate">
+              Supervisión
+            </span>
+            <span className="text-[9px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold whitespace-nowrap flex-shrink-0">
+              2 Pendientes
+            </span>
+          </div>
+        )}
         <nav className="space-y-0.5">
-          <Link href="/admin/dashboard" className={getLinkClasses("/admin/dashboard")}>
-            <div className="flex items-center gap-3">
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard Ejecutivo</span>
+          <Link
+            href="/admin/dashboard"
+            className={getLinkClasses("/admin/dashboard")}
+            title="Dashboard Ejecutivo"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <LayoutDashboard className="w-4 h-4 flex-shrink-0" />
+              {!collapsed && <span>Dashboard Ejecutivo</span>}
             </div>
+          </Link>
+
+          <Link
+            href="/admin/approvals"
+            className={getLinkClasses("/admin/approvals")}
+            title="Aprobación de Cursos"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+              {!collapsed && <span>Aprobación de Cursos</span>}
+            </div>
+            {!collapsed && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-bold font-mono flex-shrink-0">
+                PRs
+              </span>
+            )}
+          </Link>
+
+          <Link
+            href="/admin/courses"
+            className={getLinkClasses("/admin/courses")}
+            title="Creador de Cursos (CMS)"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <Layers className="w-4 h-4 flex-shrink-0" />
+              {!collapsed && <span>Creador de Cursos</span>}
+            </div>
+            {!collapsed && (
+              <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded font-mono font-bold flex-shrink-0">
+                CMS
+              </span>
+            )}
+          </Link>
+
+          <Link
+            href="/admin/dashboard#heatmap"
+            className={getLinkClasses("/admin/dashboard#heatmap")}
+            title="Diagnóstico & Heatmap Global"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <Flame className="w-4 h-4 text-orange-400 flex-shrink-0" />
+              {!collapsed && <span>Diagnóstico & Heatmap</span>}
+            </div>
+            {!collapsed && (
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-bold flex-shrink-0">
+                Global
+              </span>
+            )}
           </Link>
         </nav>
       </div>
-      {/* 2. CENTRO DE MODERACIÓN */}
+
+      {/* 2. CATÁLOGO GLOBAL */}
       <div>
-        <div className="flex items-center justify-between px-3 mb-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-subtle font-mono">
-            Centro de Moderación
-          </span>
-          <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-mono font-bold">
-            2 Pendientes
-          </span>
-        </div>
+        {!collapsed && (
+          <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+            Catálogo & Recursos
+          </p>
+        )}
         <nav className="space-y-0.5">
-          <Link href="/admin/approvals" className={getLinkClasses("/admin/approvals")}>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-4 h-4 text-purple-400" />
-              <span>Aprobación de Cursos</span>
+          <Link
+            href="/admin/vault"
+            className={getLinkClasses("/admin/vault")}
+            title="Content Vault Maestro"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <Boxes className="w-4 h-4 flex-shrink-0" />
+              {!collapsed && <span>Content Vault Maestro</span>}
             </div>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-bold font-mono">
-              Pendientes
-            </span>
+            {!collapsed && (
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold flex-shrink-0">
+                Global
+              </span>
+            )}
+          </Link>
+
+          <Link
+            href="/admin/games"
+            className={getLinkClasses("/admin/games")}
+            title="Catálogo de Minijuegos"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <Gamepad2 className="w-4 h-4 flex-shrink-0" />
+              {!collapsed && <span>Catálogo de Minijuegos</span>}
+            </div>
+            {!collapsed && (
+              <span className="text-[9px] font-mono text-slate-subtle font-bold flex-shrink-0">
+                Modos
+              </span>
+            )}
           </Link>
         </nav>
       </div>
-      {/* 3. GOBERNANZA & SEGURIDAD */}
+
+      {/* 3. GOBERNANZA & NEGOCIO */}
       <div>
-        <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-          Gobernanza & Seguridad
-        </p>
+        {!collapsed && (
+          <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
+            Gobernanza & Monetización
+          </p>
+        )}
         <nav className="space-y-0.5">
-          <Link href="/admin/roles" className={getLinkClasses("/admin/roles")}>
-            <div className="flex items-center gap-3">
-              <Shield className="w-4 h-4" />
-              <span>Roles & Permisos</span>
+          <Link
+            href="/admin/monetization"
+            className={getLinkClasses("/admin/monetization")}
+            title="Marketplace & Stripe"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <CreditCard className="w-4 h-4 flex-shrink-0" />
+              {!collapsed && <span>Marketplace & Stripe</span>}
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-              Total
-            </span>
+            {!collapsed && (
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand font-bold flex-shrink-0">
+                70 / 30
+              </span>
+            )}
           </Link>
-          <Link href="/admin/audit" className={getLinkClasses("/admin/audit")}>
-            <div className="flex items-center gap-3">
-              <Activity className="w-4 h-4" />
-              <span>Auditoría & Trazabilidad</span>
+
+          <Link
+            href="/admin/roles"
+            className={getLinkClasses("/admin/roles")}
+            title="Roles & Permisos"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <Shield className="w-4 h-4 flex-shrink-0" />
+              {!collapsed && <span>Roles & Permisos</span>}
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
-              En vivo
-            </span>
+            {!collapsed && (
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold flex-shrink-0">
+                Total
+              </span>
+            )}
           </Link>
-        </nav>
-      </div>
-      {/* 4. MONETIZACIÓN & PAGOS */}
-      <div>
-        <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-          Monetización & Pagos
-        </p>
-        <nav className="space-y-0.5">
-          <Link href="/admin/monetization" className={getLinkClasses("/admin/monetization")}>
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-4 h-4" />
-              <span>Marketplace & Stripe</span>
+
+          <Link
+            href="/admin/audit"
+            className={getLinkClasses("/admin/audit")}
+            title="Auditoría & Trazabilidad"
+          >
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+              <Activity className="w-4 h-4 flex-shrink-0" />
+              {!collapsed && <span>Auditoría & Trazabilidad</span>}
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-dark/60 text-emerald-brand font-bold">
-              70 / 30
-            </span>
-          </Link>
-        </nav>
-      </div>
-      {/* 5. CATÁLOGO GLOBAL */}
-      <div>
-        <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-subtle mb-1.5 font-mono">
-          Catálogo Global
-        </p>
-        <nav className="space-y-0.5">
-          <Link href="/admin/vault" className={getLinkClasses("/admin/vault")}>
-            <div className="flex items-center gap-3">
-              <Boxes className="w-4 h-4" />
-              <span>Content Vault Maestro</span>
-            </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">
-              Global
-            </span>
-          </Link>
-          <Link href="/moderator/courses" className={getLinkClasses("/moderator/courses")}>
-            <div className="flex items-center gap-3">
-              <Layers className="w-4 h-4" />
-              <span>Todos los Cursos</span>
-            </div>
-            <span className="text-[9px] font-mono text-slate-subtle font-bold">
-              Supervisar
-            </span>
-          </Link>
-          <Link href="/admin/games" className={getLinkClasses("/admin/games")}>
-            <div className="flex items-center gap-3">
-              <Gamepad2 className="w-4 h-4" />
-              <span>Todos los Minijuegos</span>
-            </div>
-            <span className="text-[9px] font-mono text-slate-subtle font-bold">
-              Supervisar
-            </span>
+            {!collapsed && (
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold flex-shrink-0">
+                En vivo
+              </span>
+            )}
           </Link>
         </nav>
       </div>

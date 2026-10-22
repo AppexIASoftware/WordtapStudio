@@ -10,6 +10,7 @@ import {
   Activity,
   TrendingUp,
 } from "lucide-react";
+import { TeacherDifficultyHeatmap } from "./teacher-difficulty-heatmap";
 
 export function AdminDashboard() {
   return (
@@ -183,6 +184,11 @@ export function AdminDashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mapa de Calor de Dificultad Global (Ecosistema) */}
+      <div id="heatmap" className="pt-2">
+        <TeacherDifficultyHeatmap />
       </div>
     </div>
   );

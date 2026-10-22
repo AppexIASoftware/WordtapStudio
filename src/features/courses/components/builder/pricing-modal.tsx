@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DollarSign, Crown, CheckCircle2, Sparkles } from "lucide-react";
+import { DollarSign, Crown, Gift, Sparkles, CheckCircle2 } from "lucide-react";
 import { Course } from "@/features/courses/types";
 
 interface PricingModalProps {
@@ -19,7 +19,13 @@ export function PricingModal({
   onClose,
   onSavePrice,
 }: PricingModalProps) {
-  const [isSubscription, setIsSubscription] = useState(course.tier === "subscription");
+  const [selectedTier, setSelectedTier] = useState<"subscription" | "free" | "course">(
+    course.tier === "subscription"
+      ? "subscription"
+      : course.tier === "course"
+      ? "course"
+      : "free"
+  );
   const [price, setPrice] = useState(course.price || 19.99);
 
   if (!isOpen) return null;
@@ -29,10 +35,18 @@ export function PricingModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubscription) {
-      onSavePrice(0, "subscription");
+    if (isAdmin) {
+      if (selectedTier === "subscription") {
+        onSavePrice(0, "subscription");
+      } else {
+        onSavePrice(0, "free");
+      }
     } else {
-      onSavePrice(price, price > 0 ? "course" : "free");
+      if (selectedTier === "course") {
+        onSavePrice(price, "course");
+      } else {
+        onSavePrice(0, "free");
+      }
     }
     onClose();
   };
@@ -42,12 +56,16 @@ export function PricingModal({
       <div className="w-full max-w-md bg-card border border-border-default rounded-3xl p-6 text-xs space-y-4 shadow-2xl">
         <div className="flex items-center justify-between border-b border-border-default pb-3">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
-            {isSubscription ? (
+            {selectedTier === "subscription" ? (
               <Crown className="w-4 h-4 text-amber-400" />
-            ) : (
+            ) : selectedTier === "course" ? (
               <DollarSign className="w-4 h-4 text-emerald-brand" />
+            ) : (
+              <Gift className="w-4 h-4 text-emerald-400" />
             )}
-            <span>Configurar Monetización y Tarifa</span>
+            <span>
+              {isAdmin ? "Modelo de Acceso del Curso (Admin)" : "Configurar Tarifa Docente"}
+            </span>
           </h3>
           <button
             type="button"
@@ -64,108 +82,127 @@ export function PricingModal({
             <p className="font-bold text-white text-xs">{course.title}</p>
           </div>
 
-          {/* Opción Exclusiva para Administradores: Suscripción Pro */}
+          {/* MODO ADMINISTRADOR: Solo Suscripción Pro o Prueba Gratis */}
           {isAdmin ? (
-            <div
-              className={`p-3.5 rounded-2xl border transition-all ${
-                isSubscription
-                  ? "bg-amber-500/10 border-amber-500/40 shadow-sm"
-                  : "bg-canvas border-border-default"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-start gap-2.5">
-                  <div
-                    className={`p-1.5 rounded-xl ${
-                      isSubscription ? "bg-amber-500/20 text-amber-400" : "bg-card text-slate-400"
-                    }`}
-                  >
-                    <Crown className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-white text-xs flex items-center gap-1.5">
-                      <span>Suscripción Pro Mensual</span>
-                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        Admin Only
-                      </span>
-                    </span>
-                    <span className="text-[11px] text-slate-300 mt-0.5 block leading-tight">
-                      Requiere que el estudiante tenga membresía mensual activa ($9.99/mes calibrada en Marketplace).
-                    </span>
-                  </div>
-                </div>
+            <div className="space-y-3">
+              <label className="text-[11px] font-mono text-slate-subtle block">
+                Selecciona la modalidad del curso en la plataforma:
+              </label>
 
-                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 ml-2">
-                  <input
-                    type="checkbox"
-                    checked={isSubscription}
-                    onChange={(e) => setIsSubscription(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-10 h-5.5 bg-card peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 border border-border-default"></div>
-                </label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Opción 1: Suscripción Pro */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTier("subscription")}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    selectedTier === "subscription"
+                      ? "bg-amber-500/15 border-amber-500/50 text-white ring-1 ring-amber-500/30"
+                      : "bg-canvas border-border-default text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <Crown className="w-4 h-4 text-amber-400" />
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300">
+                      Pro
+                    </span>
+                  </div>
+                  <div className="mt-2.5">
+                    <span className="text-xs font-bold block leading-tight text-white">
+                      Suscripción Pro
+                    </span>
+                    <span className="text-[10px] text-amber-200/80 mt-0.5 block">
+                      $9.99/mes Stripe
+                    </span>
+                  </div>
+                </button>
+
+                {/* Opción 2: Prueba Gratis */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTier("free")}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    selectedTier === "free"
+                      ? "bg-emerald-brand/15 border-emerald-brand/50 text-white ring-1 ring-emerald-brand/30"
+                      : "bg-canvas border-border-default text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <Gift className="w-4 h-4 text-emerald-400" />
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-brand/20 text-emerald-brand">
+                      Libre
+                    </span>
+                  </div>
+                  <div className="mt-2.5">
+                    <span className="text-xs font-bold block leading-tight text-white">
+                      Prueba Gratis
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      $0.00 (AdMob/Vidas)
+                    </span>
+                  </div>
+                </button>
               </div>
 
-              {isSubscription && (
-                <div className="mt-3 pt-3 border-t border-amber-500/20 text-[11px] text-amber-200/90 flex items-start gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <p className="leading-snug">
-                    El curso queda desbloqueado para suscriptores Pro activos. No requiere pago individual y los cobros mensuales se gestionan en Marketplace &amp; Stripe.
+              {selectedTier === "subscription" ? (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-[11px] space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                    <span>Cubierto por Suscripción Mensual</span>
+                  </div>
+                  <p className="leading-snug text-slate-300">
+                    Desbloqueado para todos los estudiantes con membresía mensual activa ($9.99/mes calibrada en Marketplace). No requiere cobro individual.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 text-[11px] space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                    <span>Contenido de Libre Acceso</span>
+                  </div>
+                  <p className="leading-snug text-slate-300">
+                    Cualquier estudiante registrado puede acceder a este curso gratuitamente para conocer la plataforma Wordtap.
                   </p>
                 </div>
               )}
             </div>
-          ) : course.tier === "subscription" ? (
-            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-2.5">
-              <Crown className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold text-white block">Incluido en Suscripción Pro Mensual</span>
-                <p className="text-[11px] text-amber-200/80 mt-0.5">
-                  Este curso fue asignado a la membresía Pro por la Administración. Solo el equipo de administración puede alterar esta tarifa.
-                </p>
-              </div>
-            </div>
-          ) : null}
-
-          {/* Venta individual o Gratuito (cuando no es suscripción) */}
-          {!isSubscription ? (
-            <div className="space-y-2">
-              <label className="block font-semibold text-slate-200">
-                Precio de Venta Individual (USD)
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={price}
-                  onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3.5 py-2.5 bg-canvas border border-border-default rounded-xl text-white font-mono text-sm focus:border-emerald-brand outline-none"
-                  placeholder="0.00 para acceso libre"
-                />
-              </div>
-
-              {price > 0 ? (
-                <div className="p-3 rounded-xl bg-canvas border border-border-default space-y-1.5 text-slate-300">
-                  <div className="flex justify-between">
-                    <span>Regalía Docente (70%):</span>
-                    <strong className="text-emerald-brand font-mono">${teacherShare} USD</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>WordTap Plataforma (30%):</span>
-                    <strong className="text-slate-400 font-mono">${platformShare} USD</strong>
-                  </div>
+          ) : (
+            /* MODO DOCENTE: Venta individual o Gratuito */
+            <div className="space-y-3">
+              {course.tier === "subscription" ? (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs">
+                  <span className="font-bold block">Asignado a Suscripción Pro</span>
+                  <p className="text-[11px] text-amber-200/80 mt-1">
+                    Este curso forma parte de la membresía Pro gestionada por la Administración.
+                  </p>
                 </div>
               ) : (
-                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-[11px] flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                  <span>Curso gratuito: acceso libre para todos los estudiantes (financiado por vidas y anuncios).</span>
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <label className="block font-semibold text-slate-200">
+                      Precio de Venta Standalone (USD)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={price}
+                      onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-border-default rounded-xl text-white font-mono text-sm focus:border-emerald-brand outline-none"
+                      placeholder="0.00 para acceso libre"
+                    />
+                    <div className="p-3 rounded-xl bg-canvas border border-border-default space-y-1 text-slate-300">
+                      <div className="flex justify-between">
+                        <span>Regalía Docente (70%):</span>
+                        <strong className="text-emerald-brand font-mono">${teacherShare} USD</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>WordTap Plataforma (30%):</span>
+                        <strong className="text-slate-400 font-mono">${platformShare} USD</strong>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
-            </div>
-          ) : (
-            <div className="p-3 rounded-xl bg-canvas border border-border-default text-center text-slate-400 text-xs">
-              Tarifa cubierta por membresía mensual recurrente (<strong className="text-white">$9.99/mes</strong>).
             </div>
           )}
 
@@ -180,7 +217,7 @@ export function PricingModal({
             <button
               type="submit"
               className={`px-4 py-2 rounded-xl font-bold cursor-pointer transition-colors ${
-                isSubscription
+                selectedTier === "subscription"
                   ? "bg-amber-500 text-black hover:bg-amber-400"
                   : "bg-emerald-brand text-canvas hover:bg-mint-brand shadow-glow-emerald"
               }`}

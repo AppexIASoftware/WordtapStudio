@@ -300,6 +300,7 @@ export interface CreateTeacherGamePayload {
 
 export interface UpdateTeacherGamePayload {
   course_id?: string | null;
+  base_archetype?: string;
   title?: string;
   description?: string;
   level?: string;

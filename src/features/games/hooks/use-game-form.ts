@@ -62,6 +62,8 @@ export function useGameForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isPlatformGame = initialGame?.owner_type === "platform";
+
   useEffect(() => {
     if (initialGame?.base_archetype) {
       setBaseArchetype(initialGame.base_archetype);
@@ -76,7 +78,7 @@ export function useGameForm({
         const res = await getTeacherCoursesApi();
         if (res.data) {
           setCourses(res.data);
-          if (!courseId && res.data.length > 0) {
+          if (!courseId && !isPlatformGame && res.data.length > 0) {
             setCourseId(res.data[0].id);
           }
         }
@@ -85,7 +87,7 @@ export function useGameForm({
       }
     }
     loadCourses();
-  }, [courseId]);
+  }, [courseId, isPlatformGame]);
 
   const handleAutoPopulateSource = async (type: "course_lesson" | "vault") => {
     setLoadingSources(true);
@@ -136,8 +138,8 @@ export function useGameForm({
   const getMockForSandbox = (): TeacherGameDTO => ({
     id: initialGame?.id || "preview-id",
     teacher_id: "preview-teacher",
-    course_id: courseId,
-    course_title: courses.find((c) => c.id === courseId)?.title,
+    course_id: isPlatformGame ? null : courseId,
+    course_title: isPlatformGame ? undefined : courses.find((c) => c.id === courseId)?.title,
     base_archetype: baseArchetype,
     title: title.trim() || "Prueba de Minijuego",
     description: description.trim() || undefined,
@@ -166,6 +168,8 @@ export function useGameForm({
       validWordsJson = JSON.stringify(DEFAULT_VOCAB);
     }
 
+    const cleanDescription = description.trim();
+
     try {
       setSaving(true);
       setError(null);
@@ -173,7 +177,7 @@ export function useGameForm({
         course_id: sourceType === "course_lesson" && courseId && courseId.trim() !== "" ? courseId.trim() : null,
         base_archetype: baseArchetype,
         title: title.trim(),
-        description: description.trim() || undefined,
+        description: cleanDescription === "" ? "" : cleanDescription,
         level,
         time_limit_seconds: Number(timeLimit),
         allowed_mistakes: Number(allowedMistakes),
@@ -190,7 +194,7 @@ export function useGameForm({
     }
   };
 
-  const selectedCourseTitle = courses.find((c) => c.id === courseId)?.title;
+  const selectedCourseTitle = isPlatformGame ? undefined : courses.find((c) => c.id === courseId)?.title;
 
   return {
     baseArchetype,

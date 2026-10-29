@@ -3,7 +3,7 @@
 import { UserCheck, LogOut } from "lucide-react";
 import { UserRole } from "@/features/auth/types";
 
-interface SidebarUserFooterProps {
+export interface UserFooterProps {
   user: {
     name: string;
     title: string;
@@ -16,19 +16,19 @@ interface SidebarUserFooterProps {
 }
 
 /** Pie de barra lateral con perfil del usuario activo y conmutador de login demo. */
-export function SidebarUserFooter({
+export function UserFooter({
   user,
   currentRole,
   collapsed,
   onOpenDemoModal,
   onLogout,
-}: SidebarUserFooterProps) {
+}: UserFooterProps) {
   return (
-    <div className="p-3 border-t border-border-default bg-card/60">
-      <div className="flex items-center justify-between gap-2.5">
+    <div className="p-2 border-t border-border-default bg-card/60">
+      <div className="flex items-center justify-between gap-1.5">
         <div
           onClick={onOpenDemoModal}
-          className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer hover:opacity-85 transition-opacity"
+          className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer hover:opacity-85 transition-opacity"
           title="Ver perfil o cambiar usuario (Login Demo)"
         >
           <div
@@ -55,19 +55,12 @@ export function SidebarUserFooter({
         </div>
 
         <button
-          onClick={onOpenDemoModal}
-          className="p-1.5 rounded-lg text-slate-muted hover:text-slate-200 hover:bg-card-hover transition-colors cursor-pointer flex-shrink-0"
-          title="Cambiar Usuario / Login Demo (RF-S27)"
-        >
-          <UserCheck size={15} />
-        </button>
-
-        <button
+          type="button"
           onClick={onLogout}
           className="p-1.5 rounded-lg text-slate-muted hover:text-rose-400 hover:bg-card-hover transition-colors cursor-pointer flex-shrink-0"
           title="Cerrar Sesión"
         >
-          <LogOut size={15} />
+          <LogOut size={14} />
         </button>
       </div>
     </div>

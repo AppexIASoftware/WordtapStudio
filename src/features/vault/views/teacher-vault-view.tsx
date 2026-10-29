@@ -252,6 +252,7 @@ export function TeacherVaultView() {
         isOpen={isEditorOpen}
         initialItem={editingItem}
         isOfficial={activeTab === "official"}
+        canCreateCategory={true}
         onClose={() => setParams({ view: null, itemId: null }, "replace")}
         onSave={async (payload, id) => {
           if (id) {

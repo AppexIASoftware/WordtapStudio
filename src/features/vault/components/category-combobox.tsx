@@ -87,7 +87,7 @@ export function CategoryCombobox({
   };
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${isOpen ? "z-40" : "z-10"} ${className}`}>
       {/* Botón Trigger */}
       <button
         type="button"
@@ -107,7 +107,9 @@ export function CategoryCombobox({
 
       {/* Popover Desplegable */}
       {isOpen && !disabled && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl bg-card border border-border-default shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl bg-card border border-border-default shadow-2xl overflow-hidden ring-1 ring-black/10 dark:ring-white/10 animate-in fade-in zoom-in-95 duration-150"
+        >
           {/* Input de Búsqueda */}
           <div className="p-2 border-b border-border-default bg-canvas/60">
             <div className="relative flex items-center">
@@ -133,7 +135,7 @@ export function CategoryCombobox({
           </div>
 
           {/* Lista de Resultados */}
-          <div className="max-h-52 overflow-y-auto p-1.5 space-y-0.5 scrollbar-thin">
+          <div className="max-h-36 overflow-y-auto scroll-smooth p-1.5 space-y-0.5 scrollbar-thin">
             {/* Opción Sin Categoría */}
             <button
               type="button"

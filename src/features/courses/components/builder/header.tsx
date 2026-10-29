@@ -14,6 +14,7 @@ import {
   Gift,
   ArrowLeft,
   Sparkles,
+  Plus,
 } from "lucide-react";
 import { Course } from "@/features/courses/types";
 import { CourseSelectorDropdown } from "./course-selector-dropdown";
@@ -30,6 +31,7 @@ interface BuilderHeaderProps {
   onOpenEditCourseModal: () => void;
   onOpenPricingModal: () => void;
   onOpenExportModal: () => void;
+  onOpenNewCourseModal?: () => void;
   onSubmitReview: () => void;
   onWithdrawReview?: () => void;
   onAdminPublish?: () => void;
@@ -47,13 +49,15 @@ export function BuilderHeader({
   onOpenEditCourseModal,
   onOpenPricingModal,
   onOpenExportModal,
+  onOpenNewCourseModal,
   onSubmitReview,
   onWithdrawReview,
   onAdminPublish,
 }: BuilderHeaderProps) {
   const courseList = Object.values(courses);
   const searchParams = useSearchParams();
-  const returnCatalogUrl = searchParams?.get("from") || "/admin/courses";
+  const defaultReturnUrl = isAdmin ? "/admin/courses" : "/teacher/courses";
+  const returnCatalogUrl = searchParams?.get("from") || defaultReturnUrl;
 
   const isPublished = currentCourse?.status === "published";
   const isApproved = isPublished || currentCourse?.reviewStatus === "approved";
@@ -64,7 +68,7 @@ export function BuilderHeader({
     <div className="h-13 border-b border-border-default bg-card px-3 md:px-4 flex items-center justify-between flex-shrink-0 gap-2 text-xs">
       {/* Lado Izquierdo: Selector de Curso y Estado */}
       <div className="flex items-center gap-2 min-w-0">
-        {isAdmin && (
+        {isAdmin ? (
           <Link
             href={returnCatalogUrl}
             className="h-8.5 px-2.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors flex-shrink-0"
@@ -72,6 +76,15 @@ export function BuilderHeader({
           >
             <ArrowLeft className="w-3.5 h-3.5 text-emerald-brand" />
             <span className="hidden sm:inline">Catálogo</span>
+          </Link>
+        ) : (
+          <Link
+            href={returnCatalogUrl}
+            className="h-8.5 px-2.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors flex-shrink-0"
+            title="Volver a mis cursos"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-emerald-brand" />
+            <span className="hidden sm:inline">Mis Cursos</span>
           </Link>
         )}
 
@@ -85,6 +98,18 @@ export function BuilderHeader({
           onSelectCourse={onSelectCourse}
           disabled={courseList.length === 0}
         />
+
+        {onOpenNewCourseModal && (
+          <button
+            type="button"
+            onClick={onOpenNewCourseModal}
+            className="h-8.5 px-2.5 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand text-emerald-brand hover:text-mint-brand text-xs font-bold flex items-center gap-1 transition-colors flex-shrink-0 cursor-pointer"
+            title="Crear un nuevo curso"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span className="hidden md:inline">Nuevo</span>
+          </button>
+        )}
 
         {currentCourse?.categoryName && (
           <span

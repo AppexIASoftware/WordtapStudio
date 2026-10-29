@@ -121,6 +121,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
         onOpenEditCourseModal={() => props.onOpenModal("editCourse")}
         onOpenPricingModal={() => props.onOpenModal("pricing")}
         onOpenExportModal={() => props.onOpenModal("export")}
+        onOpenNewCourseModal={() => props.onOpenModal("newCourse")}
         onSubmitReview={() => props.onOpenModal("submitReview")}
         onWithdrawReview={props.onWithdrawReview}
         onAdminPublish={props.onAdminPublish}
@@ -326,7 +327,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
       <NewCourseModal
         isOpen={showNewCourseModal}
         isAdmin={props.isAdmin}
-        canCreateCategory={props.isAdmin}
+        canCreateCategory={true}
         onClose={() => props.onCloseModal("newCourse")}
         onCreated={props.onCreateCourse}
       />
@@ -335,7 +336,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
           isOpen
           course={currentCourse}
           isAdmin={props.isAdmin}
-          canCreateCategory={props.isAdmin}
+          canCreateCategory={true}
           onClose={() => props.onCloseModal("editCourse")}
           onSave={props.onSaveCourse}
           onDelete={props.onDeleteCourse}

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { DollarSign, Crown, Gift, Sparkles, CheckCircle2 } from "lucide-react";
+import { DollarSign, Crown, Gift, Sparkles, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 import { Course } from "@/features/courses/types";
+import { MIN_TEACHER_COURSE_PRICE } from "../pricing-tier-fields";
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -20,18 +21,28 @@ export function PricingModal({
   onSavePrice,
 }: PricingModalProps) {
   const [selectedTier, setSelectedTier] = useState<"subscription" | "free" | "course">(
-    course.tier === "subscription"
+    isAdmin
+      ? course.tier === "subscription"
+        ? "subscription"
+        : "free"
+      : course.tier === "subscription"
       ? "subscription"
-      : course.tier === "course"
-      ? "course"
-      : "free"
+      : "course"
   );
-  const [price, setPrice] = useState(course.price || 19.99);
+  const [price, setPrice] = useState(
+    !isAdmin
+      ? course.price && course.price > 0
+        ? course.price
+        : 20.00
+      : course.price || 0
+  );
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const teacherShare = (price * 0.7).toFixed(2);
   const platformShare = (price * 0.3).toFixed(2);
+  const isBelowMin = !isAdmin && price < MIN_TEACHER_COURSE_PRICE;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,11 +53,11 @@ export function PricingModal({
         onSavePrice(0, "free");
       }
     } else {
-      if (selectedTier === "course") {
-        onSavePrice(price, "course");
-      } else {
-        onSavePrice(0, "free");
+      if (price < MIN_TEACHER_COURSE_PRICE) {
+        setError(`La tarifa mínima fijada por la administración es S/ ${MIN_TEACHER_COURSE_PRICE.toFixed(2)} PEN.`);
+        return;
       }
+      onSavePrice(price, "course");
     }
     onClose();
   };
@@ -77,6 +88,12 @@ export function PricingModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
           <div className="p-3 rounded-xl bg-canvas border border-border-default space-y-1">
             <span className="text-[10px] font-mono text-slate-subtle uppercase">Curso seleccionado:</span>
             <p className="font-bold text-white text-xs">{course.title}</p>
@@ -166,7 +183,7 @@ export function PricingModal({
               )}
             </div>
           ) : (
-            /* MODO DOCENTE: Venta individual o Gratuito */
+            /* MODO DOCENTE: Venta individual obligatoria con tarifa mínima $4.99 */
             <div className="space-y-3">
               {course.tier === "subscription" ? (
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs">
@@ -176,32 +193,66 @@ export function PricingModal({
                   </p>
                 </div>
               ) : (
-                <>
+                <div className="space-y-3">
+                  {/* Badge institucional de tarifa mínima fijada por la administración */}
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-[11px]">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
+                    <span className="font-medium">
+                      Tarifa mínima fijada por la administración: S/ 20.00 PEN
+                    </span>
+                  </div>
+
                   <div className="space-y-2">
-                    <label className="block font-semibold text-slate-200">
-                      Precio de Venta Standalone (USD)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={price}
-                      onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-                      className="w-full px-3.5 py-2.5 bg-canvas border border-border-default rounded-xl text-white font-mono text-sm focus:border-emerald-brand outline-none"
-                      placeholder="0.00 para acceso libre"
-                    />
+                    <div className="flex items-center justify-between">
+                      <label className="block font-semibold text-slate-200 text-xs">
+                        Precio de Venta Standalone (PEN)
+                      </label>
+                      <span className="text-[10px] font-mono text-emerald-brand font-bold">
+                        Split 70/30
+                      </span>
+                    </div>
+
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-400">
+                        S/
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="20.00"
+                        value={price}
+                        onChange={(e) => {
+                          setPrice(parseFloat(e.target.value) || 0);
+                          setError(null);
+                        }}
+                        className={`w-full pl-9 pr-3.5 py-2.5 bg-canvas border rounded-xl text-white font-mono text-sm outline-none transition-colors ${
+                          isBelowMin
+                            ? "border-amber-500/60 focus:border-amber-500"
+                            : "border-border-default focus:border-emerald-brand"
+                        }`}
+                        placeholder="20.00"
+                      />
+                    </div>
+
+                    {isBelowMin && (
+                      <div className="flex items-center gap-1.5 text-[11px] text-amber-400 bg-amber-500/10 px-2.5 py-1.5 rounded-xl border border-amber-500/20">
+                        <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
+                        <span>La tarifa mínima fijada por la administración es de S/ 20.00 PEN. No se permite guardar un precio inferior.</span>
+                      </div>
+                    )}
+
                     <div className="p-3 rounded-xl bg-canvas border border-border-default space-y-1 text-slate-300">
                       <div className="flex justify-between">
                         <span>Regalía Docente (70%):</span>
-                        <strong className="text-emerald-brand font-mono">${teacherShare} USD</strong>
+                        <strong className="text-emerald-brand font-mono">S/ {teacherShare} PEN</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>WordTap Plataforma (30%):</span>
-                        <strong className="text-slate-400 font-mono">${platformShare} USD</strong>
+                        <span>Plataforma Wordtap (30%):</span>
+                        <strong className="text-slate-400 font-mono">S/ {platformShare} PEN</strong>
                       </div>
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </div>
           )}
@@ -216,7 +267,8 @@ export function PricingModal({
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 rounded-xl font-bold cursor-pointer transition-colors ${
+              disabled={isBelowMin}
+              className={`px-4 py-2 rounded-xl font-bold cursor-pointer transition-colors disabled:opacity-50 ${
                 selectedTier === "subscription"
                   ? "bg-amber-500 text-black hover:bg-amber-400"
                   : "bg-emerald-brand text-canvas hover:bg-mint-brand shadow-glow-emerald"

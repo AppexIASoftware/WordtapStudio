@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Loader2, Trash2, Edit3, BookOpen } from "lucide-react";
 import { Course } from "@/features/courses/types";
 import { getVaultCategoriesApi, ApiVaultCategory } from "@/services/api";
-import { PricingTierFields, CourseAccessTier } from "./pricing-tier-fields";
+import { PricingTierFields, CourseAccessTier, MIN_TEACHER_COURSE_PRICE } from "./pricing-tier-fields";
 import { NewCategoryModal } from "@/features/vault/components/new-category-modal";
 import { CategoryCombobox } from "@/features/vault/components/category-combobox";
 
@@ -46,7 +46,13 @@ export function EditCourseModal({
   const [sourceLang, setSourceLang] = useState(course.sourceLang || "es");
   const [targetLang, setTargetLang] = useState(course.targetLang || "en");
   const [accessTier, setAccessTier] = useState<CourseAccessTier>(
-    course.tier === "subscription" ? "subscription" : course.tier === "course" ? "course" : "free"
+    isAdmin
+      ? course.tier === "subscription"
+        ? "subscription"
+        : "free"
+      : course.tier === "subscription"
+      ? "subscription"
+      : "course"
   );
   const [price, setPrice] = useState(course.price || 19.99);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,11 +87,17 @@ export function EditCourseModal({
     setSourceLang(course.sourceLang || "es");
     setTargetLang(course.targetLang || "en");
     setAccessTier(
-      course.tier === "subscription" ? "subscription" : course.tier === "course" ? "course" : "free"
+      isAdmin
+        ? course.tier === "subscription"
+          ? "subscription"
+          : "free"
+        : course.tier === "subscription"
+        ? "subscription"
+        : "course"
     );
-    setPrice(course.price || 19.99);
+    setPrice(course.price || 20.00);
     setError(null);
-  }, [course.id, isOpen]);
+  }, [course.id, isOpen, isAdmin, course.tier, course.title, course.description, course.level, course.categoryId, course.sourceLang, course.targetLang, course.price]);
 
   if (!isOpen) return null;
 
@@ -93,6 +105,11 @@ export function EditCourseModal({
     e.preventDefault();
     const cleanTitle = title.trim();
     if (!cleanTitle || categoryLoadError || categoriesLoading) return;
+
+    if (!isAdmin && accessTier === "course" && price < MIN_TEACHER_COURSE_PRICE) {
+      setError(`La tarifa mínima fijada por la administración es S/ ${MIN_TEACHER_COURSE_PRICE.toFixed(2)} PEN.`);
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -138,8 +155,8 @@ export function EditCourseModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-card border border-border-default rounded-3xl p-5 sm:p-6 max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-border-default pb-3">
+      <div className="bg-card border border-border-default rounded-3xl p-5 max-w-4xl w-full space-y-3 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-border-default pb-2.5">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-emerald-brand/10 text-emerald-brand">
               <Edit3 className="w-4 h-4" />
@@ -173,104 +190,111 @@ export function EditCourseModal({
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          {/* Título */}
-          <div>
-            <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-              Título del Curso *
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="md:grid md:grid-cols-2 md:gap-5 items-start">
+            {/* Columna izquierda */}
+            <div className="space-y-2.5">
+              {/* Título */}
+              <div>
+                <label className="text-[11px] font-mono text-slate-subtle block mb-1">
+                  Título del Curso *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
+                />
+              </div>
 
-          {/* Descripción / Enfoque pedagógico */}
-          <div>
-            <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-              Descripción &amp; Objetivo Pedagógico
-            </label>
-            <textarea
-              rows={2}
-              placeholder="Breve resumen de las competencias que desarrollará el estudiante..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand resize-none"
-            />
-          </div>
+              {/* Categoría Temática del Curso (Combobox con buscador y quick-create) */}
+              <div>
+                <label className="text-[11px] font-mono text-slate-subtle block mb-1">
+                  Categoría Temática
+                </label>
+                {categoryLoadError && <p className="text-xs text-rose-400 mb-1.5" role="alert">{categoryLoadError}</p>}
+                <CategoryCombobox
+                  value={categoryId}
+                  disabled={categoriesLoading || Boolean(categoryLoadError)}
+                  categories={categories}
+                  onChange={setCategoryId}
+                  onCreateNew={canCreateCategory ? (name) => {
+                    setNewCategoryInitialName(name || "");
+                    setIsNewCategoryModalOpen(true);
+                  } : undefined}
+                />
+              </div>
 
-          {/* Categoría Temática del Curso (Combobox con buscador y quick-create) */}
-          <div>
-            <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-              Categoría Temática
-            </label>
-            {categoryLoadError && <p className="text-xs text-rose-400 mb-1.5" role="alert">{categoryLoadError}</p>}
-            <CategoryCombobox
-              value={categoryId}
-              disabled={categoriesLoading || Boolean(categoryLoadError)}
-              categories={categories}
-              onChange={setCategoryId}
-              onCreateNew={canCreateCategory ? (name) => {
-                setNewCategoryInitialName(name || "");
-                setIsNewCategoryModalOpen(true);
-              } : undefined}
-            />
-          </div>
+              {/* Nivel e Idiomas en 2 columnas pequeñas */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[11px] font-mono text-slate-subtle block mb-1">
+                    Nivel Pedagógico (CEFR)
+                  </label>
+                  <select
+                    value={level}
+                    onChange={(e) => setLevel(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
+                  >
+                    <option value="A1">A1 - Principiante</option>
+                    <option value="A2">A2 - Elemental</option>
+                    <option value="B1">B1 - Intermedio</option>
+                    <option value="B2">B2 - Intermedio Alto</option>
+                    <option value="C1">C1 - Avanzado</option>
+                  </select>
+                </div>
 
-          {/* Nivel e Idiomas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-                Nivel Pedagógico (CEFR)
-              </label>
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
-              >
-                <option value="A1">A1 - Principiante</option>
-                <option value="A2">A2 - Elemental</option>
-                <option value="B1">B1 - Intermedio</option>
-                <option value="B2">B2 - Intermedio Alto</option>
-                <option value="C1">C1 - Avanzado</option>
-              </select>
+                <div>
+                  <label className="text-[11px] font-mono text-slate-subtle block mb-1">
+                    Par de Idiomas
+                  </label>
+                  <select
+                    value={`${targetLang}_${sourceLang}`}
+                    onChange={(e) => {
+                      const [t, s] = e.target.value.split("_");
+                      setTargetLang(t);
+                      setSourceLang(s);
+                    }}
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
+                  >
+                    <option value="en_es">Inglés (para hispanohablantes)</option>
+                    <option value="pt_es">Portugués (para hispanohablantes)</option>
+                    <option value="fr_es">Francés (para hispanohablantes)</option>
+                    <option value="es_en">Español (para angloparlantes)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Descripción / Enfoque pedagógico (textarea compacto de 2-3 filas) */}
+              <div>
+                <label className="text-[11px] font-mono text-slate-subtle block mb-1">
+                  Descripción &amp; Objetivo Pedagógico
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Breve resumen de las competencias que desarrollará el estudiante..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand resize-none"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="text-[11px] font-mono text-slate-subtle block mb-1">
-                Par de Idiomas
-              </label>
-              <select
-                value={`${targetLang}_${sourceLang}`}
-                onChange={(e) => {
-                  const [t, s] = e.target.value.split("_");
-                  setTargetLang(t);
-                  setSourceLang(s);
-                }}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-border-default text-white focus:outline-none focus:border-emerald-brand"
-              >
-                <option value="en_es">Inglés (para hispanohablantes)</option>
-                <option value="pt_es">Portugués (para hispanohablantes)</option>
-                <option value="fr_es">Francés (para hispanohablantes)</option>
-                <option value="es_en">Español (para angloparlantes)</option>
-              </select>
+            {/* Columna derecha: Bloque de Modelo de Acceso & Tarifa */}
+            <div className="mt-3 md:mt-0">
+              <PricingTierFields
+                isAdmin={isAdmin}
+                accessTier={accessTier}
+                onAccessTierChange={setAccessTier}
+                price={price}
+                onPriceChange={setPrice}
+              />
             </div>
           </div>
-
-          {/* Modelo de Acceso y Monetización (Modularizado) */}
-          <PricingTierFields
-            isAdmin={isAdmin}
-            accessTier={accessTier}
-            onAccessTierChange={setAccessTier}
-            price={price}
-            onPriceChange={setPrice}
-          />
 
           {/* Botones de acción */}
-          <div className="flex items-center justify-between pt-3 border-t border-border-default">
+          <div className="flex items-center justify-between pt-2.5 border-t border-border-default">
             {onDelete ? (
               <button
                 type="button"
@@ -289,7 +313,7 @@ export function EditCourseModal({
               <div />
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <button
                 type="button"
                 onClick={onClose}
@@ -299,14 +323,19 @@ export function EditCourseModal({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || categoriesLoading || Boolean(categoryLoadError)}
-                className={`px-4 py-2 text-xs rounded-xl font-bold transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1.5 ${
+                disabled={
+                  isSubmitting ||
+                  categoriesLoading ||
+                  Boolean(categoryLoadError) ||
+                  (!isAdmin && accessTier === "course" && price < MIN_TEACHER_COURSE_PRICE)
+                }
+                className={`px-5 py-2 text-xs rounded-xl font-bold transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1.5 ${
                   accessTier === "subscription"
                     ? "bg-amber-500 text-black hover:bg-amber-400"
                     : "bg-emerald-brand text-canvas hover:bg-mint-brand shadow-glow-emerald"
                 }`}
               >
-                {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>Guardar Cambios</span>
               </button>
             </div>

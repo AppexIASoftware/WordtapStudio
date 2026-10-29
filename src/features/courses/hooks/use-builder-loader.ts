@@ -88,8 +88,8 @@ export function useBuilderLoader({
                 ? 0
                 : typeof c.price_cents === "number"
                 ? c.price_cents / 100
-                : 19.99,
-            currency: "USD",
+                : 20.00,
+            currency: "PEN",
             author: c.author?.name || userName || "Prof. Mateo Silva",
             status: c.status,
             ownerType: c.owner_type,

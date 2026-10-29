@@ -4,21 +4,16 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   Download,
-  Smartphone,
   CheckCircle2,
-  Plus,
   Settings,
   DollarSign,
-  Award,
-  Clock,
-  FileText,
-  AlertTriangle,
   Eye,
   RefreshCw,
   RotateCcw,
   Crown,
   Gift,
   ArrowLeft,
+  Sparkles,
 } from "lucide-react";
 import { Course } from "@/features/courses/types";
 import { CourseSelectorDropdown } from "./course-selector-dropdown";
@@ -32,11 +27,9 @@ interface BuilderHeaderProps {
   isLoading?: boolean;
   onRefresh?: () => void;
   onSelectCourse: (id: string) => void;
-  onOpenNewCourseModal: () => void;
   onOpenEditCourseModal: () => void;
   onOpenPricingModal: () => void;
   onOpenExportModal: () => void;
-  onOpenPlaytestDrawer: () => void;
   onSubmitReview: () => void;
   onWithdrawReview?: () => void;
   onAdminPublish?: () => void;
@@ -51,11 +44,9 @@ export function BuilderHeader({
   isLoading = false,
   onRefresh,
   onSelectCourse,
-  onOpenNewCourseModal,
   onOpenEditCourseModal,
   onOpenPricingModal,
   onOpenExportModal,
-  onOpenPlaytestDrawer,
   onSubmitReview,
   onWithdrawReview,
   onAdminPublish,
@@ -95,62 +86,14 @@ export function BuilderHeader({
           disabled={courseList.length === 0}
         />
 
-        {/* Insignia Oficial Según Estado de Aprobación.
-            El estado "correcciones pedidas" pertenece al flujo del docente: el
-            admin ve el estado de publicación del curso (Borrador), no la tarea
-            pendiente del autor. */}
-        {currentCourse && (
-          isAdmin ? (
-            isPublished ? (
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold shadow-xs flex-shrink-0"
-                title="Curso publicado y activo en el catálogo oficial de Wordtap"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="hidden xl:inline">Publicado (Live)</span>
-              </span>
-            ) : (
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-500/15 border border-slate-500/20 text-slate-400 font-mono text-[10px] font-semibold flex-shrink-0"
-                title="Borrador en edición privada (aún no publicado)"
-              >
-                <FileText className="w-2.5 h-2.5 text-slate-400" />
-                <span className="hidden xl:inline">Borrador</span>
-              </span>
-            )
-          ) : isApproved ? (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-bold shadow-sm flex-shrink-0"
-              title="Insignia oficial: Curso auditado y aprobado en el catálogo de Wordtap"
-            >
-              <Award className="w-3 h-3 text-emerald-400" />
-              <span className="hidden xl:inline">Aprobado</span>
-            </span>
-          ) : isChangesRequested ? (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[11px] font-bold flex-shrink-0"
-              title="El revisor solicitó correcciones antes de publicar"
-            >
-              <AlertTriangle className="w-3 h-3 text-amber-400" />
-              <span className="hidden xl:inline">Cambios Pedidos</span>
-            </span>
-          ) : isInReview ? (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-[11px] font-bold flex-shrink-0"
-              title="Solicitud pendiente en cola de moderación"
-            >
-              <Clock className="w-3 h-3 text-blue-400" />
-              <span className="hidden xl:inline">En Revisión</span>
-            </span>
-          ) : (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-500/10 border border-slate-500/20 text-slate-400 font-mono text-[10px] font-semibold flex-shrink-0"
-              title="Borrador en edición privada"
-            >
-              <FileText className="w-2.5 h-2.5 text-slate-400" />
-              <span className="hidden xl:inline">Borrador</span>
-            </span>
-          )
+        {currentCourse?.categoryName && (
+          <span
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold shadow-xs flex-shrink-0"
+            title={`Categoría temática: ${currentCourse.categoryName}`}
+          >
+            <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
+            <span className="hidden lg:inline">{currentCourse.categoryName}</span>
+          </span>
         )}
 
         {currentCourse && !canEditCourse && (
@@ -185,16 +128,6 @@ export function BuilderHeader({
             <Settings className="w-3.5 h-3.5" />
           </button>
         )}
-
-        <button
-          type="button"
-          onClick={onOpenNewCourseModal}
-          className="px-2 py-1.5 rounded-lg bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1 cursor-pointer shadow-sm flex-shrink-0"
-          title="Crear un nuevo curso"
-        >
-          <Plus className="w-3 h-3 stroke-[2.5]" />
-          <span className="hidden sm:inline">Nuevo</span>
-        </button>
       </div>
 
       {/* Lado Derecho: Acciones de Curso */}
@@ -246,18 +179,6 @@ export function BuilderHeader({
           >
             <Download className="w-3 h-3" />
             <span>Exportar</span>
-          </button>
-        )}
-
-        {currentCourse && (
-          <button
-            type="button"
-            onClick={onOpenPlaytestDrawer}
-            className="px-2.5 py-1.5 rounded-lg bg-card border border-emerald-brand/50 hover:border-emerald-brand text-emerald-brand hover:bg-emerald-brand/10 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm"
-            title="Abrir Simulador Móvil"
-          >
-            <Smartphone className="w-3 h-3" />
-            <span className="hidden 2xl:inline">Simulador</span>
           </button>
         )}
 

@@ -47,29 +47,10 @@ export function useBuilderReviews({
     const res = await submitCourseReviewApi(currentCourseId, {
       change_summary: summary,
     });
-    const prId = `PR-${currentCourseId.replace(/^course-/, "").slice(0, 6).toUpperCase() || "NEW"}`;
-
-    saveSyncedReview({
-      id: prId,
-      originalId: currentCourseId,
-      courseId: currentCourseId,
-      title: currentCourse.title,
-      author: teacherName,
-      authorEmail: teacherEmail,
-      authorAvatar: teacherInitials,
-      submittedAt: new Date().toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      waitHours: "0.1h",
-      changesCount: `${currentCourse.lessons?.length || 1} lecciones`,
-      status: "open",
-      statusLabel: "En Revisión",
-      summary: summary,
-      reviewer: "Pendiente de Asignación",
-    });
+    if (res.error || !res.data) {
+      triggerToast(res.error || "No se pudo enviar el curso a revisión.");
+      return;
+    }
 
     setCourses((prev) => ({
       ...prev,
@@ -91,8 +72,12 @@ export function useBuilderReviews({
   const handleWithdrawReview = async () => {
     if (!currentCourse) return;
     setIsLoading(true);
-    await withdrawCourseReviewApi(currentCourseId);
-    removeSyncedReview(currentCourseId);
+    const result = await withdrawCourseReviewApi(currentCourseId);
+    if (result.error || !result.data) {
+      setIsLoading(false);
+      triggerToast(result.error || "No se pudo retirar la solicitud.");
+      return;
+    }
     setCourses((prev) => ({
       ...prev,
       [currentCourseId]: {

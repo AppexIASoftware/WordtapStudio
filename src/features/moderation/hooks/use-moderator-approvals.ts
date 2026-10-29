@@ -153,7 +153,12 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
     }));
 
     const res = await getAdminCourseReviewsApi();
-    const combined = [...syncedAsPrs];
+    if (res.error || !res.data) {
+      setIsLoading(false);
+      triggerToast(res.error || "No se pudieron cargar las solicitudes.");
+      return;
+    }
+    const combined: ModeratorPR[] = [];
     if (res.data && res.data.length > 0) {
       const mapped = res.data.map(mapApiToModeratorPr);
       for (const m of mapped) {
@@ -169,7 +174,7 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
       setSelectedPrId("");
     }
     setIsLoading(false);
-  }, []);
+  }, [triggerToast]);
 
   useEffect(() => {
     refreshReviews();
@@ -231,15 +236,11 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
   const handlePublishCourse = async () => {
     if (!activePr) return;
     const targetId = activePr.originalId || activePr.courseId || activePr.id.replace("PR-", "");
-    await decideCourseReviewApi(targetId, { status: "approved" });
-    updateSyncedReview(activePr.id, {
-      status: "approved",
-      statusLabel: "Aprobado & Publicado",
-      reviewer: senderName,
-      courseId: activePr.courseId,
-      title: activePr.title,
-      author: activePr.author,
-    });
+    const result = await decideCourseReviewApi(targetId, { status: "approved" });
+    if (result.error || !result.data) {
+      triggerToast(result.error || "No se pudo registrar la aprobación.");
+      return;
+    }
     setPrs((prev) =>
       prev.map((p) =>
         p.id === activePr.id
@@ -255,19 +256,14 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
   const handleRequestChanges = async (notes: string) => {
     if (!activePr) return;
     const targetId = activePr.originalId || activePr.courseId || activePr.id.replace("PR-", "");
-    await decideCourseReviewApi(targetId, {
+    const result = await decideCourseReviewApi(targetId, {
       status: "changes_requested",
       feedback_notes: notes,
     });
-    updateSyncedReview(activePr.id, {
-      status: "changes_requested",
-      statusLabel: "Correcciones Pedidas",
-      feedback: notes,
-      reviewer: senderName,
-      courseId: activePr.courseId,
-      title: activePr.title,
-      author: activePr.author,
-    });
+    if (result.error || !result.data) {
+      triggerToast(result.error || "No se pudieron solicitar correcciones.");
+      return;
+    }
     setPrs((prev) =>
       prev.map((p) =>
         p.id === activePr.id
@@ -289,19 +285,14 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
   const handleRejectCourse = async (notes: string) => {
     if (!activePr) return;
     const targetId = activePr.originalId || activePr.courseId || activePr.id.replace("PR-", "");
-    await decideCourseReviewApi(targetId, {
+    const result = await decideCourseReviewApi(targetId, {
       status: "rejected",
       feedback_notes: notes,
     });
-    updateSyncedReview(activePr.id, {
-      status: "rejected",
-      statusLabel: "Rechazado",
-      feedback: notes,
-      reviewer: senderName,
-      courseId: activePr.courseId,
-      title: activePr.title,
-      author: activePr.author,
-    });
+    if (result.error || !result.data) {
+      triggerToast(result.error || "No se pudo registrar el rechazo.");
+      return;
+    }
     setPrs((prev) =>
       prev.map((p) =>
         p.id === activePr.id

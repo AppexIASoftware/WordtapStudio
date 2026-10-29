@@ -8,7 +8,7 @@ import { NewCourseModal } from "../new-course-modal";
 import { AddLessonModal } from "../add-lesson-modal";
 import { EditCourseModal } from "../edit-course-modal";
 import { EditLessonModal } from "../edit-lesson-modal";
-import { BuilderHeader } from "./builder-header";
+import { BuilderHeader } from "./header";
 import { CourseStructurePanel } from "./course-structure-panel";
 import { CardsTab } from "./cards-tab";
 import { LessonGamesTab } from "./lesson-games-tab";
@@ -16,8 +16,7 @@ import { SimulatorTab } from "./simulator-tab";
 import { PricingModal } from "./pricing-modal";
 import { ManualCardModal } from "./manual-card-modal";
 import { ExportJsonModal } from "./export-json-modal";
-import { VaultDrawer } from "@/features/vault/components/vault-drawer";
-import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
+import { VaultDrawer } from "@/features/vault/components/drawer";
 import { SubmitReviewModal } from "./submit-review-modal";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 
@@ -46,7 +45,6 @@ interface CourseBuilderWorkspaceProps {
   editingLesson: Lesson | null;
   showAddStepModal: boolean;
   showExportModal: boolean;
-  showPlaytestDrawer: boolean;
   showVaultDrawer: boolean;
   showSubmitReviewModal?: boolean;
   isAdmin?: boolean;
@@ -91,7 +89,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
     currentStepId, stepForm, isLoading, activeCanvasTab,
     simScreen, simTier, isSimLessonCompleted, simGameSelected, simGameMatched,
     showNewCourseModal, showEditCourseModal, showPricingModal, showAddLessonModal,
-    editingLesson, showAddStepModal, showExportModal, showPlaytestDrawer, showVaultDrawer,
+    editingLesson, showAddStepModal, showExportModal, showVaultDrawer,
     showSubmitReviewModal,
   } = props;
 
@@ -120,11 +118,9 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
         isLoading={isLoading}
         onRefresh={props.onRefresh}
         onSelectCourse={props.onSelectCourse}
-        onOpenNewCourseModal={() => props.onOpenModal("newCourse")}
         onOpenEditCourseModal={() => props.onOpenModal("editCourse")}
         onOpenPricingModal={() => props.onOpenModal("pricing")}
         onOpenExportModal={() => props.onOpenModal("export")}
-        onOpenPlaytestDrawer={() => props.onOpenModal("playtest")}
         onSubmitReview={() => props.onOpenModal("submitReview")}
         onWithdrawReview={props.onWithdrawReview}
         onAdminPublish={props.onAdminPublish}
@@ -188,7 +184,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   {(["cards", "games", "preview"] as const).map((tab) => (
                     <button key={tab} type="button" onClick={() => props.onSetCanvasTab(tab)} className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${activeCanvasTab === tab ? "bg-emerald-brand text-canvas font-bold shadow-sm" : "text-slate-muted hover:text-white"}`}>
                       <span>{tab === "cards" ? "Tarjetas Pedagógicas" : tab === "games" ? "Minijuegos" : "Simulador Móvil"}</span>
-                      {tab === "cards" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentLesson.items.length}</span> : tab === "games" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">4</span> : <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-brand/20 text-emerald-brand">Live</span>}
+                      {tab === "cards" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentLesson.items.length}</span> : tab === "games" ? null : <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-brand/20 text-emerald-brand">Live</span>}
                     </button>
                   ))}
                 </div>
@@ -280,11 +276,14 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
               {activeCanvasTab === "games" && (
                 <LessonGamesTab
                   lessonId={currentLessonId}
+                  lessonTitle={currentLesson?.title}
+                  lessonItems={currentLesson?.items}
+                  courseId={currentCourse?.id}
+                  courseLevel={currentCourse?.level}
                   canEdit={canEditContent}
                   includeMine={!props.isAdmin}
-                  courseLevel={currentCourse?.level}
+                  isAdmin={props.isAdmin}
                   readOnlyReason={readOnlyReason}
-                  onTestGames={() => props.onSetSimScreen("game")}
                   onToast={props.onToast}
                 />
               )}
@@ -327,6 +326,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
       <NewCourseModal
         isOpen={showNewCourseModal}
         isAdmin={props.isAdmin}
+        canCreateCategory={props.isAdmin}
         onClose={() => props.onCloseModal("newCourse")}
         onCreated={props.onCreateCourse}
       />
@@ -335,6 +335,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
           isOpen
           course={currentCourse}
           isAdmin={props.isAdmin}
+          canCreateCategory={props.isAdmin}
           onClose={() => props.onCloseModal("editCourse")}
           onSave={props.onSaveCourse}
           onDelete={props.onDeleteCourse}
@@ -362,7 +363,6 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
       <ManualCardModal isOpen={showAddStepModal} onClose={() => props.onCloseModal("addStep")} onAddCard={props.onAddCard} />
       {currentCourse && <ExportJsonModal isOpen={showExportModal} course={currentCourse} onClose={() => props.onCloseModal("export")} onCopied={props.onCopyExport} />}
       {currentLesson && <VaultDrawer isOpen={showVaultDrawer} currentLesson={currentLesson} onClose={() => props.onCloseModal("vault")} onImportItem={props.onAddCard} showPrivateCollection={!props.isAdmin} />}
-      {currentLesson && <PlaytestDrawer isOpen={showPlaytestDrawer} currentLesson={currentLesson} onClose={() => props.onCloseModal("playtest")} onSpeak={props.onSpeak} />}
       {showSubmitReviewModal && currentCourse && (
         <SubmitReviewModal
           isOpen

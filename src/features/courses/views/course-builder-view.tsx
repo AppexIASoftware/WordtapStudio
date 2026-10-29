@@ -1,7 +1,7 @@
 "use client";
 
 import { useCourseBuilder } from "../hooks/use-course-builder";
-import { CourseBuilderWorkspace } from "../components/builder/course-builder-workspace";
+import { CourseBuilderWorkspace } from "../components/builder/workspace";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
 interface CourseBuilderViewProps {
@@ -41,7 +41,6 @@ export function CourseBuilderView({
         editingLesson={b.editingLesson}
         showAddStepModal={b.showAddStepModal}
         showExportModal={b.showExportModal}
-        showPlaytestDrawer={b.showPlaytestDrawer}
         showVaultDrawer={b.showVaultDrawer}
         showSubmitReviewModal={b.showSubmitReviewModal}
         onSelectCourse={b.handleSelectCourse}

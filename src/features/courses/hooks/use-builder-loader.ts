@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from "react";
 import { Course, Lesson } from "@/features/courses/types";
 import {
   getTeacherCoursesApi,
@@ -33,6 +33,8 @@ export function useBuilderLoader({
   const [courses, setCourses] = useState<Record<string, Course>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [currentCourseId, setCurrentCourseId] = useState(initialCourseId || "");
+  const selectedCourseRef = useRef(initialCourseId || "");
+  const appliedInitialCourseRef = useRef(initialCourseId);
 
   const loadCoursesData = useCallback(async () => {
     setIsLoading(true);
@@ -69,6 +71,8 @@ export function useBuilderLoader({
             title: c.title,
             description: c.description,
             level: c.level,
+            categoryId: c.category_id,
+            categoryName: c.category?.name,
             sourceLang: c.source_lang,
             targetLang: c.target_lang,
             tier:
@@ -109,13 +113,14 @@ export function useBuilderLoader({
             ? res.data.find((c) => c.owner_type === "platform")?.id ?? res.data[0].id
             : res.data[0].id;
         const nextId =
-          currentCourseId && mapped[currentCourseId]
-            ? currentCourseId
+          selectedCourseRef.current && mapped[selectedCourseRef.current]
+            ? selectedCourseRef.current
             : reqId && mapped[reqId]
             ? reqId
             : defaultCourseId;
 
         setCurrentCourseId(nextId);
+        selectedCourseRef.current = nextId;
 
         const activeLessons = mapped[nextId]?.lessons ?? [];
         const reqLesson = activeLessons.find(
@@ -148,13 +153,14 @@ export function useBuilderLoader({
             : null;
         const reqId = initialCourseId || urlParams?.get("courseId");
         const nextId =
-          currentCourseId && fallback[currentCourseId]
-            ? currentCourseId
+          selectedCourseRef.current && fallback[selectedCourseRef.current]
+            ? selectedCourseRef.current
             : reqId && fallback[reqId]
             ? reqId
             : Object.keys(fallback)[0] || "";
 
         setCurrentCourseId(nextId);
+        selectedCourseRef.current = nextId;
 
         const activeLessons = fallback[nextId]?.lessons ?? [];
         const reqLesson = activeLessons.find(
@@ -182,6 +188,7 @@ export function useBuilderLoader({
   }, [loadCoursesData]);
 
   const handleSelectCourse = (id: string) => {
+    selectedCourseRef.current = id;
     setCurrentCourseId(id);
     const target = courses[id];
     if (target) {
@@ -193,7 +200,9 @@ export function useBuilderLoader({
               ...prev,
               [id]: { ...prev[id], lessons: loadedLessons },
             }));
-            syncSelectedLesson(loadedLessons[0] || null);
+            if (selectedCourseRef.current === id) {
+              syncSelectedLesson(loadedLessons[0] || null);
+            }
           }
         });
       }
@@ -203,7 +212,8 @@ export function useBuilderLoader({
   };
 
   useEffect(() => {
-    if (initialCourseId && courses[initialCourseId] && initialCourseId !== currentCourseId) {
+    if (initialCourseId && courses[initialCourseId] && initialCourseId !== appliedInitialCourseRef.current) {
+      appliedInitialCourseRef.current = initialCourseId;
       handleSelectCourse(initialCourseId);
     }
   }, [initialCourseId, courses, currentCourseId]);

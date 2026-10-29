@@ -37,6 +37,7 @@ export function useCourseCrud({
     title: string;
     description?: string;
     level: string;
+    categoryId?: string | null;
     price: number;
     tier?: "free" | "course" | "subscription";
     sourceLang?: string;
@@ -56,6 +57,7 @@ export function useCourseCrud({
       title: updated.title,
       description: updated.description,
       level: updated.level,
+      category_id: updated.categoryId,
       access_tier: finalTier,
       price_cents: priceCents,
       source_lang: updated.sourceLang,
@@ -70,6 +72,11 @@ export function useCourseCrud({
         title: res.data!.title,
         description: res.data!.description,
         level: res.data!.level,
+        categoryId: res.data!.category_id,
+        categoryName: res.data!.category?.name ??
+          (res.data!.category_id && res.data!.category_id === prev[currentCourseId]?.categoryId
+            ? prev[currentCourseId].categoryName
+            : undefined),
         sourceLang: res.data!.source_lang,
         targetLang: res.data!.target_lang,
         price: (res.data!.price_cents ?? 0) / 100,
@@ -240,6 +247,8 @@ export function useCourseCrud({
       id: newApiCourse.id,
       title: newApiCourse.title,
       level: newApiCourse.level,
+      categoryId: newApiCourse.category_id,
+      categoryName: newApiCourse.category?.name,
       tier: isSubscription
         ? "subscription"
         : newApiCourse.access_tier === "course"

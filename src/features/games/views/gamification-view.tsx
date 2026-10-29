@@ -103,6 +103,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
     title: string;
     description?: string;
     level: string;
+    access_tier?: "free" | "subscription";
     time_limit_seconds: number;
     allowed_mistakes: number;
     reward_xp: number;
@@ -149,6 +150,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
           initialGame={selectedGame}
           defaultArchetype={presetArchetype}
           canCreateCategory={true}
+          canConfigureAccessTier={false}
           onCancel={handleCloseWorkspace}
           onSave={handleSaveGame}
           onOpenSandbox={(mock) => setActiveSandboxGame(mock)}

@@ -12,6 +12,7 @@ interface VocabSourceProps {
   level: string;
   itemCount: number;
   loadingSources: boolean;
+  sourceMessage: string | null;
   customWordsText: string;
   setCourseId: (id: string) => void;
   setCustomWordsText: (text: string) => void;
@@ -26,6 +27,7 @@ export function VocabSource({
   level,
   itemCount,
   loadingSources,
+  sourceMessage,
   customWordsText,
   setCourseId,
   setCustomWordsText,
@@ -103,6 +105,7 @@ export function VocabSource({
         </div>
       )}
 
+      {sourceMessage && <p role="status" className="text-xs text-amber-400">{sourceMessage}</p>}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs text-slate-300 font-semibold">

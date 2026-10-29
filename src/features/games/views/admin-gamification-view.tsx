@@ -119,6 +119,7 @@ export function AdminGamificationView() {
       item_count: payload.item_count,
       source_type: payload.source_type,
       custom_words_json: payload.custom_words_json,
+      access_tier: payload.access_tier,
     };
 
     if (editingGame) {
@@ -184,6 +185,7 @@ export function AdminGamificationView() {
           initialGame={editingGame}
           defaultArchetype={editingGame?.base_archetype ?? "match"}
           isGlobal={true}
+          canConfigureAccessTier={true}
           canCreateCategory={true}
           onCancel={handleCloseWorkspace}
           onSave={handleSaveGlobalGame}

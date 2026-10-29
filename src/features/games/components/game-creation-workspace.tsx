@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, Play, Save, Loader2, Sparkles, Globe2 } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
 import { useGameForm } from "../hooks/use-game-form";
@@ -10,11 +10,13 @@ import { CategoryCombobox } from "@/features/vault/components/category-combobox"
 import { NewCategoryModal } from "@/features/vault/components/new-category-modal";
 import { VocabSource } from "./creation/vocab-source";
 import { VaultPicker } from "./creation/vault-picker";
+import { AudiencePicker } from "./creation/audience-picker";
 
 interface GameCreationWorkspaceProps {
   initialGame?: TeacherGameDTO | null;
   defaultArchetype?: string;
   isGlobal?: boolean;
+  canConfigureAccessTier?: boolean;
   canCreateCategory?: boolean;
   onCancel: () => void;
   onSave: (payload: {
@@ -24,12 +26,16 @@ interface GameCreationWorkspaceProps {
     title: string;
     description?: string;
     level: string;
+    access_tier?: "free" | "subscription";
     time_limit_seconds: number;
     allowed_mistakes: number;
     reward_xp: number;
     item_count: number;
     source_type: string;
     custom_words_json?: string;
+    is_published_standalone?: boolean;
+    audience_scope?: "all_students" | "selected_courses";
+    assigned_course_ids?: string[];
   }) => Promise<void>;
   onOpenSandbox: (mockGame: TeacherGameDTO) => void;
 }
@@ -46,6 +52,7 @@ export function GameCreationWorkspace({
   initialGame,
   defaultArchetype,
   isGlobal = false,
+  canConfigureAccessTier = false,
   canCreateCategory = true,
   onCancel,
   onSave,
@@ -61,6 +68,7 @@ export function GameCreationWorkspace({
 
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
   const [newCategoryInitialName, setNewCategoryInitialName] = useState("");
+  const audienceEdited = useRef(false);
 
   return (
     <div className="space-y-6">
@@ -286,6 +294,41 @@ export function GameCreationWorkspace({
                 />
               </div>
             </div>
+
+            {/* Selector de Nivel de Acceso (Solo para roles/vistas autorizadas, ej. Juegos Globales) */}
+            {canConfigureAccessTier && (
+              <div className="pt-2 border-t border-border-default/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <label className="text-[11px] text-slate-muted block font-medium">Nivel de Acceso:</label>
+                  <p className="text-[10px] text-slate-500">Define si los alumnos requieren membresía Pro para acceder a este juego.</p>
+                </div>
+                <div className="inline-flex p-1 rounded-xl bg-canvas border border-border-default gap-1 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => form.setAccessTier("free")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      form.accessTier === "free"
+                        ? "bg-emerald-brand text-canvas shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Gratis
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => form.setAccessTier("subscription")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      form.accessTier === "subscription"
+                        ? "bg-amber-400 text-slate-950 font-bold shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <span>👑</span>
+                    <span>Suscripción Pro</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 4. Fuente de Vocabulario (Componente atómico desacoplado) */}
@@ -297,11 +340,37 @@ export function GameCreationWorkspace({
             level={form.level}
             itemCount={form.itemCount}
             loadingSources={form.loadingSources}
+            sourceMessage={form.sourceMessage}
             customWordsText={form.customWordsText}
             setCourseId={form.setCourseId}
             setCustomWordsText={form.setCustomWordsText}
             handleAutoPopulateSource={form.handleAutoPopulateSource}
           />}
+
+          {/* 5. Publicación en App Móvil & Audiencia (Exclusivo Docente) */}
+          {!isGlobal && (
+            <AudiencePicker
+              isPublishedStandalone={form.isPublishedStandalone}
+              audienceScope={form.audienceScope}
+              assignedCourseIds={form.assignedCourseIds}
+              courses={form.courses}
+              onTogglePublished={() => form.setIsPublishedStandalone(!form.isPublishedStandalone)}
+              onAudienceScopeChange={(scope) => {
+                if (scope === "selected_courses" && !initialGame && !audienceEdited.current && form.assignedCourseIds.length === 0 && form.sourceType === "course_lesson" && form.courseId) {
+                  form.setAssignedCourseIds([form.courseId]);
+                }
+                form.setAudienceScope(scope);
+              }}
+              onToggleCourse={(courseId) => {
+                audienceEdited.current = true;
+                if (form.assignedCourseIds.includes(courseId)) {
+                  form.setAssignedCourseIds(form.assignedCourseIds.filter((id) => id !== courseId));
+                } else {
+                  form.setAssignedCourseIds([...form.assignedCourseIds, courseId]);
+                }
+              }}
+            />
+          )}
         </div>
 
         {/* Columna Derecha: Previsualización & Acciones (5 cols) */}
@@ -349,7 +418,7 @@ export function GameCreationWorkspace({
                     ? "Guardando..."
                     : initialGame
                     ? "Guardar Cambios"
-                    : "Guardar y Publicar Actividad"}
+                : "Guardar Actividad"}
                 </span>
               </button>
             </div>

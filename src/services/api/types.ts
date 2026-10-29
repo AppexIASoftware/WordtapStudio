@@ -287,6 +287,7 @@ export interface TeacherGameDTO {
   source_type: string;
   source_id?: string | null;
   custom_words_json?: string | null;
+  access_tier?: "free" | "subscription";
   is_active: boolean;
   /** Cantidad de lecciones que tienen esta actividad vinculada. */
   usage_count?: number;
@@ -298,6 +299,9 @@ export interface TeacherGameDTO {
    * reports this flag on every item it returns.
    */
   is_global?: boolean;
+  is_published_standalone?: boolean;
+  audience_scope?: "all_students" | "selected_courses";
+  assigned_course_ids?: string[];
   created_at: string;
 }
 
@@ -308,6 +312,7 @@ export interface CreateTeacherGamePayload {
   title: string;
   description?: string;
   level?: string;
+  access_tier?: "free" | "subscription";
   time_limit_seconds?: number;
   allowed_mistakes?: number;
   reward_xp?: number;
@@ -315,6 +320,9 @@ export interface CreateTeacherGamePayload {
   source_type?: string;
   source_id?: string | null;
   custom_words_json?: string | null;
+  is_published_standalone?: boolean;
+  audience_scope?: "all_students" | "selected_courses";
+  assigned_course_ids?: string[];
 }
 
 export interface UpdateTeacherGamePayload {
@@ -324,6 +332,7 @@ export interface UpdateTeacherGamePayload {
   title?: string;
   description?: string;
   level?: string;
+  access_tier?: "free" | "subscription";
   time_limit_seconds?: number;
   allowed_mistakes?: number;
   reward_xp?: number;
@@ -331,6 +340,9 @@ export interface UpdateTeacherGamePayload {
   source_type?: string;
   source_id?: string | null;
   custom_words_json?: string | null;
+  is_published_standalone?: boolean;
+  audience_scope?: "all_students" | "selected_courses";
+  assigned_course_ids?: string[];
   is_active?: boolean;
 }
 

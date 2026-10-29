@@ -75,6 +75,16 @@ export function GamificationCustomCard({
               Usado en {game.usage_count} lección(es)
             </span>
           )}
+          {game.is_published_standalone ? (
+            <span className="px-2 py-0.5 rounded bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30 font-bold flex items-center gap-1">
+              <span>📱 App:</span>
+              <span>{game.audience_scope === "selected_courses" ? "Cursos elegidos" : "Todos tus alumnos"}</span>
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded bg-canvas text-slate-400 border border-border-default">
+              Solo en lección
+            </span>
+          )}
         </div>
       </div>
 

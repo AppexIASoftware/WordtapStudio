@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { TeacherGameDTO, ApiCourse, ApiVaultCategory } from "@/services/api/types";
 import { OWNER_TYPE } from "@/services/api/owner-type";
-import { getTeacherCoursesApi } from "@/services/api/courses";
+import { getTeacherCoursesApi, getTeacherCourseDetailApi } from "@/services/api/courses";
 import { getOfficialVaultItemsApi, getVaultCategoriesApi } from "@/services/api/vault";
 
 interface UseGameFormProps {
@@ -17,24 +17,19 @@ interface UseGameFormProps {
     title: string;
     description?: string;
     level: string;
+    access_tier?: "free" | "subscription";
     time_limit_seconds: number;
     allowed_mistakes: number;
     reward_xp: number;
     item_count: number;
     source_type: string;
     custom_words_json?: string;
+    is_published_standalone?: boolean;
+    audience_scope?: "all_students" | "selected_courses";
+    assigned_course_ids?: string[];
   }) => Promise<void>;
   onCancel: () => void;
 }
-
-const DEFAULT_VOCAB = [
-  { term: "Fluency", translation: "Fluidez" },
-  { term: "Achievement", translation: "Logro" },
-  { term: "Mastery", translation: "Dominio" },
-  { term: "Challenge", translation: "Desafío" },
-  { term: "Accuracy", translation: "Precisión" },
-  { term: "Resilience", translation: "Resiliencia" },
-];
 
 export function useGameForm({
   initialGame,
@@ -49,6 +44,9 @@ export function useGameForm({
   const [title, setTitle] = useState(initialGame?.title || "");
   const [description, setDescription] = useState(initialGame?.description || "");
   const [level, setLevel] = useState(initialGame?.level || "B1 Intermedio");
+  const [accessTier, setAccessTier] = useState<"free" | "subscription">(
+    initialGame?.access_tier || "free"
+  );
   const [categoryId, setCategoryId] = useState<string>(initialGame?.category_id || "");
   const [categories, setCategories] = useState<ApiVaultCategory[]>([]);
   const [timeLimit, setTimeLimit] = useState(initialGame?.time_limit_seconds || 45);
@@ -61,14 +59,24 @@ export function useGameForm({
     initialGame?.source_type || (isGlobal ? "vault" : "course_lesson")
   );
   const [courseId, setCourseId] = useState<string | null>(initialGame?.course_id || null);
+  const [isPublishedStandalone, setIsPublishedStandalone] = useState<boolean>(
+    Boolean(initialGame?.is_published_standalone)
+  );
+  const [audienceScope, setAudienceScope] = useState<"all_students" | "selected_courses">(
+    initialGame?.audience_scope || "all_students"
+  );
+  const [assignedCourseIds, setAssignedCourseIds] = useState<string[]>(
+    initialGame?.assigned_course_ids || []
+  );
 
   const [courses, setCourses] = useState<ApiCourse[]>([]);
   const [loadingSources, setLoadingSources] = useState(false);
   const [customWordsText, setCustomWordsText] = useState(
-    initialGame?.custom_words_json || (isGlobal ? "[]" : JSON.stringify(DEFAULT_VOCAB, null, 2))
+    initialGame?.custom_words_json || "[]"
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sourceMessage, setSourceMessage] = useState<string | null>(null);
 
   const isPlatformGame = initialGame?.owner_type === OWNER_TYPE.PLATFORM;
 
@@ -77,6 +85,9 @@ export function useGameForm({
       setBaseArchetype(initialGame.base_archetype);
     } else if (defaultArchetype) {
       setBaseArchetype(defaultArchetype);
+    }
+    if (initialGame?.access_tier) {
+      setAccessTier(initialGame.access_tier);
     }
   }, [defaultArchetype, initialGame]);
 
@@ -90,6 +101,7 @@ export function useGameForm({
     async function loadCourses() {
       try {
         const res = await getTeacherCoursesApi();
+        if (res.error) throw new Error(res.error);
         if (res.data) {
           setCourses(res.data);
           if (!courseId && !isPlatformGame && res.data.length > 0) {
@@ -97,7 +109,7 @@ export function useGameForm({
           }
         }
       } catch {
-        // Silencioso
+        setSourceMessage("No se pudieron cargar tus cursos. Inténtalo de nuevo.");
       }
     }
     loadCourses();
@@ -106,9 +118,12 @@ export function useGameForm({
   const handleAutoPopulateSource = async (type: "course_lesson" | "vault") => {
     setLoadingSources(true);
     setSourceType(type);
+    setSourceMessage(null);
     try {
       if (type === "course_lesson" && courseId) {
-        const selCourse = courses.find((c) => c.id === courseId);
+        const result = await getTeacherCourseDetailApi(courseId);
+        if (result.error) throw new Error(result.error);
+        const selCourse = result.data;
         if (selCourse?.lessons && selCourse.lessons.length > 0) {
           const pairs: { term: string; translation: string }[] = [];
           for (const l of selCourse.lessons) {
@@ -137,6 +152,7 @@ export function useGameForm({
           cefr_level: level.slice(0, 2),
           limit: itemCount,
         });
+        if (vRes.error) throw new Error(vRes.error);
         if (vRes.data?.items && vRes.data.items.length > 0) {
           const pairs = vRes.data.items.map((it) => ({
             term: it.target_text,
@@ -146,8 +162,12 @@ export function useGameForm({
           return;
         }
       }
+      setCustomWordsText("[]");
+      setSourceMessage(type === "course_lesson" && !courseId
+        ? "Selecciona un curso para cargar su vocabulario."
+        : "No se encontraron palabras para esta selección.");
     } catch {
-      // Ignorar
+      setSourceMessage("No se pudo cargar el vocabulario. Inténtalo de nuevo.");
     } finally {
       setLoadingSources(false);
     }
@@ -164,6 +184,7 @@ export function useGameForm({
     title: title.trim() || "Prueba de Minijuego",
     description: description.trim() || undefined,
     level,
+    access_tier: accessTier,
     time_limit_seconds: Number(timeLimit),
     allowed_mistakes: Number(allowedMistakes),
     reward_xp: Number(rewardXP),
@@ -201,12 +222,16 @@ export function useGameForm({
         title: title.trim(),
         description: cleanDescription === "" ? "" : cleanDescription,
         level,
+        access_tier: accessTier,
         time_limit_seconds: Number(timeLimit),
         allowed_mistakes: Number(allowedMistakes),
         reward_xp: Number(rewardXP),
         item_count: Number(itemCount),
         source_type: sourceType,
         custom_words_json: validWordsJson,
+        is_published_standalone: isPublishedStandalone,
+        audience_scope: audienceScope,
+        assigned_course_ids: isPublishedStandalone && audienceScope === "selected_courses" ? assignedCourseIds : [],
       });
       onCancel();
     } catch (err: unknown) {
@@ -228,6 +253,8 @@ export function useGameForm({
     setDescription,
     level,
     setLevel,
+    accessTier,
+    setAccessTier,
     categoryId,
     setCategoryId,
     categories,
@@ -244,8 +271,15 @@ export function useGameForm({
     sourceType,
     courseId,
     setCourseId,
+    isPublishedStandalone,
+    setIsPublishedStandalone,
+    audienceScope,
+    setAudienceScope,
+    assignedCourseIds,
+    setAssignedCourseIds,
     courses,
     loadingSources,
+    sourceMessage,
     customWordsText,
     setCustomWordsText,
     saving,

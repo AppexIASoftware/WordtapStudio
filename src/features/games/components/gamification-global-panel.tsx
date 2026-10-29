@@ -59,9 +59,21 @@ function GlobalGameCard({ game, onPlayTest, onEdit, onDelete, onRestore }: Globa
             </span>
           </div>
 
-          <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30 shrink-0">
-            {game.level}
-          </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {game.access_tier === "subscription" ? (
+              <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-0.5">
+                <span>👑</span>
+                <span>Pro</span>
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30">
+                Gratis
+              </span>
+            )}
+            <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-canvas text-slate-300 border border-border-default shrink-0">
+              {game.level}
+            </span>
+          </div>
         </div>
 
         <div>

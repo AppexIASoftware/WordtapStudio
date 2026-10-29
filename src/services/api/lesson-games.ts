@@ -3,6 +3,9 @@ import {
   LessonGameDTO,
   LinkLessonGamePayload,
   UpdateLessonGamePayload,
+  CreateTeacherGamePayload,
+  UpdateTeacherGamePayload,
+  TeacherGameDTO,
 } from "./types";
 
 function unwrapData<T>(res: {
@@ -18,6 +21,29 @@ function unwrapData<T>(res: {
     return { data: (res.data as { data: T }).data, error: res.error };
   }
   return res as { data: T | null; error: string | null };
+}
+
+export async function createLessonGameApi(
+  lessonId: string,
+  payload: CreateTeacherGamePayload
+): Promise<{ data: TeacherGameDTO | null; error: string | null }> {
+  const res = await apiRequest<TeacherGameDTO>(
+    `${API_V1_URL}/lessons/${lessonId}/games/create`,
+    { method: "POST", body: JSON.stringify(payload) }
+  );
+  return unwrapData(res);
+}
+
+export async function updateLessonGameActivityApi(
+  lessonId: string,
+  gameId: string,
+  payload: UpdateTeacherGamePayload
+): Promise<{ data: TeacherGameDTO | null; error: string | null }> {
+  const res = await apiRequest<TeacherGameDTO>(
+    `${API_V1_URL}/lessons/${lessonId}/games/${gameId}`,
+    { method: "PUT", body: JSON.stringify(payload) }
+  );
+  return unwrapData(res);
 }
 
 // GET /api/v1/lessons/:id/games

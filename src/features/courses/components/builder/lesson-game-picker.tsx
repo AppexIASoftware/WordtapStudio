@@ -151,7 +151,7 @@ export function LessonGamePicker({
       ) : (
         <div className="space-y-2 max-h-[26rem] overflow-y-auto pr-0.5">
           {rankedGames.map(({ game, compatibility }) => {
-            const isGlobal = game.owner_type === "platform";
+            const isGlobal = game.is_global === true;
             const isBusy = busyGameId === game.id;
             const isBlocked = compatibility === "higher";
             const badge = levelBadge(compatibility);

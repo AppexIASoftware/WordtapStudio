@@ -81,7 +81,7 @@ export function useLessonGames({
   );
 
   const availableMine = useMemo(
-    () => mine.filter((game) => !linkedIds.has(game.id)),
+    () => mine.filter((game) => !linkedIds.has(game.id) && !(game.source_type === "course_lesson" && game.source_id)),
     [mine, linkedIds]
   );
 

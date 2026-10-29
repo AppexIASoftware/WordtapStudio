@@ -1,29 +1,41 @@
 "use client";
 
-import { AlertCircle, Info, Loader2, Smartphone } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, Info, Loader2, Plus } from "lucide-react";
 import { useLessonGames } from "../../hooks/use-lesson-games";
 import { LessonGamesList } from "./lesson-games-list";
 import { LessonGamePicker } from "./lesson-game-picker";
+import { GameDesigner } from "./game-designer";
+import { LessonItem } from "@/features/courses/types";
+import type { LessonGameDTO } from "@/services/api";
 
 interface LessonGamesTabProps {
   lessonId: string;
+  lessonTitle?: string;
+  lessonItems?: LessonItem[];
+  courseId?: string;
+  courseLevel?: string;
   canEdit: boolean;
   includeMine: boolean;
-  courseLevel?: string;
+  isAdmin?: boolean;
   readOnlyReason: string | null;
-  onTestGames: () => void;
   onToast: (message: string) => void;
 }
 
 export function LessonGamesTab({
   lessonId,
+  lessonTitle,
+  lessonItems,
+  courseId,
+  courseLevel = "",
   canEdit,
   includeMine,
-  courseLevel = "",
+  isAdmin = false,
   readOnlyReason,
-  onTestGames,
   onToast,
 }: LessonGamesTabProps) {
+  const [isDesigning, setIsDesigning] = useState(false);
+  const [editingGame, setEditingGame] = useState<LessonGameDTO | null>(null);
   const {
     linkedGames,
     availableMine,
@@ -43,30 +55,51 @@ export function LessonGamesTab({
     onToast,
   });
 
+  // Si está en modo diseño o edición, ocupa todo el canvas con el diseñador en pantalla completa
+  if (isDesigning || editingGame) {
+    return (
+      <div className="p-5 md:p-6">
+        <GameDesigner
+          lessonId={lessonId}
+          lessonTitle={lessonTitle}
+          lessonItems={lessonItems}
+          courseId={courseId}
+          courseLevel={courseLevel}
+          isAdmin={isAdmin}
+          initialGame={editingGame}
+          onBack={() => {
+            setIsDesigning(false);
+            setEditingGame(null);
+          }}
+          onSuccess={(gameTitle) => {
+            onToast(
+              editingGame
+                ? `Actividad "${gameTitle}" actualizada con éxito.`
+                : `Actividad "${gameTitle}" creada y vinculada con éxito.`
+            );
+            setIsDesigning(false);
+            setEditingGame(null);
+            void reload();
+          }}
+        />
+      </div>
+    );
+  }
+
   const availableCount =
     availableMine.filter((game) => game.is_active).length +
     availableGlobal.filter((game) => game.is_active).length;
 
   return (
     <div className="p-5 md:p-6 space-y-5">
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-bold text-white">
-            Minijuegos de esta lección
-          </h3>
-          <p className="text-xs text-slate-muted mt-0.5">
-            Vincula actividades del catálogo y define el orden en que las recibe
-            el alumno.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onTestGames}
-          className="px-3.5 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-mint-brand transition-colors cursor-pointer shadow-glow-emerald flex-shrink-0"
-        >
-          <Smartphone className="w-3.5 h-3.5" />
-          <span>Probar en simulador</span>
-        </button>
+      <header>
+        <h3 className="text-base font-bold text-white">
+          Minijuegos de esta lección
+        </h3>
+        <p className="text-xs text-slate-muted mt-0.5">
+          Vincula actividades del catálogo y define el orden en que las recibe
+          el alumno.
+        </p>
       </header>
 
       {readOnlyReason && (
@@ -122,19 +155,25 @@ export function LessonGamesTab({
               onMove={moveGame}
               onToggleRequired={setRequired}
               onUnlink={unlinkGame}
+              onEdit={(game) => setEditingGame(game)}
             />
           )}
         </section>
 
         {canEdit && (
           <section className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h4 className="text-xs font-bold text-white uppercase tracking-wide">
                 Agregar minijuego
               </h4>
-              <span className="text-[10px] text-slate-subtle">
-                {availableCount} disponibles
-              </span>
+              <button
+                type="button"
+                onClick={() => setIsDesigning(true)}
+                className="px-2.5 py-1 rounded-xl bg-emerald-brand text-canvas font-bold text-[11px] flex items-center gap-1 hover:bg-mint-brand transition-colors cursor-pointer shadow-sm flex-shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Diseñar para esta lección</span>
+              </button>
             </div>
             <LessonGamePicker
               mine={availableMine}

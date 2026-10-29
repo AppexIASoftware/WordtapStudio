@@ -6,6 +6,7 @@ import {
   ArrowUp,
   Gamepad2,
   Loader2,
+  Pencil,
   Trash2,
 } from "lucide-react";
 import {
@@ -21,6 +22,7 @@ interface LessonGamesListProps {
   onMove: (gameId: string, direction: "up" | "down") => void;
   onToggleRequired: (gameId: string, value: boolean) => void;
   onUnlink: (gameId: string) => void;
+  onEdit?: (game: LessonGameDTO) => void;
 }
 
 const ICON_BUTTON =
@@ -33,6 +35,7 @@ export function LessonGamesList({
   onMove,
   onToggleRequired,
   onUnlink,
+  onEdit,
 }: LessonGamesListProps) {
   if (games.length === 0) {
     return (
@@ -54,7 +57,7 @@ export function LessonGamesList({
     <div className="space-y-2.5">
       {games.map((game, index) => {
         const isBusy = busyGameId === game.game_id;
-        const isGlobal = game.owner_type === "platform";
+        const isGlobal = game.is_global === true;
         const typeLabel =
           ARCHETYPE_LABELS[normalizeArchetype(game.base_archetype)];
 
@@ -108,6 +111,18 @@ export function LessonGamesList({
 
               {canEdit && (
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  {onEdit && (
+                    <button
+                      type="button"
+                      onClick={() => onEdit(game)}
+                      disabled={isBusy}
+                      className={ICON_BUTTON}
+                      aria-label={`Editar ${game.title}`}
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => onMove(game.game_id, "up")}

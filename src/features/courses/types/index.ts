@@ -29,6 +29,8 @@ export interface Course {
   title: string;
   description?: string | null;
   level: string;
+  categoryId?: string | null;
+  categoryName?: string | null;
   sourceLang?: string;
   targetLang?: string;
   tier: "free" | "course" | "subscription" | "draft";

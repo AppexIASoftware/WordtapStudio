@@ -10,16 +10,23 @@ import {
   X,
   Layers,
   CheckCircle2,
+  Clock,
 } from "lucide-react";
 
 interface CatalogHeaderProps {
+  scope?: "admin" | "teacher";
+  title?: string;
+  badge?: string;
+  subtitle?: string;
   totalCourses: number;
   publishedCount: number;
-  platformPublishedCount: number;
-  teacherPublishedCount: number;
-  proCount: number;
-  freeCount: number;
-  teacherCount: number;
+  platformPublishedCount?: number;
+  teacherPublishedCount?: number;
+  proCount?: number;
+  freeCount?: number;
+  teacherCount?: number;
+  inReviewCount?: number;
+  draftCount?: number;
   tabTotal: number;
   tabPublishedCount: number;
   tabDraftCount: number;
@@ -36,13 +43,19 @@ interface CatalogHeaderProps {
 const CEFR_LEVELS = ["Todos", "A1", "A2", "B1", "B2", "C1"] as const;
 
 export function CatalogHeader({
+  scope = "admin",
+  title,
+  badge,
+  subtitle,
   totalCourses,
   publishedCount,
-  platformPublishedCount,
-  teacherPublishedCount,
-  proCount,
-  freeCount,
-  teacherCount,
+  platformPublishedCount = 0,
+  teacherPublishedCount = 0,
+  proCount = 0,
+  freeCount = 0,
+  teacherCount = 0,
+  inReviewCount,
+  draftCount,
   tabTotal,
   tabPublishedCount,
   tabDraftCount,
@@ -55,6 +68,13 @@ export function CatalogHeader({
   onStatusChange,
   onOpenNewCourseModal,
 }: CatalogHeaderProps) {
+  const isTeacherScope = scope === "teacher";
+  const headerTitle = title || (isTeacherScope ? "Catálogo de Mis Cursos" : "Catálogo Global de Cursos");
+  const headerBadge = badge || (isTeacherScope ? "Portal Docente" : "Modo Administrador");
+  const headerSubtitle = subtitle || (isTeacherScope
+    ? "Diseña, gestiona y envía a revisión tus cursos formativos para el aula y la app móvil."
+    : "Administración del currículo oficial de Wordtap y supervisión de cursos docentes.");
+
   const STATUS_FILTERS = [
     { id: "", label: "Todos", count: tabTotal },
     { id: "published", label: "Publicados (Live)", count: tabPublishedCount },
@@ -70,14 +90,14 @@ export function CatalogHeader({
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-emerald-brand" />
-              <span>Catálogo Global de Cursos</span>
+              <span>{headerTitle}</span>
             </h1>
             <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30">
-              Modo Administrador
+              {headerBadge}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-muted mt-1 leading-relaxed">
-            Administración del currículo oficial de Wordtap y supervisión de cursos docentes.
+            {headerSubtitle}
           </p>
         </div>
 
@@ -91,63 +111,107 @@ export function CatalogHeader({
         </button>
       </div>
 
-      {/* Fila de Métricas Rápidas: 5 columnas */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
-          <div className="flex items-center justify-between text-slate-subtle text-[11px]">
-            <span>Total Catálogo</span>
-            <Layers className="w-3.5 h-3.5 text-slate-400" />
+      {/* Fila de Métricas Rápidas: 4 columnas para Docente, 5 columnas para Admin */}
+      {isTeacherScope ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-slate-subtle text-[11px]">
+              <span>Total Cursos</span>
+              <Layers className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <span className="text-lg font-bold font-mono text-white block">
+              {totalCourses}
+            </span>
           </div>
-          <span className="text-lg font-bold font-mono text-white block">
-            {totalCourses}
-          </span>
-        </div>
 
-        <div className="p-3 rounded-2xl bg-card border border-emerald-500/30 bg-emerald-500/5 shadow-card-soft space-y-1">
-          <div className="flex items-center justify-between text-emerald-300 text-[11px] font-semibold">
-            <span>Publicados (Live)</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          </div>
-          <div className="flex items-baseline justify-between gap-1">
+          <div className="p-3 rounded-2xl bg-card border border-emerald-500/30 bg-emerald-500/5 shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-emerald-300 text-[11px] font-semibold">
+              <span>Publicados (Live)</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
             <span className="text-lg font-bold font-mono text-emerald-300 block">
               {publishedCount}
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">
-              {platformPublishedCount} plat • {teacherPublishedCount} doc
+          </div>
+
+          <div className="p-3 rounded-2xl bg-card border border-blue-500/30 bg-blue-500/5 shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-blue-300 text-[11px] font-semibold">
+              <span>En Revisión</span>
+              <Clock className="w-3.5 h-3.5 text-blue-400" />
+            </div>
+            <span className="text-lg font-bold font-mono text-blue-300 block">
+              {inReviewCount ?? tabInReviewCount}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-slate-subtle text-[11px]">
+              <span>Borradores</span>
+              <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <span className="text-lg font-bold font-mono text-white block">
+              {draftCount ?? tabDraftCount}
             </span>
           </div>
         </div>
-
-        <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
-          <div className="flex items-center justify-between text-amber-200 text-[11px]">
-            <span>Suscripción Pro</span>
-            <Crown className="w-3.5 h-3.5 text-amber-400" />
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-slate-subtle text-[11px]">
+              <span>Total Catálogo</span>
+              <Layers className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <span className="text-lg font-bold font-mono text-white block">
+              {totalCourses}
+            </span>
           </div>
-          <span className="text-lg font-bold font-mono text-amber-300 block">
-            {proCount}
-          </span>
-        </div>
 
-        <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
-          <div className="flex items-center justify-between text-emerald-200 text-[11px]">
-            <span>Prueba Gratis</span>
-            <Gift className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="p-3 rounded-2xl bg-card border border-emerald-500/30 bg-emerald-500/5 shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-emerald-300 text-[11px] font-semibold">
+              <span>Publicados (Live)</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-lg font-bold font-mono text-emerald-300 block">
+                {publishedCount}
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {platformPublishedCount} plat • {teacherPublishedCount} doc
+              </span>
+            </div>
           </div>
-          <span className="text-lg font-bold font-mono text-emerald-300 block">
-            {freeCount}
-          </span>
-        </div>
 
-        <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
-          <div className="flex items-center justify-between text-purple-200 text-[11px]">
-            <span>Cursos Docentes</span>
-            <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
+          <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-amber-200 text-[11px]">
+              <span>Suscripción Pro</span>
+              <Crown className="w-3.5 h-3.5 text-amber-400" />
+            </div>
+            <span className="text-lg font-bold font-mono text-amber-300 block">
+              {proCount}
+            </span>
           </div>
-          <span className="text-lg font-bold font-mono text-purple-300 block">
-            {teacherCount}
-          </span>
+
+          <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-emerald-200 text-[11px]">
+              <span>Prueba Gratis</span>
+              <Gift className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <span className="text-lg font-bold font-mono text-emerald-300 block">
+              {freeCount}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-card border border-border-default shadow-card-soft space-y-1">
+            <div className="flex items-center justify-between text-purple-200 text-[11px]">
+              <span>Cursos Docentes</span>
+              <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
+            </div>
+            <span className="text-lg font-bold font-mono text-purple-300 block">
+              {teacherCount}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Barra de Filtros y Búsqueda */}
       <div className="p-2.5 rounded-2xl bg-card border border-border-default flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 text-xs">

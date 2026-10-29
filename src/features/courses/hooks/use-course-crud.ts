@@ -209,7 +209,7 @@ export function useCourseCrud({
     triggerToast(
       finalTier === "subscription"
         ? "Curso incluido en Suscripción Pro Mensual"
-        : `Precio actualizado a $${newPrice.toFixed(2)} USD`
+        : `Precio actualizado a S/ ${newPrice.toFixed(2)} PEN`
     );
   };
 
@@ -259,7 +259,7 @@ export function useCourseCrud({
         : typeof newApiCourse.price_cents === "number"
         ? newApiCourse.price_cents / 100
         : 0,
-      currency: "USD",
+      currency: "PEN",
       author: newApiCourse.author?.name || userName || "Wordtap",
       ownerType: newApiCourse.owner_type || "platform",
       status: newApiCourse.status || "draft",

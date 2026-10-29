@@ -12,12 +12,15 @@ import {
   UploadCloud,
   Clock,
   Settings,
+  AlertTriangle,
 } from "lucide-react";
 import { ApiCourse } from "@/services/api";
 
 interface CourseCardProps {
   course: ApiCourse;
   returnUrl?: string;
+  editorHref?: (course: ApiCourse) => string;
+  scope?: "admin" | "teacher";
   onEditPricing?: (course: ApiCourse) => void;
   onEditDetails?: (course: ApiCourse) => void;
   onTogglePublish?: (course: ApiCourse) => void;
@@ -26,6 +29,8 @@ interface CourseCardProps {
 export function CourseCard({
   course,
   returnUrl,
+  editorHref,
+  scope = "admin",
   onEditPricing,
   onEditDetails,
   onTogglePublish,
@@ -35,7 +40,8 @@ export function CourseCard({
   const price = (course.price_cents ?? 0) / 100;
   const isTeacher = course.owner_type === "teacher";
   const isPublished = course.status === "published";
-  const isInReview = course.status === "in_review";
+  const isInReview = course.status === "in_review" || (course as { reviewStatus?: string }).reviewStatus === "pending";
+  const isChangesRequested = (course as { reviewStatus?: string }).reviewStatus === "changes_requested";
   const lessonCount = course.lessons?.length ?? 0;
 
   return (
@@ -106,7 +112,7 @@ export function CourseCard({
               title={onEditPricing ? "Hacé clic para cambiar tarifa" : undefined}
             >
               <DollarSign className="w-3 h-3 text-purple-400" />
-              <span>${price.toFixed(2)} USD</span>
+              <span>S/ {price.toFixed(2)} PEN</span>
             </button>
           )}
         </div>
@@ -141,35 +147,58 @@ export function CourseCard({
         <div className="flex items-center justify-between text-[10px] text-slate-subtle pt-0.5">
           <div className="flex items-center gap-1.5 truncate max-w-[140px]">
             <User className="w-3 h-3 text-slate-subtle flex-shrink-0" />
-            <span className="truncate">{course.author?.name || (isTeacher ? "Docente" : "Wordtap Core")}</span>
+            <span className="truncate">
+              {course.author?.name || (scope === "teacher" ? "Mis Cursos" : isTeacher ? "Docente" : "Wordtap Core")}
+            </span>
           </div>
 
-          {/* Insignia de Estado con botón interactivo de 1 clic */}
+          {/* Insignia de Estado con botón interactivo de 1 clic para Admin, o badge contextual */}
           {isPublished ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                onTogglePublish?.(course);
-              }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[9px] font-bold hover:bg-rose-500/15 hover:border-rose-500/30 hover:text-rose-300 transition-all cursor-pointer group/pub"
-              title="Curso activo en la app móvil. Hacé clic para despublicar."
+            onTogglePublish ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onTogglePublish(course);
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[9px] font-bold hover:bg-rose-500/15 hover:border-rose-500/30 hover:text-rose-300 transition-all cursor-pointer group/pub"
+                title="Curso activo en la app móvil. Hacé clic para despublicar."
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse group-hover/pub:bg-rose-400" />
+                <span className="group-hover/pub:hidden">Publicado (Live)</span>
+                <span className="hidden group-hover/pub:inline">Despublicar</span>
+              </button>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[9px] font-bold"
+                title="Curso publicado y activo en la app móvil"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Publicado (Live)</span>
+              </span>
+            )
+          ) : isChangesRequested ? (
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-[9px] font-semibold"
+              title="El revisor solicitó correcciones antes de aprobar"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse group-hover/pub:bg-rose-400" />
-              <span className="group-hover/pub:hidden">Publicado (Live)</span>
-              <span className="hidden group-hover/pub:inline">Despublicar</span>
-            </button>
+              <AlertTriangle className="w-2.5 h-2.5 text-amber-400" />
+              <span>Cambios Solicitados</span>
+            </span>
           ) : isInReview ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 font-mono text-[9px] font-semibold">
-              <Clock className="w-2.5 h-2.5" />
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 font-mono text-[9px] font-semibold"
+              title="Curso enviado a revisión por el equipo pedagógico"
+            >
+              <Clock className="w-2.5 h-2.5 text-blue-400" />
               <span>En Revisión</span>
             </span>
-          ) : (
+          ) : onTogglePublish ? (
             <button
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                onTogglePublish?.(course);
+                onTogglePublish(course);
               }}
               className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-canvas border border-border-default hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 text-slate-400 font-mono text-[9px] font-semibold transition-all cursor-pointer group/pub"
               title="Curso en borrador. Hacé clic para publicar inmediatamente en la app móvil."
@@ -177,6 +206,14 @@ export function CourseCard({
               <UploadCloud className="w-2.5 h-2.5 text-slate-400 group-hover/pub:text-emerald-300" />
               <span>Borrador • Publicar</span>
             </button>
+          ) : (
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-canvas border border-border-default text-slate-400 font-mono text-[9px] font-semibold"
+              title="Curso en borrador. Entra al editor para diseñar y enviar a revisión."
+            >
+              <UploadCloud className="w-2.5 h-2.5 text-slate-400" />
+              <span>Borrador</span>
+            </span>
           )}
         </div>
       </div>
@@ -197,7 +234,9 @@ export function CourseCard({
 
         <Link
           href={
-            returnUrl
+            editorHref
+              ? editorHref(course)
+              : returnUrl
               ? `/admin/courses/${course.id}?from=${encodeURIComponent(returnUrl)}`
               : `/admin/courses/${course.id}`
           }

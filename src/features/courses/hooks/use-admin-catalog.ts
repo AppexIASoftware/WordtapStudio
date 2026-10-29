@@ -107,7 +107,7 @@ export function useAdminCatalog() {
   const selectedCourseForModal: Course | null = editingPricingCourse ? {
     id: editingPricingCourse.id, title: editingPricingCourse.title, level: editingPricingCourse.level,
     tier: editingPricingCourse.access_tier === "subscription" ? "subscription" : editingPricingCourse.access_tier === "course" ? "course" : "free",
-    price: (editingPricingCourse.price_cents ?? 0) / 100, currency: "USD",
+    price: (editingPricingCourse.price_cents ?? 0) / 100, currency: "PEN",
     author: editingPricingCourse.author?.name || "Wordtap Core", lessons: [],
   } : null;
 

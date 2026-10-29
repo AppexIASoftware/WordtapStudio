@@ -41,7 +41,7 @@ export const COURSES_DATA: Record<string, Course> = {
     level: "A1 Beginner",
     tier: "free",
     price: 0.0,
-    currency: "USD",
+    currency: "PEN",
     author: "Prof. Mateo Silva",
     status: "published",
     lessons: [
@@ -98,7 +98,7 @@ export const COURSES_DATA: Record<string, Course> = {
     level: "B1 Intermediate",
     tier: "course",
     price: 19.99,
-    currency: "USD",
+    currency: "PEN",
     author: "Prof. Mateo Silva",
     status: "draft",
     lessons: [
@@ -144,7 +144,7 @@ export const COURSES_DATA: Record<string, Course> = {
     level: "C1 Advanced",
     tier: "course",
     price: 29.99,
-    currency: "USD",
+    currency: "PEN",
     author: "Prof. Mateo Silva",
     status: "draft",
     lessons: [
@@ -179,7 +179,7 @@ export const COURSES_DATA: Record<string, Course> = {
     level: "B2 Upper-Intermediate",
     tier: "course",
     price: 24.99,
-    currency: "USD",
+    currency: "PEN",
     author: "Prof. Mateo Silva",
     status: "in_review",
     lessons: [

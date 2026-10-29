@@ -87,7 +87,7 @@ export function AdminCoursesCatalogView() {
             targetLang: editing.target_lang,
             tier: editing.access_tier === "subscription" ? "subscription" : editing.access_tier === "course" ? "course" : "free",
             price: (editing.price_cents ?? 0) / 100,
-            currency: "USD",
+            currency: "PEN",
             author: editing.author?.name || "Wordtap Core",
             lessons: [],
           }}

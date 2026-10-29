@@ -34,7 +34,7 @@ export function TeacherNav({ collapsed = false }: TeacherNavProps) {
             roleTheme="instructor"
           />
           <NavItem
-            href="/teacher/builder"
+            href="/teacher/courses"
             label="Creador de Cursos"
             icon={Layers}
             collapsed={collapsed}

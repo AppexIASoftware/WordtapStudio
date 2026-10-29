@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FileEdit, Volume2, Plus, X } from "lucide-react";
 import { LessonItem } from "@/features/courses/types";
 import { useSpeak } from "@/hooks/use-speak";
+import { TagInput } from "@/components/ui/tag-input";
 
 interface ManualCardModalProps {
   isOpen: boolean;
@@ -156,15 +157,16 @@ export function ManualCardModal({ isOpen, onClose, onAddCard }: ManualCardModalP
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Categoría Gramatical
-                  </label>
-                  <input
-                    type="text"
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      Categoría Gramatical o Etiqueta
+                    </label>
+                    <span className="text-[11px] text-slate-subtle">(Coma o Enter)</span>
+                  </div>
+                  <TagInput
                     value={pos}
-                    onChange={(e) => setPos(e.target.value)}
-                    className="w-full bg-canvas border border-border-default rounded-xl px-3.5 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-brand"
-                    placeholder="Verbo irregular..."
+                    onChange={setPos}
+                    placeholder="Ej: Verbo irregular, Idiom..."
                   />
                 </div>
               </div>

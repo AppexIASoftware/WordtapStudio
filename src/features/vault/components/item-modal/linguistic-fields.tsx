@@ -1,6 +1,7 @@
 "use client";
 
 import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea";
+import { TagInput } from "@/components/ui/tag-input";
 
 interface LinguisticFieldsProps {
   ipa: string;
@@ -32,9 +33,13 @@ export function LinguisticFields({ ipa, category, tagsInput, isPhraseOrSentence,
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-1.5 h-6">
           <label className="block text-xs font-semibold text-slate-300">Etiquetas Semánticas (Tags)</label>
-          <span className="text-[11px] font-normal text-slate-subtle">(Comas)</span>
+          <span className="text-[11px] font-normal text-slate-subtle">(Coma o Enter)</span>
         </div>
-        <AutoResizeTextarea value={tagsInput} onChange={(e) => onTagsChange(e.target.value)} placeholder="Ej: aeropuerto, vuelo, vacaciones..." minHeight={44} className="w-full bg-canvas border border-border-default rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-brand leading-relaxed" />
+        <TagInput
+          value={tagsInput}
+          onChange={onTagsChange}
+          placeholder="Ej: aeropuerto, viaje, hotel..."
+        />
       </div>
     </div>
   );

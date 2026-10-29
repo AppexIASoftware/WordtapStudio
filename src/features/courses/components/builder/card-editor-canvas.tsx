@@ -3,6 +3,7 @@
 import { FileEdit, Volume2, Trash2, Save, Plus, X, Loader2, Sparkles } from "lucide-react";
 import { LessonItem } from "@/features/courses/types";
 import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea";
+import { TagInput } from "@/components/ui/tag-input";
 
 interface CardEditorCanvasProps {
   isCreating: boolean;
@@ -239,16 +240,14 @@ export function CardEditorCanvas({
                 Categoría Gramatical o Etiqueta
               </label>
               <span className="text-[11px] font-normal text-slate-subtle">
-                (Opcional)
+                (Coma o Enter)
               </span>
             </div>
-            <AutoResizeTextarea
+            <TagInput
               disabled={readOnly}
               value={activePos}
-              onChange={(e) => updateField("pos", e.target.value)}
-              placeholder="Ej: Adjetivo, Verbo transitivo, Idiom, Expresión coloquial..."
-              minHeight={44}
-              className="w-full bg-canvas border border-border-default rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-brand leading-relaxed"
+              onChange={(val) => updateField("pos", val)}
+              placeholder="Ej: Adjetivo, Verbo transitivo, Idiom..."
             />
           </div>
         </div>

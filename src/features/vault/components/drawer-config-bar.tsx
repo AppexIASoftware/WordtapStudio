@@ -1,24 +1,35 @@
 "use client";
 
+import { ApiVaultCategory } from "@/services/api";
+import { CategoryCombobox } from "./category-combobox";
+
 interface VaultDrawerConfigBarProps {
   bankType: string;
+  categoryId?: string;
+  categories?: ApiVaultCategory[];
   cefrLevel: string;
   difficulty: number;
   onBankTypeChange: (val: string) => void;
+  onCategoryIdChange?: (val: string) => void;
   onCefrLevelChange: (val: string) => void;
   onDifficultyChange: (val: number) => void;
+  onAddCategory?: (initialName?: string) => void;
 }
 
 export function VaultDrawerConfigBar({
   bankType,
+  categoryId,
+  categories = [],
   cefrLevel,
   difficulty,
   onBankTypeChange,
+  onCategoryIdChange,
   onCefrLevelChange,
   onDifficultyChange,
+  onAddCategory,
 }: VaultDrawerConfigBarProps) {
   return (
-    <div className="p-4 rounded-2xl bg-canvas border border-border-default grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+    <div className="p-4 rounded-2xl bg-canvas border border-border-default grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
       <div>
         <label className="block text-xs font-semibold text-slate-300 mb-1.5">
           Tipo de Contenido
@@ -31,12 +42,26 @@ export function VaultDrawerConfigBar({
           <option value="vocabulary">word (Vocabulario)</option>
           <option value="phrase">phrase (Oraciones)</option>
           <option value="collocation">collocation (Colocaciones)</option>
-          <option value="false_friend">false_friend (Falsos Amigos)</option>
-          <option value="minimal_pair">minimal_pair (Pares Mínimos)</option>
+          <option value="dialogue">dialogue (Micro-Diálogos)</option>
           <option value="idioms">idioms (Modismos)</option>
           <option value="slang">slang (Jerga)</option>
           <option value="business_english">business (Negocios)</option>
+          <option value="false_friend">false_friend (Falsos Amigos)</option>
+          <option value="minimal_pair">minimal_pair (Pares Mínimos)</option>
         </select>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          Categoría Temática
+        </label>
+        <CategoryCombobox
+          value={categoryId}
+          categories={categories}
+          onChange={(id) => onCategoryIdChange?.(id)}
+          onCreateNew={onAddCategory}
+          placeholder="(Sin Categoría)"
+        />
       </div>
 
       <div>

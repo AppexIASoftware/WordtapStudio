@@ -1,6 +1,7 @@
 import { API_V1_URL, apiRequest } from "./client";
 import {
   ApiVaultType,
+  ApiVaultCategory,
   ApiVaultItem,
   VaultItemsResponse,
   CreateVaultItemPayload,
@@ -9,6 +10,8 @@ import {
 
 export interface VaultQueryFilters {
   bank_type?: string;
+  category?: string;
+  category_id?: string;
   cefr_level?: string;
   difficulty?: number | string;
   q?: string;
@@ -20,6 +23,8 @@ function buildQueryString(filters?: VaultQueryFilters): string {
   if (!filters) return "";
   const params = new URLSearchParams();
   if (filters.bank_type && filters.bank_type !== "all") params.append("bank_type", filters.bank_type);
+  if (filters.category && filters.category !== "all") params.append("category", filters.category);
+  if (filters.category_id && filters.category_id !== "all") params.append("category_id", filters.category_id);
   if (filters.cefr_level && filters.cefr_level !== "all") params.append("cefr_level", filters.cefr_level);
   if (filters.difficulty && filters.difficulty !== "all") params.append("difficulty", String(filters.difficulty));
   if (filters.q?.trim()) params.append("q", filters.q.trim());
@@ -36,6 +41,29 @@ export async function getVaultTypesApi(): Promise<{
 }> {
   return apiRequest<ApiVaultType[]>(`${API_V1_URL}/vault/types`, {
     cache: "no-store",
+  });
+}
+
+// 1.1 Categorías semánticas de contenido
+export async function getVaultCategoriesApi(): Promise<{
+  data: ApiVaultCategory[] | null;
+  error: string | null;
+}> {
+  return apiRequest<ApiVaultCategory[]>(`${API_V1_URL}/vault/categories`, {
+    cache: "no-store",
+  });
+}
+
+export async function createVaultCategoryApi(payload: {
+  name: string;
+  description?: string;
+}): Promise<{
+  data: ApiVaultCategory | null;
+  error: string | null;
+}> {
+  return apiRequest<ApiVaultCategory>(`${API_V1_URL}/vault/categories`, {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
 

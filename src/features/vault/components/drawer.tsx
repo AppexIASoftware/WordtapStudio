@@ -16,7 +16,9 @@ import {
 import {
   getOfficialVaultItemsApi,
   getTeacherPrivateVaultApi,
+  getVaultCategoriesApi,
   ApiVaultItem,
+  ApiVaultCategory,
 } from "@/services/api";
 import { LessonItem, Lesson } from "@/features/courses/types";
 
@@ -42,6 +44,7 @@ export function VaultDrawer({
   const [activeSource, setActiveSource] = useState<"official" | "private">("official");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [bankType, setBankType] = useState("all");
   const [cefrLevel, setCefrLevel] = useState("all");
   const [importingId, setImportingId] = useState<string | null>(null);
@@ -61,12 +64,23 @@ export function VaultDrawer({
     }
   }, [showPrivateCollection, activeSource]);
 
+  const { data: categories = [] } = useQuery<ApiVaultCategory[]>({
+    queryKey: ["vault-categories"],
+    queryFn: async () => {
+      const res = await getVaultCategoriesApi();
+      return res.data || [];
+    },
+    staleTime: 10 * 60 * 1000,
+    enabled: isOpen,
+  });
+
   const { data: officialData, isLoading: loadingOfficial } = useQuery({
-    queryKey: ["vault-official", debouncedSearch, bankType, cefrLevel],
+    queryKey: ["vault-official", debouncedSearch, bankType, selectedCategory, cefrLevel],
     queryFn: async () => {
       const res = await getOfficialVaultItemsApi({
         q: debouncedSearch,
         bank_type: bankType,
+        category: selectedCategory,
         cefr_level: cefrLevel,
         limit: 40,
       });
@@ -78,11 +92,12 @@ export function VaultDrawer({
   });
 
   const { data: privateData, isLoading: loadingPrivate } = useQuery({
-    queryKey: ["vault-private", debouncedSearch, bankType, cefrLevel],
+    queryKey: ["vault-private", debouncedSearch, bankType, selectedCategory, cefrLevel],
     queryFn: async () => {
       const res = await getTeacherPrivateVaultApi({
         q: debouncedSearch,
         bank_type: bankType,
+        category: selectedCategory,
         cefr_level: cefrLevel,
         limit: 40,
       });
@@ -196,18 +211,49 @@ export function VaultDrawer({
             />
           </div>
 
+          {/* Selector de Categoría Temática */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-medium text-slate-muted">
+              <span>Categoría Temática</span>
+              {selectedCategory !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory("all")}
+                  className="text-emerald-brand hover:underline cursor-pointer text-[10px]"
+                >
+                  Restablecer
+                </button>
+              )}
+            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-2.5 py-1.5 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none focus:border-emerald-brand cursor-pointer"
+            >
+              <option value="all">Todas las Categorías ({categories.length})</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.slug}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Filtros rápidos: Tipo y CEFR */}
           <div className="grid grid-cols-2 gap-2">
             <select
               value={bankType}
               onChange={(e) => setBankType(e.target.value)}
-              className="px-2.5 py-1.5 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none focus:border-emerald-brand"
+              className="px-2.5 py-1.5 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none focus:border-emerald-brand cursor-pointer"
             >
               <option value="all">Todos los Tipos</option>
               <option value="vocabulary">Vocabulario</option>
               <option value="phrase">Oraciones</option>
               <option value="collocation">Colocaciones</option>
+              <option value="dialogue">Micro-Diálogos</option>
               <option value="idioms">Modismos</option>
+              <option value="slang">Jerga (Slang)</option>
+              <option value="business_english">Negocios</option>
               <option value="false_friend">Falsos Amigos</option>
               <option value="minimal_pair">Pares Mínimos</option>
             </select>
@@ -215,7 +261,7 @@ export function VaultDrawer({
             <select
               value={cefrLevel}
               onChange={(e) => setCefrLevel(e.target.value)}
-              className="px-2.5 py-1.5 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none focus:border-emerald-brand"
+              className="px-2.5 py-1.5 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none focus:border-emerald-brand cursor-pointer"
             >
               <option value="all">Nivel CEFR (Todos)</option>
               <option value="A1">A1 - Principiante</option>
@@ -231,7 +277,7 @@ export function VaultDrawer({
           </p>
 
           {/* Lista de Resultados */}
-          <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
             {isLoading ? (
               <div className="p-8 text-center text-xs text-slate-muted flex flex-col items-center gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-emerald-brand" />
@@ -247,60 +293,92 @@ export function VaultDrawer({
                 )}
               </div>
             ) : (
-              items.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-3 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/50 transition-colors flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-white text-xs">{item.target_text}</span>
-                      {item.ipa && (
-                        <span className="text-[10px] font-mono text-mint-brand">{item.ipa}</span>
-                      )}
-                      <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-card text-slate-400 border border-border-default">
-                        {item.cefr_level}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-300 truncate mt-0.5">{item.prompt_text}</p>
-                  </div>
+              items.map((item) => {
+                let tags: string[] = [];
+                if (item.metadata) {
+                  try {
+                    const parsed = JSON.parse(item.metadata);
+                    if (Array.isArray(parsed.tags)) tags = parsed.tags;
+                  } catch {
+                    // ignorar json inválido
+                  }
+                }
 
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => speak(item.target_text)}
-                      className="p-1.5 rounded-lg bg-card text-slate-400 hover:text-white cursor-pointer"
-                      title="Pronunciar"
-                    >
-                      <Volume2 className="w-3 h-3" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={importingId === item.id}
-                      onClick={() => handleImport(item)}
-                      className={`px-2.5 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1 ${
-                        importedIds.has(item.id)
-                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                          : "bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand hover:text-canvas"
-                      }`}
-                    >
-                      {importingId === item.id ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          <span>Añadiendo...</span>
-                        </>
-                      ) : importedIds.has(item.id) ? (
-                        <>
-                          <Check className="w-3 h-3" />
-                          <span>Añadida</span>
-                        </>
-                      ) : (
-                        <span>+ Añadir</span>
+                return (
+                  <div
+                    key={item.id}
+                    className="p-3 rounded-xl bg-canvas border border-border-default hover:border-emerald-brand/50 transition-colors flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-white text-xs">{item.target_text}</span>
+                        {item.ipa && (
+                          <span className="text-[10px] font-mono text-mint-brand">{item.ipa}</span>
+                        )}
+                        <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-card text-slate-400 border border-border-default">
+                          {item.cefr_level}
+                        </span>
+                        {item.category?.name && (
+                          <span className="text-[9px] font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                            {item.category.name}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-300 truncate mt-0.5">{item.prompt_text}</p>
+                      {tags.length > 0 && (
+                        <div className="flex items-center gap-1 flex-wrap mt-1">
+                          {tags.slice(0, 3).map((tag) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => setSearch(tag)}
+                              className="text-[9px] text-slate-400 hover:text-emerald-300 bg-card/60 px-1 rounded transition-colors cursor-pointer"
+                              title={`Filtrar por #${tag}`}
+                            >
+                              #{tag}
+                            </button>
+                          ))}
+                        </div>
                       )}
-                    </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => speak(item.target_text)}
+                        className="p-1.5 rounded-lg bg-card text-slate-400 hover:text-white cursor-pointer"
+                        title="Pronunciar"
+                      >
+                        <Volume2 className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={importingId === item.id}
+                        onClick={() => handleImport(item)}
+                        className={`px-2.5 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1 ${
+                          importedIds.has(item.id)
+                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                            : "bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand hover:text-canvas"
+                        }`}
+                      >
+                        {importingId === item.id ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Añadiendo...</span>
+                          </>
+                        ) : importedIds.has(item.id) ? (
+                          <>
+                            <Check className="w-3 h-3" />
+                            <span>Añadida</span>
+                          </>
+                        ) : (
+                          <span>+ Añadir</span>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

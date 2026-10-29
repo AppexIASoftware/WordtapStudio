@@ -3,12 +3,17 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Plus, Loader2, ShieldCheck, Sparkles } from "lucide-react";
-import { getOfficialVaultItemsApi, ApiVaultItem } from "@/services/api";
-import { NewVaultItemModal } from "./new-vault-item-modal";
+import {
+  getOfficialVaultItemsApi,
+  getVaultCategoriesApi,
+  ApiVaultItem,
+  ApiVaultCategory,
+} from "@/services/api";
+import { NewVaultItemModal } from "./new-item-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { useVaultMutations } from "../hooks/use-vault-mutations";
 import { VaultAccent, VaultEditorIntent } from "../types/vault";
-import { VaultItemCard } from "./vault-item-card";
+import { VaultItemCard } from "./item-card";
 
 // El acento solo cambia colores; la estructura del gestor es una sola.
 const MANAGER_ACCENT: Record<
@@ -72,6 +77,7 @@ export function VaultOfficialManager({
 }: VaultOfficialManagerProps) {
   const tone = MANAGER_ACCENT[accent];
   const [activeBank, setActiveBank] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [cefrFilter, setCefrFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -90,15 +96,31 @@ export function VaultOfficialManager({
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  const { data: categories = [] } = useQuery<ApiVaultCategory[]>({
+    queryKey: ["vault-categories"],
+    queryFn: async () => {
+      const res = await getVaultCategoriesApi();
+      return res.data || [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
   // Clave única del banco oficial: docente, admin y moderador comparten la
   // misma caché, así una edición se refleja al instante en las tres vistas.
-  const queryKey = ["official-vault", activeBank, cefrFilter, debouncedSearch];
+  const queryKey = [
+    "official-vault",
+    activeBank,
+    selectedCategory,
+    cefrFilter,
+    debouncedSearch,
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
       const res = await getOfficialVaultItemsApi({
         bank_type: activeBank,
+        category: selectedCategory,
         cefr_level: cefrFilter,
         q: debouncedSearch,
         limit: 60,
@@ -179,17 +201,33 @@ export function VaultOfficialManager({
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-3 py-2 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none cursor-pointer"
+          >
+            <option value="all">Todas las Categorías</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.slug}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+
           <select
             value={activeBank}
             onChange={(e) => setActiveBank(e.target.value)}
-            className="px-3 py-2 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none"
+            className="px-3 py-2 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none cursor-pointer"
           >
             <option value="all">Todos los Tipos</option>
             <option value="vocabulary">Vocabulario</option>
             <option value="phrase">Oraciones</option>
             <option value="collocation">Colocaciones</option>
+            <option value="dialogue">Micro-Diálogos</option>
             <option value="idioms">Modismos</option>
+            <option value="slang">Jerga (Slang)</option>
+            <option value="business_english">Negocios</option>
             <option value="false_friend">Falsos Amigos</option>
             <option value="minimal_pair">Pares Mínimos</option>
           </select>
@@ -197,7 +235,7 @@ export function VaultOfficialManager({
           <select
             value={cefrFilter}
             onChange={(e) => setCefrFilter(e.target.value)}
-            className="px-3 py-2 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none"
+            className="px-3 py-2 bg-canvas rounded-xl border border-border-default text-xs text-white focus:outline-none cursor-pointer"
           >
             <option value="all">Todos los Niveles</option>
             <option value="A1">A1</option>
@@ -247,6 +285,7 @@ export function VaultOfficialManager({
         isOpen={isEditorOpen}
         initialItem={editingItem}
         isOfficial={true}
+        canCreateCategory
         onClose={onCloseEditor}
         onSave={async (payload, id) => {
           if (id) {

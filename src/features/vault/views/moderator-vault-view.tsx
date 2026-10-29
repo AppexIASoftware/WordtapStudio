@@ -1,7 +1,7 @@
 "use client";
 
 import { useUrlParams } from "@/hooks/use-url-params";
-import { VaultOfficialManager } from "@/features/vault/components/vault-official-manager";
+import { VaultOfficialManager } from "@/features/vault/components/official-manager";
 
 /**
  * Banco oficial para el moderador: mismo gestor y mismo comportamiento que el

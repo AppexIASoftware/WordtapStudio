@@ -40,12 +40,22 @@ export function VaultItemCard({
   const tone = CARD_ACCENT[accent];
   const speak = useSpeak();
 
+  let tags: string[] = [];
+  if (item.metadata) {
+    try {
+      const parsed = JSON.parse(item.metadata);
+      if (Array.isArray(parsed.tags)) tags = parsed.tags;
+    } catch {
+      // json inválido ignorado
+    }
+  }
+
   return (
     <div
       className={`p-4 rounded-2xl bg-card border border-border-default ${tone.hover} transition-all space-y-2.5 shadow-sm`}
     >
       <div className="flex items-start justify-between gap-2">
-        <div>
+        <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-white text-sm">{item.target_text}</span>
             {item.ipa && (
@@ -53,8 +63,25 @@ export function VaultItemCard({
                 {item.ipa}
               </span>
             )}
+            {item.category?.name && (
+              <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                {item.category.name}
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-300 mt-0.5">{item.prompt_text}</p>
+          {tags.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[9px] text-slate-400 bg-canvas px-1.5 py-0.5 rounded border border-border-default/50 font-mono"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1">

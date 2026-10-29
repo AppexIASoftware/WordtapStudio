@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Plus, Globe, Lock, Loader2, Sparkles } from "lucide-react";
 import { getOfficialVaultItemsApi, getTeacherPrivateVaultApi, ApiVaultItem } from "@/services/api";
-import { NewVaultItemModal } from "@/features/vault/components/new-vault-item-modal";
+import { NewVaultItemModal } from "@/features/vault/components/new-item-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
-import { VaultItemCard } from "@/features/vault/components/vault-item-card";
+import { VaultItemCard } from "@/features/vault/components/item-card";
 import { useVaultMutations } from "@/features/vault/hooks/use-vault-mutations";
 
 const TEACHER_VAULT_TABS = ["official", "private"] as const;

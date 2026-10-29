@@ -41,7 +41,21 @@ export function setStoredTokens(accessToken: string, refreshToken?: string): voi
   setCookie(TOKEN_KEY, accessToken);
   if (refreshToken) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    setCookie(REFRESH_TOKEN_KEY, refreshToken);
   }
+}
+
+export function getStoredRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const token = localStorage.getItem(REFRESH_TOKEN_KEY);
+  if (token) return token;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${REFRESH_TOKEN_KEY}=([^;]*)`));
+  if (match) {
+    const val = decodeURIComponent(match[1]);
+    localStorage.setItem(REFRESH_TOKEN_KEY, val);
+    return val;
+  }
+  return null;
 }
 
 export function getStoredRole(): string | null {
@@ -61,7 +75,22 @@ export function clearStoredTokens(): void {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(ROLE_KEY);
   deleteCookie(TOKEN_KEY);
+  deleteCookie(REFRESH_TOKEN_KEY);
   deleteCookie(ROLE_KEY);
+}
+
+function resolveDevCredentials(url?: string): { role: string; email: string } {
+  const storedRole = getStoredRole();
+  const path = typeof window !== "undefined" ? window.location.pathname : "";
+  const target = `${url || ""} ${path}`;
+
+  if (storedRole === "admin" || target.includes("/admin")) {
+    return { role: "admin", email: "admin@wordtap.app" };
+  }
+  if (storedRole === "moderator" || target.includes("/moderator")) {
+    return { role: "moderator", email: "elena.ramos@wordtap.app" };
+  }
+  return { role: "instructor", email: "mateo.silva@wordtap.app" };
 }
 
 export async function apiRequest<T>(
@@ -82,22 +111,45 @@ export async function apiRequest<T>(
     }
     let token = getStoredAccessToken();
     if (!token && typeof window !== "undefined") {
-      try {
-        const devRes = await fetch(`${API_V1_URL}/auth/dev-login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role: "instructor" }),
-        });
-        if (devRes.ok) {
-          const devData = await devRes.json();
-          if (devData.access_token) {
-            token = devData.access_token;
-            setStoredTokens(devData.access_token, devData.refresh_token);
-            setStoredRole("instructor");
+      const refreshToken = getStoredRefreshToken();
+      if (refreshToken) {
+        try {
+          const refreshRes = await fetch(`${API_V1_URL}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+          if (refreshRes.ok) {
+            const refreshData = await refreshRes.json();
+            if (refreshData.access_token) {
+              token = refreshData.access_token;
+              setStoredTokens(refreshData.access_token, refreshData.refresh_token);
+            }
           }
+        } catch {
+          // Fallback
         }
-      } catch {
-        // Fallback silencioso
+      }
+
+      if (!token) {
+        try {
+          const creds = resolveDevCredentials(url);
+          const devRes = await fetch(`${API_V1_URL}/auth/dev-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(creds),
+          });
+          if (devRes.ok) {
+            const devData = await devRes.json();
+            if (devData.access_token) {
+              token = devData.access_token;
+              setStoredTokens(devData.access_token, devData.refresh_token);
+              setStoredRole(creds.role);
+            }
+          }
+        } catch {
+          // Fallback silencioso
+        }
       }
     }
 
@@ -112,31 +164,61 @@ export async function apiRequest<T>(
 
     if (!res.ok) {
       if (res.status === 401 && typeof window !== "undefined") {
-        try {
-          const devRes = await fetch(`${API_V1_URL}/auth/dev-login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role: "instructor" }),
-          });
-          if (devRes.ok) {
-            const devData = await devRes.json();
-            if (devData.access_token) {
-              setStoredTokens(devData.access_token, devData.refresh_token);
-              setStoredRole("instructor");
-              headers.set("Authorization", `Bearer ${devData.access_token}`);
-              const retryRes = await fetch(url, { ...options, headers });
-              if (retryRes.ok) {
-                if (retryRes.status === 204) {
-                  return { data: null, error: null };
-                }
-                const retryData: T = await retryRes.json();
-                return { data: retryData, error: null };
+        let renewedToken: string | null = null;
+
+        const refreshToken = getStoredRefreshToken();
+        if (refreshToken) {
+          try {
+            const refreshRes = await fetch(`${API_V1_URL}/auth/refresh`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refresh_token: refreshToken }),
+            });
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              if (refreshData.access_token) {
+                renewedToken = refreshData.access_token;
+                setStoredTokens(refreshData.access_token, refreshData.refresh_token);
               }
             }
+          } catch {
+            // Fallback silencioso
           }
-        } catch {
-          // Fallback
         }
+
+        if (!renewedToken) {
+          try {
+            const creds = resolveDevCredentials(url);
+            const devRes = await fetch(`${API_V1_URL}/auth/dev-login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(creds),
+            });
+            if (devRes.ok) {
+              const devData = await devRes.json();
+              if (devData.access_token) {
+                renewedToken = devData.access_token;
+                setStoredTokens(devData.access_token, devData.refresh_token);
+                setStoredRole(creds.role);
+              }
+            }
+          } catch {
+            // Fallback
+          }
+        }
+
+        if (renewedToken) {
+          headers.set("Authorization", `Bearer ${renewedToken}`);
+          const retryRes = await fetch(url, { ...options, headers });
+          if (retryRes.ok) {
+            if (retryRes.status === 204) {
+              return { data: null, error: null };
+            }
+            const retryData: T = await retryRes.json();
+            return { data: retryData, error: null };
+          }
+        }
+
         clearStoredTokens();
       }
       const body = await res.json().catch(() => ({}));

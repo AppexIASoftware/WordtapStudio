@@ -30,6 +30,8 @@ export interface ApiCourse {
   title: string;
   slug: string;
   description?: string | null;
+  category_id?: string | null;
+  category?: ApiVaultCategory | null;
   access_tier: string;
   price_cents?: number;
   level: string;
@@ -39,7 +41,7 @@ export interface ApiCourse {
   source_lang: string;
   target_lang: string;
   created_by?: string | null;
-  owner_type?: "platform" | "teacher";
+  owner_type?: import("./owner-type").OwnerType;
   author?: BackendUser | null;
   created_at: string;
   updated_at: string;
@@ -50,6 +52,7 @@ export interface CreateCoursePayload {
   title: string;
   description?: string;
   level?: string;
+  category_id?: string;
   access_tier?: string;
   price_cents?: number;
   source_lang?: string;
@@ -61,6 +64,7 @@ export interface UpdateCoursePayload {
   title?: string;
   description?: string;
   level?: string;
+  category_id?: string | null;
   access_tier?: string;
   price_cents?: number;
   source_lang?: string;
@@ -166,6 +170,15 @@ export interface SaveLessonItemPayload {
   is_required?: boolean;
 }
 
+export interface ApiVaultCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  is_active: boolean;
+  created_at?: string;
+}
+
 export interface ApiVaultType {
   slug: string;
   display_name: string;
@@ -194,6 +207,7 @@ export interface ApiVaultItem {
   created_at: string;
   updated_at: string;
   bank_type_ref?: ApiVaultType | null;
+  category?: ApiVaultCategory | null;
 }
 
 export interface VaultItemsResponse {
@@ -203,6 +217,7 @@ export interface VaultItemsResponse {
 
 export interface CreateVaultItemPayload {
   bank_type: string;
+  category_id?: string | null;
   prompt_text: string;
   target_text: string;
   ipa?: string;
@@ -215,6 +230,7 @@ export interface CreateVaultItemPayload {
 
 export interface UpdateVaultItemPayload {
   bank_type?: string;
+  category_id?: string | null;
   prompt_text?: string;
   target_text?: string;
   ipa?: string;
@@ -258,6 +274,8 @@ export interface TeacherGameDTO {
   teacher_email?: string;
   course_id?: string | null;
   course_title?: string;
+  category_id?: string | null;
+  category_name?: string | null;
   base_archetype: string;
   title: string;
   description?: string | null;
@@ -273,7 +291,7 @@ export interface TeacherGameDTO {
   /** Cantidad de lecciones que tienen esta actividad vinculada. */
   usage_count?: number;
   /** Platform-owned games are visible to every teacher and cannot be edited by them. */
-  owner_type?: "platform" | "teacher";
+  owner_type?: import("./owner-type").OwnerType;
   /**
    * True when the game belongs to the platform instead of a teacher.
    * Global games have no author nor course and the administrative catalog
@@ -285,6 +303,7 @@ export interface TeacherGameDTO {
 
 export interface CreateTeacherGamePayload {
   course_id?: string | null;
+  category_id?: string | null;
   base_archetype: string;
   title: string;
   description?: string;
@@ -300,6 +319,7 @@ export interface CreateTeacherGamePayload {
 
 export interface UpdateTeacherGamePayload {
   course_id?: string | null;
+  category_id?: string | null;
   base_archetype?: string;
   title?: string;
   description?: string;
@@ -311,6 +331,7 @@ export interface UpdateTeacherGamePayload {
   source_type?: string;
   source_id?: string | null;
   custom_words_json?: string | null;
+  is_active?: boolean;
 }
 
 export interface LessonGameDTO {
@@ -328,7 +349,7 @@ export interface LessonGameDTO {
   usage_count?: number;
   /** Aviso del backend cuando el nivel de la actividad no coincide con el del curso. */
   level_warning?: string;
-  owner_type?: "platform" | "teacher";
+  owner_type?: import("./owner-type").OwnerType;
   is_global: boolean;
   is_active: boolean;
   is_required: boolean;

@@ -70,6 +70,11 @@ export function GamificationCustomCard({
           <span className="px-2 py-0.5 rounded bg-canvas text-amber-300 border border-border-default">
             {game.item_count} palabras
           </span>
+          {(game.usage_count ?? 0) > 0 && (
+            <span className="px-2 py-0.5 rounded bg-canvas text-slate-300 border border-border-default">
+              Usado en {game.usage_count} lección(es)
+            </span>
+          )}
         </div>
       </div>
 
@@ -83,7 +88,16 @@ export function GamificationCustomCard({
           <span>Probar Sandbox</span>
         </button>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold border ${
+              game.is_active
+                ? "bg-emerald-brand/10 text-emerald-brand border-emerald-brand/30"
+                : "bg-canvas text-slate-subtle border-border-default"
+            }`}
+          >
+            {game.is_active ? "Activa" : "Archivada"}
+          </span>
           <button
             type="button"
             onClick={() => onEdit(game)}

@@ -1,17 +1,25 @@
 "use client";
 
-import { ArrowLeft, Play, Save, BookOpen, Layers, RefreshCw, Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Play, Save, Loader2, Sparkles, Globe2 } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
 import { useGameForm } from "../hooks/use-game-form";
 import { GamePreviewCard } from "./game-preview-card";
 import { ARCHETYPES } from "./archetypes";
+import { CategoryCombobox } from "@/features/vault/components/category-combobox";
+import { NewCategoryModal } from "@/features/vault/components/new-category-modal";
+import { VocabSource } from "./creation/vocab-source";
+import { VaultPicker } from "./creation/vault-picker";
 
 interface GameCreationWorkspaceProps {
   initialGame?: TeacherGameDTO | null;
   defaultArchetype?: string;
+  isGlobal?: boolean;
+  canCreateCategory?: boolean;
   onCancel: () => void;
   onSave: (payload: {
     course_id?: string | null;
+    category_id?: string | null;
     base_archetype: string;
     title: string;
     description?: string;
@@ -37,6 +45,8 @@ const CEFR_LEVELS = [
 export function GameCreationWorkspace({
   initialGame,
   defaultArchetype,
+  isGlobal = false,
+  canCreateCategory = true,
   onCancel,
   onSave,
   onOpenSandbox,
@@ -44,9 +54,13 @@ export function GameCreationWorkspace({
   const form = useGameForm({
     initialGame,
     defaultArchetype,
+    isGlobal,
     onSave,
     onCancel,
   });
+
+  const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
+  const [newCategoryInitialName, setNewCategoryInitialName] = useState("");
 
   return (
     <div className="space-y-6">
@@ -63,13 +77,27 @@ export function GameCreationWorkspace({
           </button>
           <div>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <span>{initialGame ? `Editar Actividad: ${initialGame.title}` : "Diseñar Nueva Actividad Lúdica"}</span>
+              <span>
+                {initialGame
+                  ? `Editar Actividad: ${initialGame.title}`
+                  : isGlobal
+                  ? "Diseñar Juego Global de Plataforma"
+                  : "Diseñar Nueva Actividad Lúdica"}
+              </span>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-mint-brand/10 text-mint-brand border border-mint-brand/30">
                 {form.baseArchetype.toUpperCase()}
               </span>
+              {isGlobal && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20 flex items-center gap-1">
+                  <Globe2 className="w-3 h-3" />
+                  Global
+                </span>
+              )}
             </h1>
             <p className="text-xs text-slate-muted">
-              Personaliza reglas pedagógicas, asigna fuentes de vocabulario y prueba la experiencia antes de publicarla.
+              {isGlobal
+                ? "Configura las reglas pedagógicas y vocabulario oficial para la ruta de juegos pública de la app."
+                : "Personaliza reglas pedagógicas, asigna fuentes de vocabulario y prueba la experiencia antes de publicarla."}
             </p>
           </div>
         </div>
@@ -114,7 +142,7 @@ export function GameCreationWorkspace({
       )}
 
       {/* Grid de 2 Columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Columna Izquierda: Formulario (7 cols) */}
         <div className="lg:col-span-7 space-y-5">
           {/* 1. Selección de Arquetipo Base */}
@@ -139,12 +167,12 @@ export function GameCreationWorkspace({
             </div>
           </div>
 
-          {/* 2. Parámetros Generales */}
+          {/* 2. Parámetros Generales y Categoría Temática */}
           <div className="p-5 rounded-2xl bg-card border border-border-default space-y-4">
             <h3 className="text-sm font-bold text-white">2. Datos Pedagógicos</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-semibold text-slate-200">Título de la Actividad:</label>
+                <label className="text-xs font-semibold text-slate-200">Título de la Actividad *</label>
                 <input
                   type="text"
                   value={form.title}
@@ -169,21 +197,38 @@ export function GameCreationWorkspace({
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-200">Objetivo o Instrucción:</label>
-              <input
-                type="text"
-                value={form.description}
-                onChange={(e) => form.setDescription(e.target.value)}
-                placeholder="Ej. Actividad para reforzar pronunciación y asociación rápida"
-                className="w-full px-3 py-2 rounded-xl bg-canvas border border-border-default text-white placeholder-slate-500 focus:outline-none focus:border-mint-brand text-xs"
-              />
+            {/* Categoría Temática integrada */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-200">Categoría Temática:</label>
+                <CategoryCombobox
+                  value={form.categoryId}
+                  categories={form.categories}
+                  onChange={form.setCategoryId}
+                  onCreateNew={canCreateCategory ? (name) => {
+                    setNewCategoryInitialName(name || "");
+                    setIsNewCategoryModalOpen(true);
+                  } : undefined}
+                  placeholder="-- Seleccionar Categoría Temática --"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-200">Objetivo o Instrucción:</label>
+                <input
+                  type="text"
+                  value={form.description}
+                  onChange={(e) => form.setDescription(e.target.value)}
+                  placeholder="Ej. Actividad para reforzar vocabulario y asociación rápida"
+                  className="w-full px-3 py-2 rounded-xl bg-canvas border border-border-default text-white placeholder-slate-500 focus:outline-none focus:border-mint-brand text-xs"
+                />
+              </div>
             </div>
           </div>
 
           {/* 3. Reglas Lúdicas */}
           <div className="p-5 rounded-2xl bg-card border border-border-default space-y-3">
-            <h3 className="text-sm font-bold text-white">3. Reglas de Desafío & Gamificación</h3>
+            <h3 className="text-sm font-bold text-white">3. Reglas de Desafío &amp; Gamificación</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
                 <label className="text-[11px] text-slate-muted block mb-1">Tiempo Límite:</label>
@@ -243,75 +288,20 @@ export function GameCreationWorkspace({
             </div>
           </div>
 
-          {/* 4. Fuente de Vocabulario */}
-          <div className="p-5 rounded-2xl bg-card border border-border-default space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white">4. Fuente de Vocabulario</h3>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => form.handleAutoPopulateSource("course_lesson")}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 cursor-pointer ${
-                    form.sourceType === "course_lesson"
-                      ? "bg-mint-brand/20 text-mint-brand border border-mint-brand/40"
-                      : "bg-canvas text-slate-400"
-                  }`}
-                >
-                  <BookOpen className="w-3 h-3" />
-                  Desde Curso
-                </button>
-                <button
-                  type="button"
-                  onClick={() => form.handleAutoPopulateSource("vault")}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 cursor-pointer ${
-                    form.sourceType === "vault"
-                      ? "bg-mint-brand/20 text-mint-brand border border-mint-brand/40"
-                      : "bg-canvas text-slate-400"
-                  }`}
-                >
-                  <Layers className="w-3 h-3" />
-                  Desde Bóveda
-                </button>
-              </div>
-            </div>
-
-            {form.sourceType === "course_lesson" && form.courses.length > 0 && (
-              <div className="flex items-center gap-2">
-                <select
-                  value={form.courseId || ""}
-                  onChange={(e) => form.setCourseId(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-canvas border border-border-default text-slate-200 font-mono text-[11px] cursor-pointer"
-                >
-                  <option value="">-- Seleccionar Curso Vinculado --</option>
-                  {form.courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title} ({c.level})
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => form.handleAutoPopulateSource("course_lesson")}
-                  disabled={form.loadingSources}
-                  className="px-2.5 py-1.5 rounded-lg bg-card border border-border-default hover:text-white text-slate-300 text-[10px] flex items-center gap-1 shrink-0 cursor-pointer"
-                >
-                  <RefreshCw className={`w-3 h-3 ${form.loadingSources ? "animate-spin" : ""}`} />
-                  Extraer
-                </button>
-              </div>
-            )}
-
-            <textarea
-              rows={5}
-              value={form.customWordsText}
-              onChange={(e) => form.setCustomWordsText(e.target.value)}
-              placeholder='[{"term": "Word", "translation": "Palabra"}]'
-              className="w-full p-2.5 rounded-xl bg-canvas border border-border-default text-slate-200 font-mono text-[11px] focus:outline-none focus:border-mint-brand"
-            />
-            <span className="text-[10px] text-slate-subtle block">
-              Pares de términos y traducciones que el minijuego cargará interactivamente.
-            </span>
-          </div>
+          {/* 4. Fuente de Vocabulario (Componente atómico desacoplado) */}
+          {isGlobal ? <VaultPicker categoryId={form.categoryId} level={form.level} itemCount={form.itemCount} value={form.customWordsText} onChange={form.setCustomWordsText} /> : <VocabSource
+            isGlobal={isGlobal}
+            sourceType={form.sourceType}
+            courseId={form.courseId}
+            courses={form.courses}
+            level={form.level}
+            itemCount={form.itemCount}
+            loadingSources={form.loadingSources}
+            customWordsText={form.customWordsText}
+            setCourseId={form.setCourseId}
+            setCustomWordsText={form.setCustomWordsText}
+            handleAutoPopulateSource={form.handleAutoPopulateSource}
+          />}
         </div>
 
         {/* Columna Derecha: Previsualización & Acciones (5 cols) */}
@@ -330,11 +320,11 @@ export function GameCreationWorkspace({
               allowedMistakes={Number(form.allowedMistakes)}
               rewardXP={Number(form.rewardXP)}
               itemCount={Number(form.itemCount)}
-              courseTitle={form.selectedCourseTitle}
+              courseTitle={isGlobal ? undefined : form.selectedCourseTitle}
+              categoryName={form.selectedCategoryName}
             />
 
             <div className="p-4 rounded-2xl bg-card border border-border-default space-y-2.5">
-              <span className="text-xs font-bold text-white block">Acciones Rápidas:</span>
               <button
                 type="button"
                 onClick={() => onOpenSandbox(form.getMockForSandbox())}
@@ -343,7 +333,6 @@ export function GameCreationWorkspace({
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Ejecutar en Sandbox Interactivo</span>
               </button>
-
               <button
                 type="button"
                 onClick={form.handleSubmit}
@@ -352,8 +341,6 @@ export function GameCreationWorkspace({
               >
                 {form.saving ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : initialGame ? (
-                  <Save className="w-3.5 h-3.5" />
                 ) : (
                   <Sparkles className="w-3.5 h-3.5" />
                 )}
@@ -362,13 +349,24 @@ export function GameCreationWorkspace({
                     ? "Guardando..."
                     : initialGame
                     ? "Guardar Cambios"
-                    : "Guardar y Publicar en Mis Actividades"}
+                    : "Guardar y Publicar Actividad"}
                 </span>
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal para Crear Nueva Categoría Temática al instante */}
+      <NewCategoryModal
+        isOpen={isNewCategoryModalOpen}
+        initialName={newCategoryInitialName}
+        onClose={() => setIsNewCategoryModalOpen(false)}
+        onCreated={(newCat) => {
+          form.setCategories((prev) => [...prev, newCat]);
+          form.setCategoryId(newCat.id);
+        }}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import {
   Archive,
+  ArchiveRestore,
   Gamepad2,
   Globe2,
   Heart,
@@ -18,10 +19,12 @@ interface GamificationGlobalPanelProps {
   games: TeacherGameDTO[];
   isLoading: boolean;
   errorMessage?: string | null;
+  isArchivedView?: boolean;
   onCreate: () => void;
   onPlayTest: (game: TeacherGameDTO) => void;
   onEdit: (game: TeacherGameDTO) => void;
   onDelete: (id: string) => void;
+  onRestore?: (id: string) => void;
   onRefresh?: () => void;
 }
 
@@ -30,13 +33,14 @@ interface GlobalGameCardProps {
   onPlayTest: (game: TeacherGameDTO) => void;
   onEdit: (game: TeacherGameDTO) => void;
   onDelete: (id: string) => void;
+  onRestore?: (id: string) => void;
 }
 
 /**
  * Tarjeta de un juego propio de la plataforma: se puede probar, editar y
  * eliminar sin depender de la cuenta de un docente.
  */
-function GlobalGameCard({ game, onPlayTest, onEdit, onDelete }: GlobalGameCardProps) {
+function GlobalGameCard({ game, onPlayTest, onEdit, onDelete, onRestore }: GlobalGameCardProps) {
   const usageCount = game.usage_count ?? 0;
   const isInUse = usageCount > 0;
 
@@ -120,27 +124,54 @@ function GlobalGameCard({ game, onPlayTest, onEdit, onDelete }: GlobalGameCardPr
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
-          <button
-            type="button"
-            onClick={() => onDelete(game.id)}
-            className="p-1.5 rounded-lg bg-card border border-border-default hover:border-rose-500/40 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
-            title={
-              isInUse
-                ? "Archivar juego global (está en uso)"
-                : "Eliminar juego global"
-            }
-            aria-label={
-              isInUse
-                ? `Archivar ${game.title} porque está en uso`
-                : `Eliminar ${game.title}`
-            }
-          >
-            {isInUse ? (
-              <Archive className="w-3.5 h-3.5" />
-            ) : (
-              <Trash2 className="w-3.5 h-3.5" />
-            )}
-          </button>
+          {!game.is_active ? (
+            <>
+              {onRestore && (
+                <button
+                  type="button"
+                  onClick={() => onRestore(game.id)}
+                  className="p-1.5 rounded-lg bg-card border border-border-default hover:border-emerald-brand/40 text-slate-400 hover:text-emerald-brand transition-colors cursor-pointer"
+                  title="Reactivar juego global"
+                  aria-label={`Reactivar ${game.title}`}
+                >
+                  <ArchiveRestore className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {!isInUse && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(game.id)}
+                  className="p-1.5 rounded-lg bg-card border border-border-default hover:border-rose-500/40 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                  title="Eliminar juego global permanentemente"
+                  aria-label={`Eliminar ${game.title} permanentemente`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onDelete(game.id)}
+              className="p-1.5 rounded-lg bg-card border border-border-default hover:border-rose-500/40 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+              title={
+                isInUse
+                  ? "Archivar juego global (está en uso)"
+                  : "Eliminar juego global"
+              }
+              aria-label={
+                isInUse
+                  ? `Archivar ${game.title} porque está en uso`
+                  : `Eliminar ${game.title}`
+              }
+            >
+              {isInUse ? (
+                <Archive className="w-3.5 h-3.5" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -155,19 +186,23 @@ export function GamificationGlobalPanel({
   games,
   isLoading,
   errorMessage,
+  isArchivedView = false,
   onCreate,
   onPlayTest,
   onEdit,
   onDelete,
+  onRestore,
   onRefresh,
 }: GamificationGlobalPanelProps) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-white">Juegos globales de Wordtap</h3>
+          <h3 className="text-sm font-bold text-white">
+            {isArchivedView ? "Juegos globales archivados" : "Juegos globales de Wordtap"}
+          </h3>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-mint-brand/20 text-mint-brand border border-mint-brand/40">
-            {games.length} {games.length === 1 ? "juego" : "juegos"}
+            {games.length} {games.length === 1 ? (isArchivedView ? "archivado" : "juego") : (isArchivedView ? "archivados" : "juegos")}
           </span>
         </div>
 
@@ -185,20 +220,24 @@ export function GamificationGlobalPanel({
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={onCreate}
-            className="px-3.5 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1.5 shadow-glow-emerald cursor-pointer"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Crear Juego Global</span>
-          </button>
+          {!isArchivedView && (
+            <button
+              type="button"
+              onClick={onCreate}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1.5 shadow-glow-emerald cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Crear Juego Global</span>
+            </button>
+          )}
         </div>
       </div>
 
       {isLoading ? (
         <div className="p-8 rounded-2xl bg-card border border-border-default text-center text-xs text-slate-muted">
-          Cargando los juegos globales de la plataforma...
+          {isArchivedView
+            ? "Cargando los juegos globales archivados..."
+            : "Cargando los juegos globales de la plataforma..."}
         </div>
       ) : errorMessage ? (
         <div className="p-8 rounded-2xl bg-card border border-rose-500/30 text-center space-y-3">
@@ -209,27 +248,31 @@ export function GamificationGlobalPanel({
           <p className="text-xs text-slate-muted max-w-md mx-auto">{errorMessage}</p>
         </div>
       ) : games.length === 0 ? (
-        /* Estado vacío real: la plataforma todavía no ofrece juegos propios. */
+        /* Estado vacío real: la plataforma todavía no ofrece juegos propios o no hay archivados. */
         <div className="p-8 rounded-2xl bg-card border border-border-default text-center space-y-3">
           <div className="w-12 h-12 mx-auto rounded-2xl bg-mint-brand/10 text-mint-brand flex items-center justify-center">
-            <Globe2 className="w-6 h-6" />
+            {isArchivedView ? <Archive className="w-6 h-6" /> : <Globe2 className="w-6 h-6" />}
           </div>
           <h4 className="text-sm font-bold text-white">
-            Todavía no hay juegos globales creados por la plataforma
+            {isArchivedView
+              ? "No hay juegos globales archivados"
+              : "Todavía no hay juegos globales creados por la plataforma"}
           </h4>
           <p className="text-xs text-slate-muted max-w-md mx-auto">
-            Un juego global pertenece a Wordtap y no a un docente: queda disponible para toda la
-            plataforma sin depender de un curso. Crea el primero para ofrecer una actividad lista
-            desde el inicio.
+            {isArchivedView
+              ? "Los juegos globales que archives cuando estén vinculados a lecciones se conservarán aquí."
+              : "Un juego global pertenece a Wordtap y no a un docente: queda disponible para toda la plataforma sin depender de un curso. Crea el primero para ofrecer una actividad lista desde el inicio."}
           </p>
-          <button
-            type="button"
-            onClick={onCreate}
-            className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-glow-emerald"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Crear Primer Juego Global</span>
-          </button>
+          {!isArchivedView && (
+            <button
+              type="button"
+              onClick={onCreate}
+              className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-glow-emerald"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Crear Primer Juego Global</span>
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -240,6 +283,7 @@ export function GamificationGlobalPanel({
               onPlayTest={onPlayTest}
               onEdit={onEdit}
               onDelete={onDelete}
+              onRestore={onRestore}
             />
           ))}
         </div>

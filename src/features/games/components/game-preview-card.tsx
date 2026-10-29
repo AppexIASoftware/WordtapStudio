@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Heart, Sparkles, BookOpen, Trophy, Volume2, Gamepad2 } from "lucide-react";
+import { Clock, Heart, Sparkles, BookOpen, Trophy, Volume2, Gamepad2, Layers } from "lucide-react";
 import { ArchetypeId, ARCHETYPE_LABELS, normalizeArchetype } from "./archetypes";
 
 interface GamePreviewCardProps {
@@ -13,6 +13,7 @@ interface GamePreviewCardProps {
   rewardXP: number;
   itemCount: number;
   courseTitle?: string;
+  categoryName?: string;
 }
 
 export function GamePreviewCard({
@@ -25,6 +26,7 @@ export function GamePreviewCard({
   rewardXP,
   itemCount,
   courseTitle,
+  categoryName,
 }: GamePreviewCardProps) {
   const normalizedArch = normalizeArchetype(archetype);
 
@@ -327,12 +329,17 @@ export function GamePreviewCard({
         </p>
       </div>
 
-      {courseTitle && (
+      {categoryName ? (
+        <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-canvas/80 px-2.5 py-1.5 rounded-xl border border-border-default/60">
+          <Layers className="w-3.5 h-3.5 text-emerald-brand" />
+          <span className="truncate">Categoría: {categoryName}</span>
+        </div>
+      ) : courseTitle ? (
         <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-canvas/80 px-2.5 py-1.5 rounded-xl border border-border-default/60">
           <BookOpen className="w-3.5 h-3.5 text-mint-brand" />
           <span className="truncate">Curso: {courseTitle}</span>
         </div>
-      )}
+      ) : null}
 
       {/* Maqueta Visual Dinámica del Arquetipo */}
       {renderArchetypeMockup(normalizedArch)}

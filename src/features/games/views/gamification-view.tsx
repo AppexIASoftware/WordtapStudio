@@ -40,6 +40,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
 
   const [baseGames] = useState<GameModeItem[]>(GAMES_DATA);
   const [customGames, setCustomGames] = useState<TeacherGameDTO[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
 
   const [activeFilter, setActiveFilter] = useUrlParam<GamificationFilter>(
     "tab",
@@ -147,6 +148,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
         <GameCreationWorkspace
           initialGame={selectedGame}
           defaultArchetype={presetArchetype}
+          canCreateCategory={true}
           onCancel={handleCloseWorkspace}
           onSave={handleSaveGame}
           onOpenSandbox={(mock) => setActiveSandboxGame(mock)}
@@ -162,6 +164,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
   }
 
   const showCustom = activeFilter === "custom";
+  const visibleGames = customGames.filter((game) => showArchived ? !game.is_active : game.is_active);
   const showArchetypes = activeFilter === "archetypes";
   const showSimulator = activeFilter === "simulator";
 
@@ -187,21 +190,45 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
       {/* Pestaña: Mis Actividades en Base de Datos */}
       {showCustom && (
         <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Estado de mis actividades">
+            <span className="text-xs font-semibold text-slate-400">Mostrar</span>
+            <div className="inline-flex items-center gap-1 rounded-xl border border-border-default bg-card p-1">
+              <button
+                type="button"
+                aria-pressed={!showArchived}
+                onClick={() => setShowArchived(false)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-mint-brand ${!showArchived ? "bg-emerald-brand text-canvas" : "text-slate-400 hover:text-white"}`}
+              >
+                Activos
+              </button>
+              <button
+                type="button"
+                aria-pressed={showArchived}
+                onClick={() => setShowArchived(true)}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-mint-brand ${showArchived ? "bg-emerald-brand text-canvas" : "text-slate-400 hover:text-white"}`}
+              >
+                Archivados
+                <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${showArchived ? "bg-black/15" : "bg-canvas text-slate-300"}`}>
+                  {customGames.filter((g) => !g.is_active).length}
+                </span>
+              </button>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <span>Tus Actividades Personalizadas</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-mint-brand/20 text-mint-brand border border-mint-brand/40">
-                {customGames.length} {customGames.length === 1 ? "guardada" : "guardadas"}
+                {visibleGames.length} {visibleGames.length === 1 ? "guardada" : "guardadas"}
               </span>
             </h3>
           </div>
 
-          {customGames.length === 0 ? (
+          {visibleGames.length === 0 ? (
             <div className="p-8 rounded-2xl bg-card border border-border-default text-center space-y-3">
               <div className="w-12 h-12 mx-auto rounded-2xl bg-mint-brand/10 text-mint-brand flex items-center justify-center">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <h4 className="text-sm font-bold text-white">No tienes actividades personalizadas creadas</h4>
+              <h4 className="text-sm font-bold text-white">{showArchived ? "No tienes actividades archivadas" : "No tienes actividades activas"}</h4>
               <p className="text-xs text-slate-muted max-w-md mx-auto">
                 Crea tu primera dinámica pedagógica con vocabulario propio o deriva una desde las plantillas base del catálogo.
               </p>
@@ -216,7 +243,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {customGames.map((game) => (
+              {visibleGames.map((game) => (
                 <GamificationCustomCard
                   key={game.id}
                   game={game}

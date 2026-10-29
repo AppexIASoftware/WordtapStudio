@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TeacherGameDTO, ApiCourse } from "@/services/api/types";
+import { TeacherGameDTO, ApiCourse, ApiVaultCategory } from "@/services/api/types";
+import { OWNER_TYPE } from "@/services/api/owner-type";
 import { getTeacherCoursesApi } from "@/services/api/courses";
-import { getOfficialVaultItemsApi } from "@/services/api/vault";
+import { getOfficialVaultItemsApi, getVaultCategoriesApi } from "@/services/api/vault";
 
 interface UseGameFormProps {
   initialGame?: TeacherGameDTO | null;
   defaultArchetype?: string;
+  isGlobal?: boolean;
   onSave: (payload: {
     course_id?: string | null;
+    category_id?: string | null;
     base_archetype: string;
     title: string;
     description?: string;
@@ -36,6 +39,7 @@ const DEFAULT_VOCAB = [
 export function useGameForm({
   initialGame,
   defaultArchetype = "match",
+  isGlobal = false,
   onSave,
   onCancel,
 }: UseGameFormProps) {
@@ -45,24 +49,28 @@ export function useGameForm({
   const [title, setTitle] = useState(initialGame?.title || "");
   const [description, setDescription] = useState(initialGame?.description || "");
   const [level, setLevel] = useState(initialGame?.level || "B1 Intermedio");
+  const [categoryId, setCategoryId] = useState<string>(initialGame?.category_id || "");
+  const [categories, setCategories] = useState<ApiVaultCategory[]>([]);
   const [timeLimit, setTimeLimit] = useState(initialGame?.time_limit_seconds || 45);
   const [allowedMistakes, setAllowedMistakes] = useState(
     initialGame !== undefined && initialGame !== null ? initialGame.allowed_mistakes : 3
   );
   const [rewardXP, setRewardXP] = useState(initialGame?.reward_xp || 20);
   const [itemCount, setItemCount] = useState(initialGame?.item_count || 6);
-  const [sourceType, setSourceType] = useState(initialGame?.source_type || "course_lesson");
+  const [sourceType, setSourceType] = useState(
+    initialGame?.source_type || (isGlobal ? "vault" : "course_lesson")
+  );
   const [courseId, setCourseId] = useState<string | null>(initialGame?.course_id || null);
 
   const [courses, setCourses] = useState<ApiCourse[]>([]);
   const [loadingSources, setLoadingSources] = useState(false);
   const [customWordsText, setCustomWordsText] = useState(
-    initialGame?.custom_words_json || JSON.stringify(DEFAULT_VOCAB, null, 2)
+    initialGame?.custom_words_json || (isGlobal ? "[]" : JSON.stringify(DEFAULT_VOCAB, null, 2))
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isPlatformGame = initialGame?.owner_type === "platform";
+  const isPlatformGame = initialGame?.owner_type === OWNER_TYPE.PLATFORM;
 
   useEffect(() => {
     if (initialGame?.base_archetype) {
@@ -71,6 +79,12 @@ export function useGameForm({
       setBaseArchetype(defaultArchetype);
     }
   }, [defaultArchetype, initialGame]);
+
+  useEffect(() => {
+    getVaultCategoriesApi().then((res) => {
+      if (res.data) setCategories(res.data);
+    });
+  }, []);
 
   useEffect(() => {
     async function loadCourses() {
@@ -118,11 +132,15 @@ export function useGameForm({
       }
 
       if (type === "vault") {
-        const vRes = await getOfficialVaultItemsApi({ limit: itemCount });
+        const vRes = await getOfficialVaultItemsApi({
+          category_id: categoryId || undefined,
+          cefr_level: level.slice(0, 2),
+          limit: itemCount,
+        });
         if (vRes.data?.items && vRes.data.items.length > 0) {
           const pairs = vRes.data.items.map((it) => ({
-            term: it.prompt_text,
-            translation: it.target_text,
+            term: it.target_text,
+            translation: it.prompt_text,
           }));
           setCustomWordsText(JSON.stringify(pairs.slice(0, itemCount), null, 2));
           return;
@@ -140,6 +158,8 @@ export function useGameForm({
     teacher_id: "preview-teacher",
     course_id: isPlatformGame ? null : courseId,
     course_title: isPlatformGame ? undefined : courses.find((c) => c.id === courseId)?.title,
+    category_id: categoryId || null,
+    category_name: categories.find((c) => c.id === categoryId)?.name,
     base_archetype: baseArchetype,
     title: title.trim() || "Prueba de Minijuego",
     description: description.trim() || undefined,
@@ -165,7 +185,8 @@ export function useGameForm({
     try {
       JSON.parse(validWordsJson);
     } catch {
-      validWordsJson = JSON.stringify(DEFAULT_VOCAB);
+      setError("El contenido seleccionado no es válido.");
+      return;
     }
 
     const cleanDescription = description.trim();
@@ -175,6 +196,7 @@ export function useGameForm({
       setError(null);
       await onSave({
         course_id: sourceType === "course_lesson" && courseId && courseId.trim() !== "" ? courseId.trim() : null,
+        category_id: categoryId && categoryId.trim() !== "" ? categoryId.trim() : null,
         base_archetype: baseArchetype,
         title: title.trim(),
         description: cleanDescription === "" ? "" : cleanDescription,
@@ -195,6 +217,7 @@ export function useGameForm({
   };
 
   const selectedCourseTitle = isPlatformGame ? undefined : courses.find((c) => c.id === courseId)?.title;
+  const selectedCategoryName = categories.find((c) => c.id === categoryId)?.name;
 
   return {
     baseArchetype,
@@ -205,6 +228,11 @@ export function useGameForm({
     setDescription,
     level,
     setLevel,
+    categoryId,
+    setCategoryId,
+    categories,
+    setCategories,
+    selectedCategoryName,
     timeLimit,
     setTimeLimit,
     allowedMistakes,

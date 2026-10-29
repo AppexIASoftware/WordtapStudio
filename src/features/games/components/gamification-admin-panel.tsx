@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Gamepad2, Heart, Play, RefreshCw, UserRound } from "lucide-react";
+import { Archive, BookOpen, Gamepad2, Heart, Play, RefreshCw, UserRound } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
 import { ARCHETYPE_LABELS, normalizeArchetype } from "./archetypes";
 
@@ -8,6 +8,7 @@ interface GamificationAdminPanelProps {
   games: TeacherGameDTO[];
   isLoading: boolean;
   errorMessage?: string | null;
+  isArchivedView?: boolean;
   onPlayTest: (game: TeacherGameDTO) => void;
   onRefresh?: () => void;
 }
@@ -135,6 +136,7 @@ export function GamificationAdminPanel({
   games,
   isLoading,
   errorMessage,
+  isArchivedView = false,
   onPlayTest,
   onRefresh,
 }: GamificationAdminPanelProps) {
@@ -142,9 +144,11 @@ export function GamificationAdminPanel({
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-white">Actividades de todos los docentes</h3>
+          <h3 className="text-sm font-bold text-white">
+            {isArchivedView ? "Actividades de docentes archivadas" : "Actividades de todos los docentes"}
+          </h3>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-mint-brand/20 text-mint-brand border border-mint-brand/40">
-            {games.length} {games.length === 1 ? "actividad" : "actividades"}
+            {games.length} {games.length === 1 ? (isArchivedView ? "archivada" : "actividad") : (isArchivedView ? "archivadas" : "actividades")}
           </span>
         </div>
 
@@ -164,7 +168,9 @@ export function GamificationAdminPanel({
 
       {isLoading ? (
         <div className="p-8 rounded-2xl bg-card border border-border-default text-center text-xs text-slate-muted">
-          Cargando las actividades creadas por los docentes...
+          {isArchivedView
+            ? "Cargando las actividades de docentes archivadas..."
+            : "Cargando las actividades creadas por los docentes..."}
         </div>
       ) : errorMessage ? (
         <div className="p-8 rounded-2xl bg-card border border-rose-500/30 text-center space-y-3">
@@ -175,17 +181,20 @@ export function GamificationAdminPanel({
           <p className="text-xs text-slate-muted max-w-md mx-auto">{errorMessage}</p>
         </div>
       ) : games.length === 0 ? (
-        /* Estado vacío real: todavía no existe ninguna actividad docente. */
+        /* Estado vacío real: todavía no existe ninguna actividad docente o archivada. */
         <div className="p-8 rounded-2xl bg-card border border-border-default text-center space-y-3">
           <div className="w-12 h-12 mx-auto rounded-2xl bg-mint-brand/10 text-mint-brand flex items-center justify-center">
-            <Gamepad2 className="w-6 h-6" />
+            {isArchivedView ? <Archive className="w-6 h-6" /> : <Gamepad2 className="w-6 h-6" />}
           </div>
           <h4 className="text-sm font-bold text-white">
-            Todavía no hay actividades lúdicas creadas por los docentes
+            {isArchivedView
+              ? "No hay actividades de docentes archivadas"
+              : "Todavía no hay actividades lúdicas creadas por los docentes"}
           </h4>
           <p className="text-xs text-slate-muted max-w-md mx-auto">
-            Cuando un docente diseñe su primera dinámica pedagógica aparecerá aquí, con su autor y
-            su curso asociado, lista para revisar y probar.
+            {isArchivedView
+              ? "Las actividades docentes que hayan sido archivadas por sus creadores se mostrarán aquí con su estado y lecciones vinculadas."
+              : "Cuando un docente diseñe su primera dinámica pedagógica aparecerá aquí, con su autor y su curso asociado, lista para revisar y probar."}
           </p>
         </div>
       ) : (

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Gamepad2, Globe2 } from "lucide-react";
 import { TeacherGameDTO, CreateTeacherGamePayload } from "@/services/api/types";
+import { OWNER_TYPE } from "@/services/api/owner-type";
 import {
   getAdminGamesApi,
   createGlobalGameApi,
@@ -15,6 +16,7 @@ import { GamificationAdminPanel } from "../components/gamification-admin-panel";
 import { GamificationGlobalPanel } from "../components/gamification-global-panel";
 import { GameCreationWorkspace } from "../components/game-creation-workspace";
 import { GameSandboxModal } from "../components/game-sandbox-modal";
+import { ConfirmRemoveModal } from "../components/confirm-remove-modal";
 
 type AdminTab = "global" | "teacher";
 type WorkspaceMode = "list" | "create" | "edit";
@@ -35,10 +37,13 @@ export function AdminGamificationView() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<AdminTab>("global");
+  const [showArchived, setShowArchived] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>("list");
   const [editingGame, setEditingGame] = useState<TeacherGameDTO | null>(null);
   const [activeSandboxGame, setActiveSandboxGame] = useState<TeacherGameDTO | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [pendingRemoval, setPendingRemoval] = useState<TeacherGameDTO | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   const triggerToast = (message: string) => {
     setToastMessage(message);
@@ -70,8 +75,9 @@ export function AdminGamificationView() {
 
   // El catálogo llega unificado: los juegos de la plataforma se separan de los
   // que pertenecen a un docente para dar a cada grupo su propio tratamiento.
-  const globalGames = games.filter((game) => game.owner_type === "platform");
-  const teacherGames = games.filter((game) => game.owner_type !== "platform");
+  const globalGames = games.filter((game) => game.is_active && game.is_global === true && !(game.source_type === "course_lesson" && game.source_id));
+  const teacherGames = games.filter((game) => game.is_active && game.owner_type !== OWNER_TYPE.PLATFORM && !game.is_global);
+  const archivedGames = games.filter((game) => !game.is_active && (activeTab === "global" ? game.owner_type === OWNER_TYPE.PLATFORM && game.is_global : game.owner_type === OWNER_TYPE.TEACHER));
 
   const teachersCount = new Set(teacherGames.map((game) => game.teacher_id)).size;
   const coursesCount = new Set(
@@ -102,6 +108,7 @@ export function AdminGamificationView() {
    */
   const handleSaveGlobalGame = async (payload: CreateTeacherGamePayload) => {
     const globalPayload: CreateTeacherGamePayload = {
+      category_id: payload.category_id,
       base_archetype: payload.base_archetype,
       title: payload.title,
       description: payload.description,
@@ -129,27 +136,21 @@ export function AdminGamificationView() {
 
   const handleDeleteGlobalGame = async (id: string) => {
     const game = games.find((item) => item.id === id);
-    const usage = game?.usage_count ?? 0;
+    if (game) setPendingRemoval(game);
+  };
 
-    // Con vínculos activos la actividad no se borra: se archiva y las lecciones
-    // que ya la usan la conservan.
-    const confirmation =
-      usage > 0
-        ? `Esta actividad está vinculada en ${usage} lección(es). Se archivará: dejará de estar disponible para nuevas lecciones, pero las lecciones que ya la usan la conservan. ¿Deseas continuar?`
-        : "¿Seguro que deseas eliminar este juego global? Se quitará para toda la plataforma.";
-
-    if (!window.confirm(confirmation)) {
-      return;
-    }
-
-    const res = await deleteGlobalGameApi(id);
+  const confirmDeleteGlobalGame = async () => {
+    if (!pendingRemoval || removing) return;
+    setRemoving(true);
+    try {
+    const res = await deleteGlobalGameApi(pendingRemoval.id);
     if (res.error) {
       triggerToast(`Error: ${res.error}`);
       return;
     }
 
     if (res.data?.archived) {
-      const archivedUsage = res.data.usage_count ?? usage;
+      const archivedUsage = res.data.usage_count ?? 0;
       triggerToast(
         `Actividad archivada: está en uso en ${archivedUsage} lección(es).`
       );
@@ -157,6 +158,20 @@ export function AdminGamificationView() {
       triggerToast("Juego global eliminado correctamente");
     }
 
+    setPendingRemoval(null);
+    await fetchGames();
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  const handleRestoreGlobalGame = async (id: string) => {
+    const res = await updateGlobalGameApi(id, { is_active: true });
+    if (res.error) {
+      triggerToast(`Error al reactivar: ${res.error}`);
+      return;
+    }
+    triggerToast("Juego global reactivado correctamente");
     await fetchGames();
   };
 
@@ -168,6 +183,8 @@ export function AdminGamificationView() {
         <GameCreationWorkspace
           initialGame={editingGame}
           defaultArchetype={editingGame?.base_archetype ?? "match"}
+          isGlobal={true}
+          canCreateCategory={true}
           onCancel={handleCloseWorkspace}
           onSave={handleSaveGlobalGame}
           onOpenSandbox={(mockGame) => setActiveSandboxGame(mockGame)}
@@ -191,6 +208,7 @@ export function AdminGamificationView() {
     // Sin padding propio: la disposición de /admin ya lo aplica al contenido.
     <div className="space-y-6">
       <ToastNotification message={toastMessage} variant="emerald" />
+      {pendingRemoval && <ConfirmRemoveModal game={pendingRemoval} busy={removing} onCancel={() => setPendingRemoval(null)} onConfirm={() => void confirmDeleteGlobalGame()} />}
 
       <GamificationHeader
         scope="admin"
@@ -234,22 +252,33 @@ export function AdminGamificationView() {
         })}
       </div>
 
+      <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Estado de los juegos">
+        <span className="text-xs font-semibold text-slate-400">Mostrar</span>
+        <div className="inline-flex items-center gap-1 rounded-xl border border-border-default bg-card p-1">
+          <button type="button" aria-pressed={!showArchived} onClick={() => setShowArchived(false)} className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-mint-brand ${!showArchived ? "bg-emerald-brand text-canvas" : "text-slate-400 hover:text-white"}`}>Activos</button>
+          <button type="button" aria-pressed={showArchived} onClick={() => setShowArchived(true)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-mint-brand ${showArchived ? "bg-emerald-brand text-canvas" : "text-slate-400 hover:text-white"}`}>Archivados <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${showArchived ? "bg-black/15" : "bg-canvas text-slate-300"}`}>{archivedGames.length}</span></button>
+        </div>
+      </div>
+
       {activeTab === "global" ? (
         <GamificationGlobalPanel
-          games={globalGames}
+          games={showArchived ? archivedGames : globalGames}
           isLoading={isLoading}
           errorMessage={errorMessage}
+          isArchivedView={showArchived}
           onCreate={handleOpenCreate}
           onPlayTest={(game) => setActiveSandboxGame(game)}
           onEdit={handleOpenEdit}
           onDelete={handleDeleteGlobalGame}
+          onRestore={handleRestoreGlobalGame}
           onRefresh={() => void fetchGames()}
         />
       ) : (
         <GamificationAdminPanel
-          games={teacherGames}
+          games={showArchived ? archivedGames : teacherGames}
           isLoading={isLoading}
           errorMessage={errorMessage}
+          isArchivedView={showArchived}
           onPlayTest={(game) => setActiveSandboxGame(game)}
           onRefresh={() => void fetchGames()}
         />

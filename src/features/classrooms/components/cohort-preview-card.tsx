@@ -7,8 +7,7 @@ interface CohortPreviewCardProps {
   level: string;
   simulatedCode: string;
   selectedCourseCount: number;
-  selectedGameCount: number;
-  totalGamesCount: number;
+  selectedLessonCount: number;
   weeklyGoal: number;
   isSubmitting: boolean;
   onSubmit: (e: React.FormEvent) => void;
@@ -24,8 +23,7 @@ export function CohortPreviewCard({
   level,
   simulatedCode,
   selectedCourseCount,
-  selectedGameCount,
-  totalGamesCount,
+  selectedLessonCount,
   weeklyGoal,
   isSubmitting,
   onSubmit,
@@ -88,9 +86,9 @@ export function CohortPreviewCard({
             <strong className="text-white font-mono">{selectedCourseCount} Cursos</strong>
           </div>
           <div className="flex items-center justify-between text-slate-300">
-            <span className="text-slate-muted">Minijuegos Activos:</span>
+            <span className="text-slate-muted">Lecciones Activas:</span>
             <strong className="text-mint-brand font-mono">
-              {selectedGameCount} de {totalGamesCount}
+              {selectedLessonCount} Lecciones
             </strong>
           </div>
           <div className="flex items-center justify-between text-slate-300">

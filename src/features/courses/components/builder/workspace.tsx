@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BookOpen, Loader2, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw, CheckCircle2, Crown } from "lucide-react";
-import { Course, Lesson, LessonItem } from "@/features/courses/types";
+import { Course, Lesson, LessonItem, CANVAS_TAB, CanvasTab } from "@/features/courses/types";
 import { ApiCourse } from "@/services/api";
 import { NewCourseModal } from "../new-course-modal";
 import { AddLessonModal } from "../add-lesson-modal";
@@ -21,7 +21,6 @@ import { SubmitReviewModal } from "./submit-review-modal";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 import { CourseJourneyTab } from "./journey/course-journey-tab";
 
-type CanvasTab = "cards" | "games" | "preview" | "journey";
 type SimScreen = "lesson" | "home" | "game";
 
 interface CourseBuilderWorkspaceProps {
@@ -108,6 +107,12 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
       ? "Los administradores supervisan los cursos de docentes pero no editan su contenido directamente."
       : "Los docentes solo pueden editar sus propios cursos.";
 
+  const handleSelectJourneyLesson = (lessonId: string, nextTab?: CanvasTab) => {
+    const found = currentCourse?.lessons.find((l) => l.id === lessonId);
+    if (found) props.onSelectLesson(found);
+    if (nextTab) props.onSetCanvasTab(nextTab);
+  };
+
   return (
     <>
       <BuilderHeader
@@ -183,10 +188,15 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   <p className="text-[11px] text-slate-muted">{currentLesson.subtitle}</p>
                 </div>
                 <div className="flex items-center gap-1 bg-card p-1 rounded-xl border border-border-default text-xs font-medium self-start sm:self-auto">
-                  {(["cards", "games", "journey", "preview"] as const).map((tab) => (
+                  {([
+                    CANVAS_TAB.CARDS,
+                    CANVAS_TAB.GAMES,
+                    CANVAS_TAB.JOURNEY,
+                    CANVAS_TAB.PREVIEW,
+                  ] as const).map((tab) => (
                     <button key={tab} type="button" onClick={() => props.onSetCanvasTab(tab)} className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${activeCanvasTab === tab ? "bg-emerald-brand text-canvas font-bold shadow-sm" : "text-slate-muted hover:text-white"}`}>
-                      <span>{tab === "cards" ? "Tarjetas Pedagógicas" : tab === "games" ? "Minijuegos" : tab === "journey" ? "Ruta del Estudiante" : "Simulador Móvil"}</span>
-                      {tab === "cards" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentLesson.items.length}</span> : tab === "journey" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentCourse.lessons.length}</span> : tab === "games" ? null : <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-brand/20 text-emerald-brand">Live</span>}
+                      <span>{tab === CANVAS_TAB.CARDS ? "Tarjetas Pedagógicas" : tab === CANVAS_TAB.GAMES ? "Minijuegos" : tab === CANVAS_TAB.JOURNEY ? "Ruta del Estudiante" : "Simulador Móvil"}</span>
+                      {tab === CANVAS_TAB.CARDS ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentLesson.items.length}</span> : tab === CANVAS_TAB.JOURNEY ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentCourse.lessons.length}</span> : tab === CANVAS_TAB.GAMES ? null : <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-brand/20 text-emerald-brand">Live</span>}
                     </button>
                   ))}
                 </div>
@@ -259,7 +269,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   </div>
                 )
               )}
-              {activeCanvasTab === "cards" && (
+              {activeCanvasTab === CANVAS_TAB.CARDS && (
                 <CardsTab
                   currentLesson={currentLesson}
                   currentStepId={currentStepId}
@@ -275,7 +285,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   onSpeak={props.onSpeak}
                 />
               )}
-              {activeCanvasTab === "games" && (
+              {activeCanvasTab === CANVAS_TAB.GAMES && (
                 <LessonGamesTab
                   lessonId={currentLessonId}
                   lessonTitle={currentLesson?.title}
@@ -289,27 +299,16 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   onToast={props.onToast}
                 />
               )}
-              {activeCanvasTab === "journey" && currentCourse && (
+              {activeCanvasTab === CANVAS_TAB.JOURNEY && currentCourse && (
                 <CourseJourneyTab
                   course={currentCourse}
-                  onSelectLesson={(lessonId) => {
-                    const found = currentCourse.lessons.find((l) => l.id === lessonId);
-                    if (found) props.onSelectLesson(found);
-                  }}
-                  onNavigateToCards={(lessonId) => {
-                    const found = currentCourse.lessons.find((l) => l.id === lessonId);
-                    if (found) props.onSelectLesson(found);
-                    props.onSetCanvasTab("cards");
-                  }}
-                  onNavigateToGames={(lessonId) => {
-                    const found = currentCourse.lessons.find((l) => l.id === lessonId);
-                    if (found) props.onSelectLesson(found);
-                    props.onSetCanvasTab("games");
-                  }}
+                  onSelectLesson={(id) => handleSelectJourneyLesson(id)}
+                  onNavigateToCards={(id) => handleSelectJourneyLesson(id, CANVAS_TAB.CARDS)}
+                  onNavigateToGames={(id) => handleSelectJourneyLesson(id, CANVAS_TAB.GAMES)}
                   onSpeak={props.onSpeak}
                 />
               )}
-              {activeCanvasTab === "preview" && (
+              {activeCanvasTab === CANVAS_TAB.PREVIEW && (
                 <SimulatorTab
                   currentCourse={currentCourse} currentLesson={currentLesson} simScreen={simScreen} simTier={simTier}
                   isSimLessonCompleted={isSimLessonCompleted} simGameSelected={simGameSelected} simGameMatched={simGameMatched}

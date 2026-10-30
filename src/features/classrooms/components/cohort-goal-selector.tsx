@@ -15,7 +15,7 @@ export function CohortGoalSelector({
     <div className="p-6 rounded-2xl bg-card border border-border-default space-y-4 shadow-sm">
       <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-border-default pb-3">
         <span className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center font-mono text-[11px] font-bold">
-          4
+          3
         </span>
         <Target className="w-4 h-4 text-amber-400" />
         <span>Meta Pedagógica Semanal</span>

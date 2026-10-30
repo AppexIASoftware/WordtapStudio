@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Classroom } from "@/features/classrooms/types";
+import { Classroom, COHORT_TAB, CohortTab } from "@/features/classrooms/types";
 import { Course } from "@/features/courses/types";
 import { MOCK_COURSES_LIST } from "@/features/courses/data/mock-courses";
 import { getTeacherCoursesApi } from "@/services/api/courses";
@@ -49,8 +49,10 @@ export function useCohortForm({
     ];
   });
   const [weeklyGoal, setWeeklyGoal] = useState(initialClassroom?.weeklyGoalWords || 50);
-  const [activeTab, setActiveTab] = useState<"general" | "curriculum">(
-    searchParams.get("tab") === "curriculum" ? "curriculum" : "general"
+  const [activeTab, setActiveTab] = useState<CohortTab>(
+    searchParams.get("tab") === COHORT_TAB.CURRICULUM
+      ? COHORT_TAB.CURRICULUM
+      : COHORT_TAB.GENERAL
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { customGames } = useTeacherGames();
@@ -76,10 +78,10 @@ export function useCohortForm({
 
   useEffect(() => {
     const tabFromUrl = searchParams.get("tab") || searchParams.get("step");
-    if (tabFromUrl === "curriculum") {
-      setActiveTab("curriculum");
-    } else if (tabFromUrl === "general") {
-      setActiveTab("general");
+    if (tabFromUrl === COHORT_TAB.CURRICULUM) {
+      setActiveTab(COHORT_TAB.CURRICULUM);
+    } else if (tabFromUrl === COHORT_TAB.GENERAL) {
+      setActiveTab(COHORT_TAB.GENERAL);
     }
   }, [searchParams]);
 
@@ -102,7 +104,7 @@ export function useCohortForm({
     setTimeout(performReset, 50);
   };
 
-  const handleTabChange = (tab: "general" | "curriculum") => {
+  const handleTabChange = (tab: CohortTab) => {
     setActiveTab(tab);
     resetScroll();
     const params = new URLSearchParams(searchParams.toString());

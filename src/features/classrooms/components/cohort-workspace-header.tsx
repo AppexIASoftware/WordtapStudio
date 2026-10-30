@@ -1,21 +1,22 @@
 "use client";
 
 import { ArrowLeft, Sparkles, Pencil, Save } from "lucide-react";
+import { COHORT_TAB, CohortTab } from "@/features/classrooms/types";
 
 interface CohortWorkspaceHeaderProps {
   name: string;
   code?: string;
   isExisting: boolean;
   isEditing: boolean;
-  activeTab: "general" | "curriculum";
+  activeTab: CohortTab;
   selectedCourseCount: number;
-  selectedActivityCount: number;
+  selectedLessonCount: number;
   isSubmitting: boolean;
   onCancel: () => void;
   onEnableEdit: () => void;
   onCancelEdit: () => void;
   onSubmit: (e: React.FormEvent) => void;
-  onTabChange: (tab: "general" | "curriculum") => void;
+  onTabChange: (tab: CohortTab) => void;
 }
 
 export function CohortWorkspaceHeader({
@@ -25,7 +26,7 @@ export function CohortWorkspaceHeader({
   isEditing,
   activeTab,
   selectedCourseCount,
-  selectedActivityCount,
+  selectedLessonCount,
   isSubmitting,
   onCancel,
   onEnableEdit,
@@ -64,9 +65,9 @@ export function CohortWorkspaceHeader({
             <p className="text-xs text-slate-muted">
               {isExisting
                 ? isEditing
-                  ? "Ajusta los cursos vinculados, mecánicas de juego interactivas y metas semanales."
-                  : "Visualiza el plan curricular completo, lecciones estructuradas y actividades interactivas."
-                : "Define los cursos temáticos, mecánicas interactivas y metas de aprendizaje para tu aula privada."}
+                  ? "Ajusta los cursos vinculados, lecciones del plan y metas semanales."
+                  : "Visualiza el plan curricular completo y las lecciones estructuradas del aula."
+                : "Define los cursos temáticos, lecciones activas y metas de aprendizaje para tu aula privada."}
             </p>
           </div>
         </div>
@@ -128,9 +129,9 @@ export function CohortWorkspaceHeader({
       <div className="flex items-center gap-2 border-b border-border-default pb-3">
         <button
           type="button"
-          onClick={() => onTabChange("general")}
+          onClick={() => onTabChange(COHORT_TAB.GENERAL)}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === "general"
+            activeTab === COHORT_TAB.GENERAL
               ? "bg-emerald-brand text-canvas shadow-sm"
               : "bg-card border border-border-default text-slate-400 hover:text-white"
           }`}
@@ -143,16 +144,16 @@ export function CohortWorkspaceHeader({
 
         <button
           type="button"
-          onClick={() => onTabChange("curriculum")}
+          onClick={() => onTabChange(COHORT_TAB.CURRICULUM)}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === "curriculum"
+            activeTab === COHORT_TAB.CURRICULUM
               ? "bg-emerald-brand text-canvas shadow-sm"
               : "bg-card border border-border-default text-slate-400 hover:text-white"
           }`}
         >
           <span>2. Mapa de Progresión Pedagógica</span>
           <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-brand/20 text-emerald-brand border border-emerald-brand/30">
-            {selectedActivityCount} actividades
+            {selectedLessonCount} lecciones
           </span>
         </button>
       </div>

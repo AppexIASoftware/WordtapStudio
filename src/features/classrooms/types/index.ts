@@ -1,3 +1,20 @@
+export const COHORT_TAB = {
+  GENERAL: "general",
+  CURRICULUM: "curriculum",
+} as const;
+
+export type CohortTab = (typeof COHORT_TAB)[keyof typeof COHORT_TAB];
+
+export const CEFR_LEVEL = {
+  A1: "A1",
+  A2: "A2",
+  B1: "B1",
+  B2: "B2",
+  C1: "C1",
+} as const;
+
+export type CefrLevel = (typeof CEFR_LEVEL)[keyof typeof CEFR_LEVEL];
+
 export interface ClassroomStudent {
   id: string;
   name: string;

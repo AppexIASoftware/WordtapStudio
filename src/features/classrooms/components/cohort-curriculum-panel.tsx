@@ -1,17 +1,14 @@
 "use client";
 
-import React from "react";
-import { Pencil, Save, Sparkles } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { BookOpen, Layers, Pencil, Save, Sparkles } from "lucide-react";
 import { Course } from "@/features/courses/types";
-import { TeacherGameDTO } from "@/services/api/types";
-import { CohortCurriculumMap } from "./cohort-curriculum-map";
+import { CourseJourneyTab } from "@/features/courses/components/builder/journey/course-journey-tab";
 
 interface CohortCurriculumPanelProps {
   selectedCourses: Course[];
-  selectedGameTypes: string[];
-  weeklyGoal: number;
   selectedLessonIds: string[];
-  customGames: TeacherGameDTO[];
+  weeklyGoal: number;
   isExisting: boolean;
   isEditing: boolean;
   isSubmitting: boolean;
@@ -21,13 +18,11 @@ interface CohortCurriculumPanelProps {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-/** Panel con el mapa curricular de estaciones y la barra de acciones de la ruta. */
+/** Panel que visualiza la Ruta del Estudiante real para los cursos y lecciones asignadas al aula. */
 export function CohortCurriculumPanel({
   selectedCourses,
-  selectedGameTypes,
-  weeklyGoal,
   selectedLessonIds,
-  customGames,
+  weeklyGoal,
   isExisting,
   isEditing,
   isSubmitting,
@@ -36,66 +31,89 @@ export function CohortCurriculumPanel({
   onEnableEdit,
   onSubmit,
 }: CohortCurriculumPanelProps) {
-  return (
-    <div className="space-y-6">
-      <CohortCurriculumMap
-        selectedCourses={selectedCourses}
-        selectedGameTypes={selectedGameTypes}
-        weeklyGoal={weeklyGoal}
-        selectedLessonIds={selectedLessonIds}
-        customGames={customGames}
-      />
+  const [activeCourseIdx, setActiveCourseIdx] = useState(0);
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border-default shadow-sm">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="px-4 py-2 rounded-xl bg-card border border-border-default text-slate-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
-          >
-            Volver a Aulas
-          </button>
-          <button
-            type="button"
-            onClick={onBackToGeneral}
-            className="px-4 py-2 rounded-xl bg-canvas border border-border-default hover:border-slate-500 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
-          >
-            ← Volver a Configuración General
-          </button>
+  const activeCourse = selectedCourses[activeCourseIdx] || selectedCourses[0] || null;
+
+  // Filtrar el curso para mostrar únicamente las lecciones seleccionadas para esta cohorte
+  const filteredCourse = useMemo(() => {
+    if (!activeCourse) return null;
+    const lessons = (activeCourse.lessons || []).filter((l) =>
+      selectedLessonIds.includes(l.id)
+    );
+    return {
+      ...activeCourse,
+      lessons: lessons.length > 0 ? lessons : activeCourse.lessons,
+    };
+  }, [activeCourse, selectedLessonIds]);
+
+  const handleSpeak = (text: string) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      window.speechSynthesis.speak(u);
+    }
+  };
+
+  if (!filteredCourse || selectedCourses.length === 0) {
+    return (
+      <div className="p-8 rounded-3xl bg-card border border-border-default text-center space-y-4">
+        <div className="w-12 h-12 mx-auto rounded-2xl bg-emerald-brand/10 text-emerald-brand flex items-center justify-center">
+          <Layers className="w-6 h-6" />
         </div>
-
-        {isExisting && !isEditing ? (
-          <button
-            type="button"
-            onClick={onEnableEdit}
-            className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-canvas font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            <span>Habilitar Edición</span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={isSubmitting}
-            className="px-5 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1.5 shadow-glow-emerald cursor-pointer"
-          >
-            {isExisting ? (
-              <Save className="w-3.5 h-3.5" />
-            ) : (
-              <Sparkles className="w-3.5 h-3.5" />
-            )}
-            <span>
-              {isSubmitting
-                ? "Guardando..."
-                : isExisting
-                ? "Guardar Cambios"
-                : "Crear y Publicar Aula"}
-            </span>
-          </button>
-        )}
+        <h4 className="text-sm font-bold text-white">Ruta de Aprendizaje No Disponible</h4>
+        <p className="text-xs text-slate-muted max-w-md mx-auto">
+          Selecciona al menos un curso temático en la pestaña anterior para visualizar la ruta didáctica real de la cohorte.
+        </p>
+        <button
+          type="button"
+          onClick={onBackToGeneral}
+          className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors cursor-pointer"
+        >
+          ← Ir a Seleccionar Cursos
+        </button>
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Selector de Cursos si hay más de 1 curso asignado al aula */}
+      {selectedCourses.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-card rounded-2xl border border-border-default">
+          <span className="text-[11px] font-mono text-slate-subtle px-2 font-bold uppercase">
+            Cursos del Aula:
+          </span>
+          {selectedCourses.map((c, idx) => {
+            const isSelected = activeCourseIdx === idx;
+            return (
+              <button
+                key={c.id || idx}
+                type="button"
+                onClick={() => setActiveCourseIdx(idx)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isSelected
+                    ? "bg-emerald-brand text-canvas font-bold shadow-sm"
+                    : "text-slate-300 hover:text-white hover:bg-canvas"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>{c.title}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Mapa de Ruta Real Unificado */}
+      <CourseJourneyTab
+        key={filteredCourse.id}
+        course={filteredCourse}
+        onSelectLesson={() => {}}
+        onNavigateToCards={onBackToGeneral}
+        onNavigateToGames={onBackToGeneral}
+        onSpeak={handleSpeak}
+      />
     </div>
   );
 }

@@ -13,8 +13,30 @@ import {
   FileEdit,
   ExternalLink,
 } from "lucide-react";
-import { CourseJourneyNode, JOURNEY_NODE_TYPE } from "./journey-types";
+import { CourseJourneyNode, JOURNEY_NODE_TYPE, JourneyNodeType } from "./journey-types";
 import { Lesson } from "@/features/courses/types";
+
+const BADGE_CONFIG: Record<
+  JourneyNodeType,
+  { label: string; color: string }
+> = {
+  [JOURNEY_NODE_TYPE.MILESTONE]: {
+    label: "Hito & Certificación",
+    color: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+  },
+  [JOURNEY_NODE_TYPE.CHECKPOINT]: {
+    label: "Checkpoint Adaptativo",
+    color: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+  },
+  [JOURNEY_NODE_TYPE.GAME]: {
+    label: "Minijuego de Fijación",
+    color: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  },
+  [JOURNEY_NODE_TYPE.LESSON]: {
+    label: "Lección Teórica",
+    color: "bg-emerald-brand/10 text-emerald-brand border-emerald-brand/30",
+  },
+};
 
 interface JourneyNodeInspectorProps {
   node: CourseJourneyNode | null;
@@ -41,24 +63,8 @@ export function JourneyNodeInspector({
 
   const isLesson = node.type === JOURNEY_NODE_TYPE.LESSON;
   const isGame = node.type === JOURNEY_NODE_TYPE.GAME;
-  const isCheckpoint = node.type === JOURNEY_NODE_TYPE.CHECKPOINT;
-  const isMilestone = node.type === JOURNEY_NODE_TYPE.MILESTONE;
 
-  const badgeColor = isMilestone
-    ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-    : isCheckpoint
-    ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
-    : isGame
-    ? "bg-purple-500/10 text-purple-400 border-purple-500/30"
-    : "bg-emerald-brand/10 text-emerald-brand border-emerald-brand/30";
-
-  const badgeLabel = isMilestone
-    ? "Hito & Certificación"
-    : isCheckpoint
-    ? "Checkpoint Adaptativo"
-    : isGame
-    ? "Minijuego de Fijación"
-    : "Lección Teórica";
+  const badge = BADGE_CONFIG[node.type];
 
   return (
     <div className="bg-card rounded-3xl border border-border-default p-6 space-y-5 shadow-sm sticky top-6">
@@ -66,9 +72,9 @@ export function JourneyNodeInspector({
       <div className="border-b border-border-default pb-4 space-y-1.5">
         <div className="flex items-center justify-between">
           <span
-            className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold border uppercase ${badgeColor}`}
+            className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold border uppercase ${badge.color}`}
           >
-            {badgeLabel}
+            {badge.label}
           </span>
           <span className="text-[11px] font-mono text-slate-muted">
             Estación #{node.order}

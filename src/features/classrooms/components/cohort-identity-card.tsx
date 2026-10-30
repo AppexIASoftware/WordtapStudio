@@ -55,6 +55,7 @@ export function CohortIdentityCard({
         selectedCourses={selectedCourses}
         currentLevel={level}
         onSelectLevel={onSelectLevel}
+        isEditing={isEditing}
       />
 
       <div>

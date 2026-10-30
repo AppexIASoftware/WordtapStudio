@@ -1,3 +1,12 @@
+export const CANVAS_TAB = {
+  CARDS: "cards",
+  GAMES: "games",
+  JOURNEY: "journey",
+  PREVIEW: "preview",
+} as const;
+
+export type CanvasTab = (typeof CANVAS_TAB)[keyof typeof CANVAS_TAB];
+
 export interface LessonItem {
   id: string;
   contentBankItemId?: string | null;

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { BookOpen, Gamepad2, Award, Sparkles, MapPin, Loader2 } from "lucide-react";
+import { BookOpen, Gamepad2, Award, Sparkles, MapPin } from "lucide-react";
 import { Course, Lesson } from "@/features/courses/types";
 import { getLessonGamesApi, LessonGameDTO } from "@/services/api";
 import { CourseJourneyNode, JOURNEY_NODE_TYPE } from "./journey-types";
@@ -52,6 +52,7 @@ export function CourseJourneyTab({
     const lessons = course.lessons || [];
     if (lessons.length === 0) {
       setGamesByLesson({});
+      setIsLoadingGames(false);
       return;
     }
 
@@ -63,10 +64,15 @@ export function CourseJourneyTab({
         cachedMap[l.id] = lessonGamesMemoryCache.get(l.id) || [];
       });
       setGamesByLesson(cachedMap);
+      setIsLoadingGames(false);
       return;
     }
 
     setIsLoadingGames(true);
+    const timeout = setTimeout(() => {
+      if (isMounted) setIsLoadingGames(false);
+    }, 2500);
+
     Promise.all(
       lessons.map(async (lesson) => {
         if (lessonGamesMemoryCache.has(lesson.id)) {
@@ -82,18 +88,25 @@ export function CourseJourneyTab({
           return { lessonId: lesson.id, games: [] };
         }
       })
-    ).then((results) => {
-      if (!isMounted) return;
-      const map: Record<string, LessonGameDTO[]> = {};
-      results.forEach((r) => {
-        map[r.lessonId] = r.games;
+    )
+      .then((results) => {
+        if (!isMounted) return;
+        const map: Record<string, LessonGameDTO[]> = {};
+        results.forEach((r) => {
+          map[r.lessonId] = r.games;
+        });
+        setGamesByLesson(map);
+      })
+      .finally(() => {
+        clearTimeout(timeout);
+        if (isMounted) {
+          setIsLoadingGames(false);
+        }
       });
-      setGamesByLesson(map);
-      setIsLoadingGames(false);
-    });
 
     return () => {
       isMounted = false;
+      clearTimeout(timeout);
     };
   }, [course.id, lessonIdsKey]);
 
@@ -102,7 +115,6 @@ export function CourseJourneyTab({
     [course, gamesByLesson]
   );
   const svgPathD = useMemo(() => generateJourneySvgPath(nodes), [nodes]);
-  const totalHeight = Math.max(520, nodes.length * JOURNEY_Y_GAP + 120);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
@@ -149,9 +161,9 @@ export function CourseJourneyTab({
   }
 
   return (
-    <div className="flex-1 p-6 md:p-8 space-y-6 overflow-y-auto">
+    <div className="flex-1 p-4 md:p-5 space-y-4 overflow-y-auto">
       {/* Banner Superior de Resumen Didáctico */}
-      <div className="p-5 rounded-3xl bg-card border border-border-default flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+      <div className="p-4 rounded-2xl bg-card border border-border-default flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/20 uppercase">
@@ -161,7 +173,7 @@ export function CourseJourneyTab({
               Nivel {course.level}
             </span>
           </div>
-          <h2 className="text-lg font-bold text-white mt-1">{course.title}</h2>
+          <h2 className="text-base font-bold text-white mt-1">{course.title}</h2>
           <p className="text-xs text-slate-muted">
             Secuencia interactiva tal como la experimentará el estudiante en la app móvil.
           </p>
@@ -177,24 +189,19 @@ export function CourseJourneyTab({
             <span>{totalWords} tarjetas</span>
           </div>
           <div className="px-3 py-1.5 rounded-xl bg-canvas border border-border-default flex items-center gap-1.5 text-slate-200">
-            {isLoadingGames ? (
-              <Loader2 className="w-3.5 h-3.5 text-purple-400 animate-spin" />
-            ) : (
-              <Gamepad2 className="w-3.5 h-3.5 text-purple-400" />
-            )}
+            <Gamepad2 className="w-3.5 h-3.5 text-purple-400" />
             <span>{totalGames} {totalGames === 1 ? "juego" : "juegos"}</span>
           </div>
         </div>
       </div>
 
-      {/* Grid: Trayectoria Curva (Izquierda 55%) + Inspector Didáctico (Derecha 45%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-7 flex justify-center">
+      {/* Grid: Trayectoria Curva Compacta (5 cols) + Inspector Didáctico Cómodo (7 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="lg:col-span-5 flex justify-center">
           <JourneyPath
             nodes={nodes}
             svgPathD={svgPathD}
             activeNodeId={activeNode?.id || null}
-            totalHeight={totalHeight}
             onSelectNode={(node) => {
               setSelectedNodeId(node.id);
               if (node.lessonId) {
@@ -204,7 +211,7 @@ export function CourseJourneyTab({
           />
         </div>
 
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-7">
           <JourneyNodeInspector
             node={activeNode}
             lesson={activeLesson}

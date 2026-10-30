@@ -6,7 +6,7 @@ export function useBuilderSimulation(
   onSelectLessonId: (id: string) => void,
   triggerToast: (msg: string) => void
 ) {
-  const [activeCanvasTab, setActiveCanvasTab] = useState<"cards" | "games" | "preview">("cards");
+  const [activeCanvasTab, setActiveCanvasTab] = useState<"cards" | "games" | "preview" | "journey">("cards");
   const [simScreen, setSimScreen] = useState<"lesson" | "home" | "game">("lesson");
   const [simTier, setSimTier] = useState<"free" | "premium">("free");
   const [isSimLessonCompleted, setIsSimLessonCompleted] = useState(false);
@@ -17,7 +17,7 @@ export function useBuilderSimulation(
   // render estático de la página.
   useEffect(() => {
     const raw = new URLSearchParams(window.location.search).get("canvasTab");
-    if (raw === "games" || raw === "preview") setActiveCanvasTab(raw);
+    if (raw === "games" || raw === "preview" || raw === "journey") setActiveCanvasTab(raw);
   }, []);
 
   const toggleSimTier = () => setSimTier((value) => (value === "free" ? "premium" : "free"));

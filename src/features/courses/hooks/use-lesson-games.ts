@@ -10,6 +10,7 @@ import {
   updateLessonGameApi,
 } from "@/services/api";
 import type { LessonGameDTO, TeacherGameDTO } from "@/services/api";
+import { lessonGamesMemoryCache } from "../components/builder/journey/journey-generator";
 
 interface UseLessonGamesOptions {
   lessonId: string;
@@ -61,7 +62,9 @@ export function useLessonGames({
         setError("No se pudieron cargar los minijuegos.");
       }
 
-      setLinkedGames(linkedRes.data ?? []);
+      const loadedLinked = linkedRes.data ?? [];
+      setLinkedGames(loadedLinked);
+      lessonGamesMemoryCache.set(lessonId, loadedLinked);
       setMine(mineRes.data ?? []);
       setGlobalGames(globalRes.data ?? []);
     } catch {

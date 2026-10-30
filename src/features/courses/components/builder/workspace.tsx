@@ -19,8 +19,9 @@ import { ExportJsonModal } from "./export-json-modal";
 import { VaultDrawer } from "@/features/vault/components/drawer";
 import { SubmitReviewModal } from "./submit-review-modal";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
+import { CourseJourneyTab } from "./journey/course-journey-tab";
 
-type CanvasTab = "cards" | "games" | "preview";
+type CanvasTab = "cards" | "games" | "preview" | "journey";
 type SimScreen = "lesson" | "home" | "game";
 
 interface CourseBuilderWorkspaceProps {
@@ -182,10 +183,10 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   <p className="text-[11px] text-slate-muted">{currentLesson.subtitle}</p>
                 </div>
                 <div className="flex items-center gap-1 bg-card p-1 rounded-xl border border-border-default text-xs font-medium self-start sm:self-auto">
-                  {(["cards", "games", "preview"] as const).map((tab) => (
+                  {(["cards", "games", "journey", "preview"] as const).map((tab) => (
                     <button key={tab} type="button" onClick={() => props.onSetCanvasTab(tab)} className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${activeCanvasTab === tab ? "bg-emerald-brand text-canvas font-bold shadow-sm" : "text-slate-muted hover:text-white"}`}>
-                      <span>{tab === "cards" ? "Tarjetas Pedagógicas" : tab === "games" ? "Minijuegos" : "Simulador Móvil"}</span>
-                      {tab === "cards" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentLesson.items.length}</span> : tab === "games" ? null : <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-brand/20 text-emerald-brand">Live</span>}
+                      <span>{tab === "cards" ? "Tarjetas Pedagógicas" : tab === "games" ? "Minijuegos" : tab === "journey" ? "Ruta del Estudiante" : "Simulador Móvil"}</span>
+                      {tab === "cards" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentLesson.items.length}</span> : tab === "journey" ? <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-canvas/30">{currentCourse.lessons.length}</span> : tab === "games" ? null : <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-brand/20 text-emerald-brand">Live</span>}
                     </button>
                   ))}
                 </div>
@@ -286,6 +287,26 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
                   isAdmin={props.isAdmin}
                   readOnlyReason={readOnlyReason}
                   onToast={props.onToast}
+                />
+              )}
+              {activeCanvasTab === "journey" && currentCourse && (
+                <CourseJourneyTab
+                  course={currentCourse}
+                  onSelectLesson={(lessonId) => {
+                    const found = currentCourse.lessons.find((l) => l.id === lessonId);
+                    if (found) props.onSelectLesson(found);
+                  }}
+                  onNavigateToCards={(lessonId) => {
+                    const found = currentCourse.lessons.find((l) => l.id === lessonId);
+                    if (found) props.onSelectLesson(found);
+                    props.onSetCanvasTab("cards");
+                  }}
+                  onNavigateToGames={(lessonId) => {
+                    const found = currentCourse.lessons.find((l) => l.id === lessonId);
+                    if (found) props.onSelectLesson(found);
+                    props.onSetCanvasTab("games");
+                  }}
+                  onSpeak={props.onSpeak}
                 />
               )}
               {activeCanvasTab === "preview" && (

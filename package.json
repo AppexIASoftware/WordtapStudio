@@ -29,8 +29,9 @@
     "typescript": "^5"
   },
   "overrides": {
+    "minimatch": ">=11.0.1",
     "source-map-js": ">=1.2.2",
     "zod": ">=4.6.6"
   },
-  "packageManager": "pnpm@11.24.0"
+  "packageManager": "pnpm@12.10.1"
 }

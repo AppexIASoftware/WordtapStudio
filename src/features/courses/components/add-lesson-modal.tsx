@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Loader2 } from "lucide-react";
-import { createLessonApi, saveLessonItemApi } from "@/services/api";
+import { createLessonApi } from "@/services/api";
 import { Lesson } from "@/features/courses/types";
 
 interface AddLessonModalProps {
@@ -46,26 +46,6 @@ export function AddLessonModal({ isOpen, courseId, onClose, onCreated }: AddLess
 
     if (res.data) {
       const lessonId = res.data.id;
-      // Persist initial card
-      const initialCardData = {
-        en: "learn",
-        es: "aprender",
-        ipa: "/lɜːrn/",
-        pos: "Verbo",
-        example: '"I learn English"',
-        note: "Verbo esencial",
-        noteType: "bulb" as const,
-        itemType: "word" as const,
-      };
-
-      const itemRes = await saveLessonItemApi(lessonId, {
-        item_type: "word",
-        content_text: JSON.stringify(initialCardData),
-        sort_order: 1,
-        is_required: true,
-      });
-
-      const initialItemId = itemRes.data?.id || `step-${Date.now()}`;
 
       const createdLesson: Lesson = {
         id: lessonId,
@@ -76,12 +56,7 @@ export function AddLessonModal({ isOpen, courseId, onClose, onCreated }: AddLess
         isPublished: false,
         intro: subtitle.trim() || "Bienvenido a esta lección.",
         sectionTitle: "Vocabulario esencial",
-        items: [
-          {
-            id: initialItemId,
-            ...initialCardData,
-          },
-        ],
+        items: [],
       };
 
       setIsSubmitting(false);

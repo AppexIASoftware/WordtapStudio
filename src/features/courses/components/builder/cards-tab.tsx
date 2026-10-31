@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CardStrip } from "./card-strip";
 import { CardEditorCanvas } from "./card-editor-canvas";
 import { Lesson, LessonItem } from "@/features/courses/types";
@@ -48,6 +48,12 @@ export function CardsTab({
   const [isCreatingState, setIsCreatingState] = useState(false);
   const [newCardForm, setNewCardForm] = useState<Omit<LessonItem, "id">>(DEFAULT_NEW_CARD);
 
+  // Al cambiar de leccion, activa modo creacion solo si la leccion no tiene tarjetas
+  useEffect(() => {
+    setIsCreatingState(currentLesson.items.length === 0);
+    setNewCardForm(DEFAULT_NEW_CARD);
+  }, [currentLesson.id]);
+
   const isCreating = !readOnly && (isCreatingState || currentLesson.items.length === 0);
 
   const handleStartAddCard = () => {
@@ -75,7 +81,7 @@ export function CardsTab({
       });
     }
     setNewCardForm(DEFAULT_NEW_CARD);
-    setIsCreatingState(false);
+    setIsCreatingState(true);
   };
 
   const activeEn = isCreating ? newCardForm.en : stepForm.en;

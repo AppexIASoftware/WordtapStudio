@@ -8,7 +8,6 @@ import {
   updateLessonApi,
   deleteLessonApi,
   createLessonApi,
-  saveLessonItemApi,
   ApiCourse,
 } from "@/services/api";
 
@@ -214,17 +213,6 @@ export function useCourseCrud({
   };
 
   const handleCourseCreated = async (newApiCourse: ApiCourse) => {
-    const initialCard = {
-      en: "learn",
-      es: "aprender",
-      ipa: "/lɜːrn/",
-      pos: "Verbo",
-      example: '"I learn English"',
-      note: "Verbo esencial",
-      noteType: "bulb" as const,
-      itemType: "word" as const,
-    };
-
     // 1. Placeholder reactivo inmediato para feedback instantáneo (0 ms en UI)
     const isSubscription = newApiCourse.access_tier === "subscription";
     const placeholderLesson: Lesson = {
@@ -240,7 +228,7 @@ export function useCourseCrud({
       isPublished: false,
       intro: "Bienvenido a este curso interactivo.",
       sectionTitle: "Vocabulario esencial",
-      items: [{ id: `card-pending-${Date.now()}`, ...initialCard }],
+      items: [],
     };
 
     const createdCourse: Course = {
@@ -272,7 +260,7 @@ export function useCourseCrud({
     syncSelectedLesson(placeholderLesson);
     triggerToast(`¡Curso "${newApiCourse.title}" creado con éxito!`);
 
-    // 2. Persistencia en segundo plano de la lección y tarjeta inicial
+    // 2. Persistencia en segundo plano de la lección inicial
     createLessonApi(newApiCourse.id, {
       title: "1. Lección Inicial",
       description: "Introducción al curso",
@@ -280,17 +268,10 @@ export function useCourseCrud({
     })
       .then(async (lessonRes) => {
         if (lessonRes.data) {
-          const itemRes = await saveLessonItemApi(lessonRes.data.id, {
-            item_type: "word",
-            content_text: JSON.stringify(initialCard),
-            sort_order: 1,
-            is_required: true,
-          });
-
           const persistedLesson: Lesson = {
             ...placeholderLesson,
             id: lessonRes.data.id,
-            items: itemRes.data ? [{ id: itemRes.data.id, ...initialCard }] : placeholderLesson.items,
+            items: [],
           };
 
           setCourses((prev) => ({

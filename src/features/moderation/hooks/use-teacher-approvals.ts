@@ -115,8 +115,8 @@ export function useTeacherApprovals() {
     const res = await getTeacherCourseReviewsApi();
     const courseMap = new Map<string, ApprovalRequest>();
 
-    // 1. Procesar primero los registros de la API (ordenados por MySQL con submitted_at DESC)
-    // El primer registro para cada curso siempre es la versión activa más reciente.
+    // 1. Process API records first (ordered by MySQL with submitted_at DESC)
+    // The first record for each course is always the latest active version.
     if (res.data && res.data.length > 0) {
       for (const item of res.data) {
         const approval = mapApiToApproval(item);

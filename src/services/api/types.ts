@@ -268,9 +268,9 @@ export interface JoinClassroomPayload {
 export interface TeacherGameDTO {
   id: string;
   teacher_id: string;
-  /** Nombre del docente autor. Solo lo entrega el catálogo administrativo. */
+  /** Name of the teacher who created the game. Only provided by the administrative catalog. */
   teacher_name?: string;
-  /** Correo del docente autor. Solo lo entrega el catálogo administrativo. */
+  /** Email of the teacher who created the game. Only provided by the administrative catalog. */
   teacher_email?: string;
   course_id?: string | null;
   course_title?: string;

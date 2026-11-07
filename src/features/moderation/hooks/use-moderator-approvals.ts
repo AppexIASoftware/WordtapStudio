@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   getAdminCourseReviewsApi,
+  getAdminCourseReviewHistoryApi,
   decideCourseReviewApi,
   ApiCourseReviewRequest,
-  getSyncedReviews,
   updateSyncedReview,
   subscribeSyncedReviews,
 } from "@/services/api";
 import { ModeratorPR } from "@/features/moderation/types";
+import { belongsToReviewTab, latestReviewIds, type ReviewTab } from "./review-selection";
 
 function mapApiToModeratorPr(req: ApiCourseReviewRequest): ModeratorPR {
   const shortId = `PR-${req.id.length > 8 ? req.id.slice(0, 6).toUpperCase() : req.id}`;
@@ -57,7 +59,8 @@ function mapApiToModeratorPr(req: ApiCourseReviewRequest): ModeratorPR {
     in_review: "in_review",
     approved: "approved",
     changes_requested: "changes_requested",
-    rejected: "changes_requested",
+    rejected: "rejected",
+    withdrawn: "withdrawn",
   };
 
   const statusLabelMap: Record<string, string> = {
@@ -66,6 +69,7 @@ function mapApiToModeratorPr(req: ApiCourseReviewRequest): ModeratorPR {
     approved: "Aprobado & Publicado",
     changes_requested: "Correcciones Pedidas",
     rejected: "Rechazado",
+    withdrawn: "Retirado",
   };
 
   return {
@@ -76,18 +80,19 @@ function mapApiToModeratorPr(req: ApiCourseReviewRequest): ModeratorPR {
       req.instructor?.name ||
       req.course?.author?.name ||
       (req.course as { author?: string })?.author ||
-      "Prof. Mateo Silva",
+      "Docente",
     authorEmail:
       req.instructor?.email ||
       req.course?.author?.email ||
-      "docente@wordtap.app",
+      "",
     authorAvatar: (req.instructor?.name || req.course?.author?.name || "MS")
       .slice(0, 2)
       .toUpperCase(),
     submittedAt: submitted.toLocaleDateString("es-ES", { day: "2-digit", month: "short" }),
+    reviewedAt: req.reviewed_at ? new Date(req.reviewed_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : undefined,
     waitHours: `${diffHours}h`,
     changesCount: `${diffItems.length} cambios`,
-    reviewer: req.reviewer_admin_id ? `Admin (${req.reviewer_admin_id.slice(0, 6)})` : "Sin Asignar",
+    reviewer: req.reviewer_admin?.name || (req.reviewer_admin_id ? "Revisor" : "Sin asignar"),
     status: statusMap[req.status] || "open",
     statusLabel: statusLabelMap[req.status] || "Pendiente",
     summary: req.change_summary || "Actualización de contenido pedagógico",
@@ -98,11 +103,12 @@ function mapApiToModeratorPr(req: ApiCourseReviewRequest): ModeratorPR {
 }
 
 export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
+  const queryClient = useQueryClient();
   const isAdmin = options?.isAdmin ?? false;
   const senderName = isAdmin ? "Admin Principal (Tú)" : "Lic. Elena Ramos (Tú)";
 
   const [prs, setPrs] = useState<ModeratorPR[]>([]);
-  const [activeTab, setActiveTab] = useState<"open" | "my" | "history">("open");
+  const [activeTab, setActiveTab] = useState<ReviewTab>("open");
   const [selectedPrId, setSelectedPrId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -126,47 +132,18 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
 
   const refreshReviews = useCallback(async () => {
     setIsLoading(true);
-    const synced = getSyncedReviews();
-    const syncedAsPrs: ModeratorPR[] = synced.map((s) => ({
-      id: s.id,
-      originalId: s.originalId,
-      courseId: s.courseId,
-      title: s.title,
-      author: s.author,
-      authorEmail: s.authorEmail,
-      authorAvatar: s.authorAvatar || s.author.slice(0, 2).toUpperCase(),
-      submittedAt: s.submittedAt,
-      waitHours: s.waitHours || "0.1h",
-      changesCount: s.changesCount || "Versión enviada",
-      reviewer: s.reviewer || "Bandeja Abierta",
-      status: (s.status as string) === "pending" ? "open" : s.status,
-      statusLabel: s.statusLabel,
-      summary: s.summary,
-      feedback: s.feedback,
-      diffItems: s.diffItems || [
-        {
-          field: "Estructura pedagógica",
-          original: "Borrador inicial",
-          proposed: "Contenido enviado para revisión docente",
-        },
-      ],
-    }));
-
-    const res = await getAdminCourseReviewsApi();
-    if (res.error || !res.data) {
+    const [res, history] = await Promise.all([
+      getAdminCourseReviewsApi(),
+      getAdminCourseReviewHistoryApi(),
+    ]);
+    if (res.error || !res.data || history.error || !history.data) {
       setIsLoading(false);
-      triggerToast(res.error || "No se pudieron cargar las solicitudes.");
+      triggerToast(res.error || history.error || "No se pudieron cargar las solicitudes.");
       return;
     }
-    const combined: ModeratorPR[] = [];
-    if (res.data && res.data.length > 0) {
-      const mapped = res.data.map(mapApiToModeratorPr);
-      for (const m of mapped) {
-        if (!combined.some((c) => c.originalId === m.originalId || c.id === m.id)) {
-          combined.push(m);
-        }
-      }
-    }
+    const reviews = [...res.data, ...history.data];
+    const latest = latestReviewIds(reviews);
+    const combined = reviews.map((review) => ({ ...mapApiToModeratorPr(review), isCurrent: latest.has(review.id) }));
     setPrs(combined);
     if (combined.length > 0) {
       setSelectedPrId((prev) => (combined.some((c) => c.id === prev) ? prev : combined[0].id));
@@ -185,16 +162,7 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
   }, [refreshReviews]);
 
   const filteredPrs = useMemo(() => {
-    return prs.filter((p) => {
-      if (activeTab === "open") return p.status === "open" || (p.status as string) === "pending";
-      if (activeTab === "my")
-        return (
-          p.status === "in_review" ||
-          p.status === "changes_requested" ||
-          p.status === "rejected"
-        );
-      return p.status === "approved";
-    });
+    return prs.filter((p) => belongsToReviewTab(p, activeTab));
   }, [prs, activeTab]);
 
   const activePr = useMemo(() => {
@@ -249,8 +217,11 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
       )
     );
     setShowPublishModal(false);
-    setActiveTab("history");
+    setActiveTab("approved");
     triggerToast(`¡Curso "${activePr.title}" aprobado y publicado en App Móvil!`);
+    queryClient.invalidateQueries({ queryKey: ["teacher", "courses"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
+    void refreshReviews();
   };
 
   const handleRequestChanges = async (notes: string) => {
@@ -280,6 +251,9 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
     setShowRequestChangesModal(false);
     setActiveTab("my");
     triggerToast("Correcciones solicitadas y feedback pedagógico enviado al docente");
+    queryClient.invalidateQueries({ queryKey: ["teacher", "courses"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
+    void refreshReviews();
   };
 
   const handleRejectCourse = async (notes: string) => {
@@ -309,6 +283,7 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
     setShowRejectModal(false);
     setActiveTab("my");
     triggerToast("Curso rechazado y feedback pedagógico enviado al docente");
+    void refreshReviews();
   };
 
   const handleReassign = (newReviewer: string) => {
@@ -322,9 +297,10 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
 
   const counts = useMemo(() => {
     return {
-      open: prs.filter((p) => p.status === "open" || (p.status as string) === "pending").length,
-      my: prs.filter((p) => p.status === "in_review" || p.status === "changes_requested" || p.status === "rejected").length,
-      history: prs.filter((p) => p.status === "approved").length,
+      open: prs.filter((p) => belongsToReviewTab(p, "open")).length,
+      my: prs.filter((p) => belongsToReviewTab(p, "my")).length,
+      approved: prs.filter((p) => belongsToReviewTab(p, "approved")).length,
+      history: prs.filter((p) => belongsToReviewTab(p, "history")).length,
     };
   }, [prs]);
 

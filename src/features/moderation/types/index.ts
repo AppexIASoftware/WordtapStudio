@@ -7,7 +7,7 @@ export interface ApprovalRequest {
   author: string;
   waitHours: string;
   changesCount: string;
-  status: "pending" | "in_review" | "approved" | "rejected" | "changes_requested";
+  status: "pending" | "in_review" | "approved" | "rejected" | "changes_requested" | "withdrawn";
   statusLabel: string;
   changes: string;
   notes?: string;
@@ -26,10 +26,12 @@ export interface ModeratorPR {
   authorEmail: string;
   authorAvatar: string;
   submittedAt: string;
+  reviewedAt?: string;
   waitHours: string;
   changesCount: string;
   reviewer: string;
-  status: "open" | "in_review" | "approved" | "changes_requested" | "rejected";
+  status: "open" | "in_review" | "approved" | "changes_requested" | "rejected" | "withdrawn";
+  isCurrent?: boolean;
   statusLabel: string;
   summary: string;
   feedback?: string;

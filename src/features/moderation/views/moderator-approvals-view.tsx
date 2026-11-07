@@ -10,6 +10,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useModeratorApprovals } from "../hooks/use-moderator-approvals";
+import { ApprovalsTable } from "../components/approvals-table";
 import { ApprovalAuditDrawer } from "../components/approval-audit-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
@@ -164,6 +165,20 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab("approved")}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "approved"
+                ? "bg-blue-500 text-white font-bold shadow-sm"
+                : "text-slate-muted hover:text-white"
+            }`}
+          >
+            <span>Aprobados</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${activeTab === "approved" ? "bg-white/20 text-white" : "bg-card-hover text-slate-400"}`}>
+              {counts.approved}
+            </span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab("history")}
             className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === "history"
@@ -171,7 +186,7 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
                 : "text-slate-muted hover:text-white"
             }`}
           >
-            <span>Historial de Aprobaciones</span>
+            <span>Historial de Revisiones</span>
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
               activeTab === "history" ? "bg-white/20 text-white" : "bg-card-hover text-slate-400"
             }`}>
@@ -192,79 +207,7 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
         </button>
       </div>
 
-      {/* Tabla de Solicitudes */}
-      <div className="rounded-2xl bg-card border border-border-default overflow-hidden shadow-sm text-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-card-hover/80 text-slate-subtle border-b border-border-default font-mono uppercase text-[10px]">
-              <tr>
-                <th className="p-3.5">Solicitud</th>
-                <th className="p-3.5">Curso</th>
-                <th className="p-3.5">Docente Autor</th>
-                <th className="p-3.5">Espera</th>
-                <th className="p-3.5">Cambios</th>
-                <th className="p-3.5">Asignado a</th>
-                <th className="p-3.5">Estado</th>
-                <th className="p-3.5 text-right">Acción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-default">
-              {filteredPrs.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">
-                    No hay solicitudes pendientes en esta bandeja.
-                  </td>
-                </tr>
-              ) : (
-                filteredPrs.map((pr) => {
-                  const isSelected = pr.id === selectedPrId;
-                  return (
-                    <tr
-                      key={pr.id}
-                      onClick={() => handleOpenAudit(pr.id)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected ? "bg-blue-500/10" : "hover:bg-card-hover/40"
-                      }`}
-                    >
-                      <td className="p-3.5 font-bold font-mono text-mint-brand">{pr.id}</td>
-                      <td className="p-3.5 font-semibold text-white">{pr.title}</td>
-                      <td className="p-3.5 text-slate-300">{pr.author}</td>
-                      <td className="p-3.5 font-mono text-slate-muted">{pr.waitHours}</td>
-                      <td className="p-3.5 text-slate-300">{pr.changesCount}</td>
-                      <td className="p-3.5 text-slate-300">{pr.reviewer}</td>
-                      <td className="p-3.5">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                            pr.status === "in_review"
-                              ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
-                              : pr.status === "approved"
-                              ? "bg-emerald-brand/20 text-emerald-brand border-emerald-brand/30"
-                              : "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                          }`}
-                        >
-                          {pr.statusLabel}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenAudit(pr.id);
-                          }}
-                          className="px-3 py-1 rounded-lg bg-canvas border border-border-default hover:border-blue-400 text-blue-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
-                        >
-                          Auditar
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ApprovalsTable items={filteredPrs} selectedId={selectedPrId} isHistory={activeTab === "history" || activeTab === "approved"} isApprovedOnly={activeTab === "approved"} onOpen={handleOpenAudit} />
 
       {/* Drawer Lateral de Auditoría de Solicitud */}
       <ApprovalAuditDrawer

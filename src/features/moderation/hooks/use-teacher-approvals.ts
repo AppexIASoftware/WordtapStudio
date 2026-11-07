@@ -23,6 +23,7 @@ function mapApiToApproval(req: ApiCourseReviewRequest): ApprovalRequest {
     approved: "Aprobada & Publicada",
     rejected: "Rechazada",
     changes_requested: "Cambios Solicitados",
+    withdrawn: "Retirada",
   };
 
   const isResub = Boolean(

@@ -66,7 +66,8 @@ export function useTeacherCatalog() {
         } as ApiCourse & { reviewStatus?: string };
       });
     },
-    staleTime: 1000 * 60 * 3,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const totalCount = courses.length;

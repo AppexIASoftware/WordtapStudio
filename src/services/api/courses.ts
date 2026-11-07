@@ -128,6 +128,16 @@ export async function getAdminCourseReviewsApi(): Promise<{
   );
 }
 
+export async function getAdminCourseReviewHistoryApi(): Promise<{
+  data: ApiCourseReviewRequest[] | null;
+  error: string | null;
+}> {
+  return apiRequest<ApiCourseReviewRequest[]>(
+    `${API_V1_URL}/admin/course-reviews/history`,
+    { cache: "no-store" }
+  );
+}
+
 // POST /api/v1/admin/course-reviews/:id/decision
 export async function decideCourseReviewApi(
   id: string,

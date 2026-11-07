@@ -79,7 +79,7 @@ export interface ApiCourseReviewRequest {
   course_id: string;
   instructor_id: string;
   reviewer_admin_id?: string | null;
-  status: "pending" | "changes_requested" | "approved" | "rejected";
+  status: "pending" | "changes_requested" | "approved" | "rejected" | "withdrawn";
   feedback_notes?: string | null;
   diff_summary?: string;
   change_summary?: string | null;
@@ -87,6 +87,7 @@ export interface ApiCourseReviewRequest {
   reviewed_at?: string | null;
   course?: ApiCourse;
   instructor?: BackendUser;
+  reviewer_admin?: BackendUser;
 }
 
 export interface SubmitCourseReviewPayload {
@@ -246,6 +247,7 @@ export interface CreateClassroomPayload {
   level?: string;
   course_id?: string;
   course_ids?: string[];
+  lesson_ids?: string[];
   game_ids?: string[];
   weekly_goal_words?: number;
   description?: string;
@@ -256,6 +258,7 @@ export interface UpdateClassroomPayload {
   level?: string;
   course_id?: string;
   course_ids?: string[];
+  lesson_ids?: string[];
   game_ids?: string[];
   weekly_goal_words?: number;
   description?: string;
@@ -300,8 +303,9 @@ export interface TeacherGameDTO {
    */
   is_global?: boolean;
   is_published_standalone?: boolean;
-  audience_scope?: "all_students" | "selected_courses";
+  audience_scope?: "all_students" | "selected_courses" | "selected_classrooms";
   assigned_course_ids?: string[];
+  assigned_classroom_ids?: string[];
   created_at: string;
 }
 
@@ -321,8 +325,9 @@ export interface CreateTeacherGamePayload {
   source_id?: string | null;
   custom_words_json?: string | null;
   is_published_standalone?: boolean;
-  audience_scope?: "all_students" | "selected_courses";
+  audience_scope?: "all_students" | "selected_courses" | "selected_classrooms";
   assigned_course_ids?: string[];
+  assigned_classroom_ids?: string[];
 }
 
 export interface UpdateTeacherGamePayload {
@@ -341,8 +346,9 @@ export interface UpdateTeacherGamePayload {
   source_id?: string | null;
   custom_words_json?: string | null;
   is_published_standalone?: boolean;
-  audience_scope?: "all_students" | "selected_courses";
+  audience_scope?: "all_students" | "selected_courses" | "selected_classrooms";
   assigned_course_ids?: string[];
+  assigned_classroom_ids?: string[];
   is_active?: boolean;
 }
 

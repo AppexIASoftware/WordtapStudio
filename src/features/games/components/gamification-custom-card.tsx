@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, Pencil, Trash2, BookOpen, Sparkles, Heart } from "lucide-react";
+import { Play, Pencil, Trash2, BookOpen, Sparkles, Heart, Clock, Smartphone } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
 
 interface GamificationCustomCardProps {
@@ -57,8 +57,9 @@ export function GamificationCustomCard({
         )}
 
         <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[10px] font-mono">
-          <span className="px-2 py-0.5 rounded bg-canvas text-mint-brand border border-border-default">
-            ⏱ {game.time_limit_seconds}s
+          <span className="px-2 py-0.5 rounded bg-canvas text-mint-brand border border-border-default flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5" />
+            <span>{game.time_limit_seconds}s</span>
           </span>
           <span className="px-2 py-0.5 rounded bg-canvas text-rose-400 border border-border-default flex items-center gap-0.5">
             <Heart className="w-2.5 h-2.5 fill-current" />
@@ -77,8 +78,14 @@ export function GamificationCustomCard({
           )}
           {game.is_published_standalone ? (
             <span className="px-2 py-0.5 rounded bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30 font-bold flex items-center gap-1">
-              <span>📱 App:</span>
-              <span>{game.audience_scope === "selected_courses" ? "Cursos elegidos" : "Todos tus alumnos"}</span>
+              <Smartphone className="w-2.5 h-2.5 text-emerald-brand" />
+              <span>
+                {game.audience_scope === "selected_classrooms"
+                  ? "Aulas elegidas"
+                  : game.audience_scope === "selected_courses"
+                  ? "Cursos elegidos"
+                  : "Todos tus alumnos"}
+              </span>
             </span>
           ) : (
             <span className="px-2 py-0.5 rounded bg-canvas text-slate-400 border border-border-default">

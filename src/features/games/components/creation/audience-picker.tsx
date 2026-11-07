@@ -1,25 +1,29 @@
 "use client";
 
-import { ApiCourse } from "@/services/api/types";
+import type { Classroom } from "@/features/classrooms/types";
 
 interface AudiencePickerProps {
   isPublishedStandalone: boolean;
-  audienceScope: "all_students" | "selected_courses";
-  assignedCourseIds: string[];
-  courses: ApiCourse[];
+  audienceScope: "all_students" | "selected_courses" | "selected_classrooms";
+  assignedClassroomIds: string[];
+  classrooms: Classroom[];
+  loading: boolean;
+  loadError: boolean;
   onTogglePublished: () => void;
-  onAudienceScopeChange: (scope: "all_students" | "selected_courses") => void;
-  onToggleCourse: (courseId: string) => void;
+  onAudienceScopeChange: (scope: "all_students" | "selected_classrooms") => void;
+  onToggleClassroom: (classroomId: string) => void;
 }
 
 export function AudiencePicker({
   isPublishedStandalone,
   audienceScope,
-  assignedCourseIds,
-  courses,
+  assignedClassroomIds,
+  classrooms,
+  loading,
+  loadError,
   onTogglePublished,
   onAudienceScopeChange,
-  onToggleCourse,
+  onToggleClassroom,
 }: AudiencePickerProps) {
   return (
     <div className="p-5 rounded-2xl bg-card border border-border-default space-y-4">
@@ -38,7 +42,7 @@ export function AudiencePicker({
             </span>
           </h3>
           <p className="text-[11px] text-slate-muted mt-0.5">
-            Guarda la audiencia para una función futura. Esta configuración todavía no publica la actividad en la aplicación.
+            Elige qué estudiantes pueden acceder a esta actividad.
           </p>
         </div>
 
@@ -55,8 +59,9 @@ export function AudiencePicker({
         </button>
       </div>
 
-      {isPublishedStandalone && (
+      {(isPublishedStandalone || audienceScope === "selected_courses") && (
         <div className="pt-3 border-t border-border-default/60 space-y-3 animate-in fade-in duration-150">
+          {audienceScope === "selected_courses" && <p className="text-xs text-amber-300">Esta actividad tiene una audiencia anterior por cursos. Elige una nueva audiencia para guardar los cambios.</p>}
           <label className="text-xs font-semibold text-slate-200 block">
             Audiencia de alumnos autorizada:
           </label>
@@ -72,49 +77,53 @@ export function AudiencePicker({
             >
               <span className="text-xs font-bold block text-white">Todos mis alumnos</span>
               <span className="text-[10px] text-slate-400 block mt-0.5 leading-snug">
-                Disponible para todos los estudiantes inscritos en cualquiera de tus cursos y aulas.
+                Disponible para los estudiantes inscritos en tus aulas.
               </span>
             </button>
 
             <button
               type="button"
-              onClick={() => onAudienceScopeChange("selected_courses")}
+              onClick={() => onAudienceScopeChange("selected_classrooms")}
               className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                audienceScope === "selected_courses"
+                audienceScope === "selected_classrooms"
                   ? "bg-emerald-brand/10 border-emerald-brand/50 text-white ring-1 ring-emerald-brand/30"
                   : "bg-canvas border-border-default text-slate-400 hover:text-white"
               }`}
             >
-              <span className="text-xs font-bold block text-white">Alumnos de cursos específicos</span>
+              <span className="text-xs font-bold block text-white">Alumnos de aulas específicas</span>
               <span className="text-[10px] text-slate-400 block mt-0.5 leading-snug">
-                Restringido únicamente a los estudiantes inscritos en las aulas de los cursos elegidos.
+                Disponible solo para estudiantes inscritos en las aulas elegidas.
               </span>
             </button>
           </div>
 
-          {audienceScope === "selected_courses" && (
+          {audienceScope === "selected_classrooms" && (
             <div className="p-3 rounded-xl bg-canvas border border-border-default space-y-2 mt-2">
               <span className="text-[11px] font-semibold text-slate-300 block">
-                Selecciona los cursos con acceso:
+                Selecciona las aulas con acceso:
               </span>
-              {courses.length === 0 ? (
-                <p className="text-[11px] text-slate-500 italic">No tienes cursos creados para vincular.</p>
+              {loading ? (
+                <div aria-label="Cargando aulas" className="space-y-2 animate-pulse"><div className="h-5 rounded bg-slate-700" /><div className="h-5 rounded bg-slate-700" /></div>
+              ) : loadError ? (
+                <p className="text-[11px] text-amber-300">No se pudieron cargar tus aulas. Vuelve a abrir esta pantalla para intentarlo de nuevo.</p>
+              ) : classrooms.length === 0 ? (
+                <p className="text-[11px] text-slate-500 italic">No tienes aulas creadas para seleccionar.</p>
               ) : (
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                  {courses.map((course) => {
-                    const isChecked = assignedCourseIds.includes(course.id);
+                  {classrooms.map((classroom) => {
+                    const isChecked = assignedClassroomIds.includes(classroom.id);
                     return (
                       <label
-                        key={course.id}
+                        key={classroom.id}
                         className="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer select-none py-0.5"
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={() => onToggleCourse(course.id)}
+                          onChange={() => onToggleClassroom(classroom.id)}
                           className="rounded border-border-default text-emerald-brand focus:ring-emerald-brand"
                         />
-                        <span className="truncate">{course.title}</span>
+                        <span className="truncate">{classroom.name}</span>
                       </label>
                     );
                   })}

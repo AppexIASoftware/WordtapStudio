@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, Play, Save, Loader2, Sparkles, Globe2 } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
 import { useGameForm } from "../hooks/use-game-form";
@@ -34,8 +34,9 @@ interface GameCreationWorkspaceProps {
     source_type: string;
     custom_words_json?: string;
     is_published_standalone?: boolean;
-    audience_scope?: "all_students" | "selected_courses";
+    audience_scope?: "all_students" | "selected_courses" | "selected_classrooms";
     assigned_course_ids?: string[];
+    assigned_classroom_ids?: string[];
   }) => Promise<void>;
   onOpenSandbox: (mockGame: TeacherGameDTO) => void;
 }
@@ -68,7 +69,6 @@ export function GameCreationWorkspace({
 
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
   const [newCategoryInitialName, setNewCategoryInitialName] = useState("");
-  const audienceEdited = useRef(false);
 
   return (
     <div className="space-y-6">
@@ -352,21 +352,17 @@ export function GameCreationWorkspace({
             <AudiencePicker
               isPublishedStandalone={form.isPublishedStandalone}
               audienceScope={form.audienceScope}
-              assignedCourseIds={form.assignedCourseIds}
-              courses={form.courses}
+              assignedClassroomIds={form.assignedClassroomIds}
+              classrooms={form.classrooms}
+              loading={form.classroomsLoading}
+              loadError={form.classroomsError}
               onTogglePublished={() => form.setIsPublishedStandalone(!form.isPublishedStandalone)}
-              onAudienceScopeChange={(scope) => {
-                if (scope === "selected_courses" && !initialGame && !audienceEdited.current && form.assignedCourseIds.length === 0 && form.sourceType === "course_lesson" && form.courseId) {
-                  form.setAssignedCourseIds([form.courseId]);
-                }
-                form.setAudienceScope(scope);
-              }}
-              onToggleCourse={(courseId) => {
-                audienceEdited.current = true;
-                if (form.assignedCourseIds.includes(courseId)) {
-                  form.setAssignedCourseIds(form.assignedCourseIds.filter((id) => id !== courseId));
+              onAudienceScopeChange={form.setAudienceScope}
+              onToggleClassroom={(classroomId) => {
+                if (form.assignedClassroomIds.includes(classroomId)) {
+                  form.setAssignedClassroomIds(form.assignedClassroomIds.filter((id) => id !== classroomId));
                 } else {
-                  form.setAssignedCourseIds([...form.assignedCourseIds, courseId]);
+                  form.setAssignedClassroomIds([...form.assignedClassroomIds, classroomId]);
                 }
               }}
             />

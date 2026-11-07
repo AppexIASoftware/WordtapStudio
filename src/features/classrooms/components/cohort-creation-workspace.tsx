@@ -54,7 +54,6 @@ export function CohortCreationWorkspace({
     toggleGame,
     handleCancelEdit,
     handleTabChange,
-    levelPrefix,
     simulatedCode,
     primaryCourse,
   } = useCohortForm({ initialClassroom, initialMode });
@@ -89,6 +88,7 @@ export function CohortCreationWorkspace({
         courseId: selectedCourseIds[0] || initialClassroom.courseId,
         courseTitle: primaryTitle,
         assignedCourses: selectedCourseIds,
+        assignedLessons: selectedLessonIds,
         activeGames: selectedGameTypes,
         weeklyGoalWords: weeklyGoal,
       };
@@ -99,6 +99,7 @@ export function CohortCreationWorkspace({
           level,
           course_id: selectedCourseIds[0] || initialClassroom.courseId,
           course_ids: selectedCourseIds,
+          lesson_ids: selectedLessonIds,
           game_ids: selectedGameTypes,
           weekly_goal_words: weeklyGoal,
           description: description.trim() || undefined,
@@ -119,15 +120,11 @@ export function CohortCreationWorkspace({
           return;
         }
       } catch {
-        // Fallback local seguro ante desconexión
+        // Keep the editor open so the teacher can retry without losing changes.
       }
 
-      if (onClassroomUpdated) {
-        onClassroomUpdated(fallbackUpdated);
-      }
-      triggerToast(`¡Aula "${trimmedName}" actualizada con éxito!`);
+      triggerToast("No se pudo actualizar el aula. Comprueba tu conexión e inténtalo de nuevo.");
       setIsSubmitting(false);
-      setIsEditing(false);
       return;
     }
 
@@ -138,6 +135,7 @@ export function CohortCreationWorkspace({
         level,
         course_id: selectedCourseIds[0],
         course_ids: selectedCourseIds,
+        lesson_ids: selectedLessonIds,
         game_ids: selectedGameTypes,
         weekly_goal_words: weeklyGoal,
         description: description.trim() || undefined,
@@ -151,6 +149,7 @@ export function CohortCreationWorkspace({
           courseId: res.data.courseId || selectedCourseIds[0] || "c-1",
           courseTitle: res.data.courseTitle || primaryTitle,
           assignedCourses: selectedCourseIds,
+          assignedLessons: res.data.assignedLessons ?? selectedLessonIds,
           activeGames: selectedGameTypes,
           weeklyGoalWords: weeklyGoal,
           level: res.data.level || level,
@@ -166,30 +165,10 @@ export function CohortCreationWorkspace({
         return;
       }
     } catch {
-      // Fallback local seguro
+      // Keep the editor open so the teacher can retry without losing changes.
     }
 
-    const fallbackCode = `WT-${levelPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const fallbackClassroom: Classroom = {
-      id: `cls-${Date.now()}`,
-      name: trimmedName,
-      code: fallbackCode,
-      courseId: selectedCourseIds[0] || "c-1",
-      courseTitle: primaryTitle,
-      assignedCourses: selectedCourseIds,
-      activeGames: selectedGameTypes,
-      weeklyGoalWords: weeklyGoal,
-      level,
-      created: "Hoy",
-      studentsCount: 0,
-      stats: { sub: 0, trial: 0, free: 0, scholar: 0 },
-      stumble: [],
-      students: [],
-      isDemo: true,
-    };
-
-    onClassroomCreated(fallbackClassroom);
-    triggerToast(`¡Aula "${trimmedName}" creada con código ${fallbackCode}!`);
+    triggerToast("No se pudo crear el aula. Comprueba tu conexión e inténtalo de nuevo.");
     setIsSubmitting(false);
   };
 

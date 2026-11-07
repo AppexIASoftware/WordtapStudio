@@ -102,8 +102,9 @@ export function CohortManagementPanel({
               ? selectedClass.assignedCourses
               : selectedClass.courseId
               ? [selectedClass.courseId]
-              : ["c-3"]
+              : []
           }
+          assignedLessonIds={selectedClass.assignedLessons}
           classroomName={selectedClass.name}
           onAssignMore={onAssignMoreCourses}
         />

@@ -4,24 +4,27 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ExternalLink, Plus, Layers } from "lucide-react";
 import { Course } from "@/features/courses/types";
-import { MOCK_COURSES_LIST } from "@/features/courses/data/mock-courses";
 import { getTeacherCoursesApi } from "@/services/api/courses";
 
 interface CohortCoursesTabProps {
   assignedCourseIds: string[];
+  assignedLessonIds?: string[] | null;
   classroomName: string;
   onAssignMore: () => void;
 }
 
 export function CohortCoursesTab({
   assignedCourseIds,
+  assignedLessonIds,
   classroomName,
   onAssignMore,
 }: CohortCoursesTabProps) {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchRealCourses() {
+      setIsLoading(true);
       try {
         const res = await getTeacherCoursesApi();
         if (res.data && res.data.length > 0) {
@@ -37,7 +40,7 @@ export function CohortCoursesTab({
               author: c.author?.name || "Docente",
               status: c.status,
               isDemo: false,
-              lessons: (c.lessons || []).map((l) => ({
+              lessons: (c.lessons || []).filter((l) => l.status === "published" && (assignedLessonIds == null || assignedLessonIds.includes(l.id))).map((l) => ({
                 id: l.id,
                 title: l.title,
                 subtitle: l.slug,
@@ -57,20 +60,15 @@ export function CohortCoursesTab({
           }
         }
 
-        // El demo solo se muestra si NO hay información pedida por la API de la DB
-        const fallback = MOCK_COURSES_LIST
-          .filter((c) => assignedCourseIds.includes(c.id))
-          .map((c) => ({ ...c, isDemo: true }));
-        setCourses(fallback);
+        setCourses([]);
       } catch {
-        const fallback = MOCK_COURSES_LIST
-          .filter((c) => assignedCourseIds.includes(c.id))
-          .map((c) => ({ ...c, isDemo: true }));
-        setCourses(fallback);
+        setCourses([]);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchRealCourses();
-  }, [assignedCourseIds]);
+  }, [assignedCourseIds, assignedLessonIds]);
 
   return (
     <div className="space-y-4">
@@ -94,7 +92,11 @@ export function CohortCoursesTab({
         </button>
       </div>
 
-      {courses.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" aria-label="Cargando cursos">
+          {[1, 2, 3].map((item) => <div key={item} className="h-44 rounded-2xl bg-slate-200/10 animate-pulse" />)}
+        </div>
+      ) : courses.length === 0 ? (
         <div className="p-8 rounded-2xl bg-card border border-border-default text-center space-y-2">
           <div className="w-10 h-10 mx-auto rounded-full bg-card-hover flex items-center justify-center text-slate-400">
             <Layers className="w-5 h-5" />
@@ -133,6 +135,10 @@ export function CohortCoursesTab({
                   Acceso {course.tier === "free" ? "Gratuito" : "Premium"} • Por {course.author}
                 </p>
               </div>
+
+              <ul className="space-y-1 text-xs text-slate-300">
+                {course.lessons?.map((lesson) => <li key={lesson.id}>{lesson.title}</li>)}
+              </ul>
 
               <div className="pt-2 border-t border-border-default/80 flex items-center justify-between text-xs">
                 <span className="text-[10px] font-mono text-slate-400">Contenido activo</span>

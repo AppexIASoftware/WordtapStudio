@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Classroom, COHORT_TAB, CohortTab } from "@/features/classrooms/types";
 import { Course } from "@/features/courses/types";
-import { MOCK_COURSES_LIST } from "@/features/courses/data/mock-courses";
 import { getTeacherCoursesApi } from "@/services/api/courses";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { useTeacherGames } from "@/features/games/hooks/use-teacher-games";
@@ -131,12 +130,13 @@ export function useCohortForm({
             author: c.author?.name || "Docente",
             status: c.status,
             isDemo: false,
-            lessons: (c.lessons || []).map((l) => mapApiLessonToLesson(l)),
+            lessons: (c.lessons || []).filter((lesson) => lesson.status === "published").map((l) => mapApiLessonToLesson(l)),
           }));
           setAvailableCourses(mapped);
           if (!initialClassroom) {
-            setSelectedCourseIds([mapped[0].id]);
-            setSelectedLessonIds(mapped[0]?.lessons?.map((l) => l.id) || []);
+            const firstPublished = mapped.find((course) => course.status === "published");
+            setSelectedCourseIds(firstPublished ? [firstPublished.id] : []);
+            setSelectedLessonIds(firstPublished?.lessons?.map((l) => l.id) || []);
           } else {
             const assigned =
               initialClassroom.assignedCourses && initialClassroom.assignedCourses.length > 0
@@ -146,33 +146,13 @@ export function useCohortForm({
                 : [mapped[0].id];
             const assignedObjs = mapped.filter((c) => assigned.includes(c.id));
             const allLessons = assignedObjs.flatMap((c) => c.lessons?.map((l) => l.id) || []);
-            setSelectedLessonIds(allLessons);
+            setSelectedLessonIds(initialClassroom.assignedLessons ?? allLessons);
           }
         } else {
-          const demoCourses = MOCK_COURSES_LIST.map((c) => ({ ...c, isDemo: true }));
-          setAvailableCourses(demoCourses);
-          if (!initialClassroom) {
-            setSelectedCourseIds([demoCourses[0].id]);
-            setSelectedLessonIds(demoCourses[0]?.lessons?.map((l) => l.id) || []);
-          } else {
-            const assigned =
-              initialClassroom.assignedCourses && initialClassroom.assignedCourses.length > 0
-                ? initialClassroom.assignedCourses
-                : initialClassroom.courseId
-                ? [initialClassroom.courseId]
-                : [demoCourses[0].id];
-            const assignedObjs = demoCourses.filter((c) => assigned.includes(c.id));
-            const allLessons = assignedObjs.flatMap((c) => c.lessons?.map((l) => l.id) || []);
-            setSelectedLessonIds(allLessons);
-          }
+          setAvailableCourses([]);
         }
       } catch {
-        const demoCourses = MOCK_COURSES_LIST.map((c) => ({ ...c, isDemo: true }));
-        setAvailableCourses(demoCourses);
-        if (!initialClassroom) {
-          setSelectedCourseIds([demoCourses[0].id]);
-          setSelectedLessonIds(demoCourses[0]?.lessons?.map((l) => l.id) || []);
-        }
+        setAvailableCourses([]);
       }
     }
     loadCourses();
@@ -181,6 +161,7 @@ export function useCohortForm({
   const toggleCourse = (id: string) => {
     if (!isEditing) return;
     const course = availableCourses.find((c) => c.id === id);
+    if (course?.status !== "published" && !selectedCourseIds.includes(id)) return;
     const courseLessonIds = course?.lessons?.map((l) => l.id) || [];
 
     setSelectedCourseIds((prev) => {
@@ -202,6 +183,7 @@ export function useCohortForm({
 
   const toggleLesson = (lessonId: string, courseId: string) => {
     if (!isEditing) return;
+    if (availableCourses.find((c) => c.id === courseId)?.status !== "published") return;
     if (!selectedCourseIds.includes(courseId)) {
       setSelectedCourseIds((prev) => [...prev, courseId]);
     }
@@ -213,6 +195,7 @@ export function useCohortForm({
   const toggleAllLessonsForCourse = (courseId: string) => {
     if (!isEditing) return;
     const course = availableCourses.find((c) => c.id === courseId);
+    if (course?.status !== "published") return;
     const courseLessonIds = course?.lessons?.map((l) => l.id) || [];
     const allActive = courseLessonIds.every((id) => selectedLessonIds.includes(id));
 
@@ -245,6 +228,9 @@ export function useCohortForm({
           ? [initialClassroom.courseId]
           : [];
       setSelectedCourseIds(assigned);
+      setSelectedLessonIds(initialClassroom.assignedLessons ?? availableCourses
+        .filter((course) => assigned.includes(course.id))
+        .flatMap((course) => course.lessons?.map((lesson) => lesson.id) || []));
       if (initialClassroom.activeGames) {
         setSelectedGameTypes(initialClassroom.activeGames);
       }

@@ -46,6 +46,7 @@ export interface Classroom {
   courseId: string;
   courseTitle: string;
   assignedCourses?: string[];
+  assignedLessons?: string[] | null;
   activeGames?: string[];
   weeklyGoalWords?: number;
   level: string;

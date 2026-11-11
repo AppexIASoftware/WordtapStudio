@@ -10,3 +10,4 @@ export * from "./vault";
 export * from "./classroom";
 export * from "./games";
 export * from "./admin";
+export * from "./notifications";

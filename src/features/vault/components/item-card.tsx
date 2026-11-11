@@ -1,12 +1,11 @@
 "use client";
 
-import { Volume2, Edit3, Trash2 } from "lucide-react";
+import { Volume2, Edit3, Trash2, Radio } from "lucide-react";
 import { ApiVaultItem } from "@/services/api";
 import { VaultAccent } from "../types/vault";
 import { useSpeak } from "@/hooks/use-speak";
 
-// El acento solo cambia el color del borde al pasar el mouse y del nivel CEFR:
-// la estructura de la tarjeta es una sola para los tres roles.
+// Accent styles customize border hover and CEFR badge colors across role workspaces.
 const CARD_ACCENT: Record<VaultAccent, { hover: string; cefr: string }> = {
   emerald: {
     hover: "hover:border-slate-400/50",
@@ -26,6 +25,7 @@ interface VaultItemCardProps {
   deleteTitle?: string;
   onEdit?: (item: ApiVaultItem) => void;
   onDelete?: (id: string) => void;
+  onDispatch?: (item: ApiVaultItem) => void;
 }
 
 export function VaultItemCard({
@@ -36,6 +36,7 @@ export function VaultItemCard({
   deleteTitle = "Eliminar término",
   onEdit,
   onDelete,
+  onDispatch,
 }: VaultItemCardProps) {
   const tone = CARD_ACCENT[accent];
   const speak = useSpeak();
@@ -46,7 +47,7 @@ export function VaultItemCard({
       const parsed = JSON.parse(item.metadata);
       if (Array.isArray(parsed.tags)) tags = parsed.tags;
     } catch {
-      // json inválido ignorado
+      // Ignore invalid JSON metadata
     }
   }
 
@@ -93,6 +94,16 @@ export function VaultItemCard({
           >
             <Volume2 className="w-3.5 h-3.5" />
           </button>
+          {onDispatch && (
+            <button
+              type="button"
+              onClick={() => onDispatch(item)}
+              className="p-1.5 rounded-lg bg-canvas hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 cursor-pointer"
+              title="Despachar reto a alumnos"
+            >
+              <Radio className="w-3.5 h-3.5" />
+            </button>
+          )}
           {canEdit && (
             <>
               <button

@@ -10,12 +10,13 @@ import {
   ApiVaultCategory,
 } from "@/services/api";
 import { NewVaultItemModal } from "./new-item-modal";
+import { DispatchVaultModal } from "./dispatch-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { useVaultMutations } from "../hooks/use-vault-mutations";
 import { VaultAccent, VaultEditorIntent } from "../types/vault";
 import { VaultItemCard } from "./item-card";
 
-// El acento solo cambia colores; la estructura del gestor es una sola.
+// Accent styling parameterizes color themes; manager structure is shared across roles.
 const MANAGER_ACCENT: Record<
   VaultAccent,
   { badge: string; button: string; search: string; spinner: string; emptyIcon: string }
@@ -81,6 +82,7 @@ export function VaultOfficialManager({
   const [cefrFilter, setCefrFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [dispatchItem, setDispatchItem] = useState<ApiVaultItem | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -105,8 +107,7 @@ export function VaultOfficialManager({
     staleTime: 10 * 60 * 1000,
   });
 
-  // Clave única del banco oficial: docente, admin y moderador comparten la
-  // misma caché, así una edición se refleja al instante en las tres vistas.
+  // Shared query key: teacher, admin, and moderator share the same cache for instant cross-view consistency.
   const queryKey = [
     "official-vault",
     activeBank,
@@ -139,8 +140,7 @@ export function VaultOfficialManager({
 
   const items: ApiVaultItem[] = data || [];
 
-  // El ítem en edición se resuelve contra los datos cargados, así la intención
-  // puede venir de la URL sin duplicar la lista.
+  // Resolve item being edited against cached data, allowing URL-driven intent without duplicated network requests.
   const editingItem =
     editorIntent.mode === "edit" && editorIntent.itemId
       ? items.find((it) => it.id === editorIntent.itemId) ?? null
@@ -275,10 +275,18 @@ export function VaultOfficialManager({
               deleteTitle="Eliminar ítem oficial"
               onEdit={onRequestEdit}
               onDelete={(id) => deleteMutation.mutate(id)}
+              onDispatch={(it) => setDispatchItem(it)}
             />
           ))}
         </div>
       )}
+
+      {/* Modal para Despachar Reto Diario */}
+      <DispatchVaultModal
+        item={dispatchItem}
+        isOpen={!!dispatchItem}
+        onClose={() => setDispatchItem(null)}
+      />
 
       {/* Modal para Crear/Editar Término Oficial */}
       <NewVaultItemModal

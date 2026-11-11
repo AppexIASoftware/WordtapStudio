@@ -8,11 +8,11 @@ export const DEMO_ACCOUNTS: Record<UserRole, DemoAccount> = {
   instructor: {
     id: "instructor",
     label: "Docente",
-    name: "Prof. Mateo Silva",
-    email: "mateo.silva@wordtap.app",
+    name: "JOSE JUNIOR VIDARTE CRUZ",
+    email: "vcruzjosejunior@uss.edu.pe",
     roleHint: "Docente Autorizado • Autoría de cursos, cohortes y bancos propios",
     title: "Docente Autorizado",
-    avatarInitials: "MS",
+    avatarInitials: "JV",
     scope: "Portal Docente: studio.wordtap.app",
   },
   moderator: {

@@ -9,6 +9,7 @@ import {
   CreditCard,
   Shield,
   Activity,
+  Bell,
 } from "lucide-react";
 import { NavItem } from "./nav-item";
 
@@ -90,6 +91,13 @@ export function AdminNav({ collapsed = false }: AdminNavProps) {
             href="/admin/monetization"
             label="Monetización"
             icon={CreditCard}
+            collapsed={collapsed}
+            roleTheme="admin"
+          />
+          <NavItem
+            href="/admin/notifications"
+            label="Notificaciones"
+            icon={Bell}
             collapsed={collapsed}
             roleTheme="admin"
           />

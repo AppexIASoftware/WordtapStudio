@@ -10,6 +10,7 @@ import { CohortIdentityCard } from "./cohort-identity-card";
 import { CohortCurriculumPanel } from "./cohort-curriculum-panel";
 import { CohortCourseSelector } from "./cohort-course-selector";
 import { CohortGoalSelector } from "./cohort-goal-selector";
+import { NotificationHistoryPanel } from "./notifications/panel";
 
 interface CohortCreationWorkspaceProps {
   onCancel: () => void;
@@ -262,7 +263,7 @@ export function CohortCreationWorkspace({
             />
               </div>
             </div>
-          ) : (
+          ) : activeTab === COHORT_TAB.CURRICULUM ? (
         <CohortCurriculumPanel
           selectedCourses={availableCourses.filter((c) =>
             selectedCourseIds.includes(c.id)
@@ -279,6 +280,13 @@ export function CohortCreationWorkspace({
             triggerToast("Modo edición habilitado. Puedes ajustar los parámetros del aula.");
           }}
           onSubmit={handleSubmit}
+        />
+      ) : (
+        <NotificationHistoryPanel
+          scope="teacher"
+          classroomId={initialClassroom?.id}
+          title="Historial de Avisos"
+          onClose={() => handleTabChange(COHORT_TAB.GENERAL)}
         />
       )}
     </div>

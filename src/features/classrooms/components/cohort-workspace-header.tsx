@@ -156,6 +156,20 @@ export function CohortWorkspaceHeader({
             {selectedLessonCount} lecciones
           </span>
         </button>
+
+        {isExisting && (
+          <button
+            type="button"
+            onClick={() => onTabChange(COHORT_TAB.HISTORY)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === COHORT_TAB.HISTORY
+                ? "bg-emerald-brand text-canvas shadow-sm"
+                : "bg-card border border-border-default text-slate-400 hover:text-white"
+            }`}
+          >
+            <span>3. Historial de Avisos</span>
+          </button>
+        )}
       </div>
     </div>
   );

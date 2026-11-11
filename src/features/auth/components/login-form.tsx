@@ -16,6 +16,7 @@ export function LoginForm() {
     statusMessage,
     googleClientReady,
     handleGoogleSso,
+    loginWithDemo,
   } = useLogin();
 
   const isSuspended =
@@ -123,6 +124,43 @@ export function LoginForm() {
             </span>
           </button>
         )}
+
+        {/* Acceso Rápido Sandbox / Demo */}
+        <div className="pt-3 border-t border-border-default/60 space-y-2">
+          <div className="flex items-center justify-between text-[10px] font-mono text-slate-muted uppercase tracking-wider px-0.5">
+            <span>Acceso Rápido Sandbox</span>
+            <span className="text-emerald-brand font-semibold">1-Clic</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => loginWithDemo("admin")}
+              className="py-2 px-2.5 rounded-xl bg-canvas hover:bg-card-hover border border-border-default hover:border-purple-500/50 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm group"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 group-hover:scale-125 transition-transform" />
+              <span>Admin</span>
+            </button>
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => loginWithDemo("moderator")}
+              className="py-2 px-2.5 rounded-xl bg-canvas hover:bg-card-hover border border-border-default hover:border-blue-500/50 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm group"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
+              <span>Moderador</span>
+            </button>
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => loginWithDemo("instructor")}
+              className="py-2 px-2.5 rounded-xl bg-canvas hover:bg-card-hover border border-border-default hover:border-emerald-brand/50 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm group"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-brand group-hover:scale-125 transition-transform" />
+              <span>Docente</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Aviso de seguridad y cumplimiento institucional */}

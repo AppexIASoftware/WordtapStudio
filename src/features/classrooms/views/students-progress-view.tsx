@@ -14,6 +14,7 @@ import { CohortManagementPanel } from "../components/cohort-management-panel";
 import { GlobalStudentsTable } from "../components/global-students-table";
 import { CohortCreationWorkspace } from "../components/cohort-creation-workspace";
 import { StumbleReinforcementDrawer } from "../components/stumble-reinforcement-drawer";
+import { BroadcastClassroomModal } from "../components/broadcast-classroom-modal";
 
 export function StudentsProgressView() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export function StudentsProgressView() {
   const [cohortSearch, setCohortSearch] = useState("");
   const [globalSearch, setGlobalSearch] = useState("");
   const [showReinforcementDrawer, setShowReinforcementDrawer] = useState(false);
+  const [broadcastClassroom, setBroadcastClassroom] = useState<Classroom | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,6 +60,50 @@ export function StudentsProgressView() {
       setViewMode("list");
     }
   }, [searchParams, classrooms]);
+
+  // Two-way synchronization of announcement modal with URL query parameters
+  useEffect(() => {
+    const action = searchParams.get("action") || searchParams.get("modal");
+    const isBroadcast = action === "broadcast" || searchParams.get("tab") === "broadcast";
+    const targetClassId = searchParams.get("classId") || searchParams.get("broadcast");
+
+    if (isBroadcast) {
+      if (targetClassId && classrooms.length > 0) {
+        const found = classrooms.find((c) => c.id === targetClassId);
+        if (found) {
+          setBroadcastClassroom(found);
+          return;
+        }
+      } else if (detailClassroom) {
+        setBroadcastClassroom(detailClassroom);
+        return;
+      }
+    } else if (broadcastClassroom) {
+      setBroadcastClassroom(null);
+    }
+  }, [searchParams, classrooms, detailClassroom]);
+
+  const handleOpenBroadcast = (cls: Classroom) => {
+    setBroadcastClassroom(cls);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("action", "broadcast");
+    params.set("classId", cls.id);
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleCloseBroadcast = () => {
+    setBroadcastClassroom(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("action");
+    params.delete("modal");
+    if (params.get("tab") === "broadcast") {
+      params.set("tab", "history");
+    }
+    if (viewMode === "list") {
+      params.delete("classId");
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const handleOpenCreate = () => {
     setDetailClassroom(null);
@@ -95,7 +141,7 @@ export function StudentsProgressView() {
       try {
         const res = await getTeacherClassroomsApi();
         if (res.data && res.data.length > 0) {
-          // Datos reales de la API (DB): ELIMINAR todo contenido demo
+          // Live database data: strip demo mock flags
           const liveData: Classroom[] = res.data.map((c) => ({
             ...c,
             isDemo: false,
@@ -105,13 +151,13 @@ export function StudentsProgressView() {
           setClassrooms(liveData);
           setSelectedClassId(liveData[0].id);
         } else {
-          // El demo SOLO se muestra si NO hay información pedida por la API de la DB
+          // Fallback to demo classrooms only when database is empty
           const demoData = CLASSROOMS_DATA.map((c) => ({ ...c, isDemo: true }));
           setClassrooms(demoData);
           setSelectedClassId(demoData[0].id);
         }
       } catch {
-        // En caso de fallo o desconexión del backend
+        // Fallback in case of network or server failure
         const demoData = CLASSROOMS_DATA.map((c) => ({ ...c, isDemo: true }));
         setClassrooms(demoData);
         setSelectedClassId(demoData[0].id);
@@ -194,7 +240,7 @@ export function StudentsProgressView() {
           onCancel={handleCloseWorkspace}
           onClassroomCreated={(newCls) => {
             setClassrooms((prev) => {
-              // Si la lista contenía aulas demo por estar la DB vacía, eliminarlas por completo
+              // Purge any remaining demo classrooms once real classrooms exist
               const realClassrooms = prev.filter((c) => !c.isDemo);
               return [newCls, ...realClassrooms];
             });
@@ -209,6 +255,13 @@ export function StudentsProgressView() {
             triggerToast(`¡Aula "${updatedCls.name}" actualizada con éxito!`);
           }}
           triggerToast={triggerToast}
+        />
+
+        <BroadcastClassroomModal
+          classroom={broadcastClassroom}
+          isOpen={!!broadcastClassroom}
+          onClose={handleCloseBroadcast}
+          onSuccess={() => triggerToast("¡Aviso publicado con éxito a los alumnos!")}
         />
       </div>
     );
@@ -235,6 +288,7 @@ export function StudentsProgressView() {
             onCopyCode={copyCode}
             onShareWhatsApp={shareWhatsApp}
             onOpenClassroomDetail={handleOpenDetail}
+            onBroadcast={handleOpenBroadcast}
           />
 
           <CohortStumbleCards
@@ -280,6 +334,13 @@ export function StudentsProgressView() {
         classroomName={selectedClass.name}
         studentsCount={selectedClass.studentsCount}
         triggerToast={triggerToast}
+      />
+
+      <BroadcastClassroomModal
+        classroom={broadcastClassroom}
+        isOpen={!!broadcastClassroom}
+        onClose={handleCloseBroadcast}
+        onSuccess={() => triggerToast("¡Aviso publicado con éxito a los alumnos!")}
       />
     </div>
   );

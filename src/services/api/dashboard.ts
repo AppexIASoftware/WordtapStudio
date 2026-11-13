@@ -74,3 +74,52 @@ export async function getTeacherDashboardApi(
     { cache: "no-store" }
   );
 }
+
+export interface ApiGlobalStudentItem {
+  id: string;
+  name: string;
+  email: string;
+  learning_level: string;
+  course_id: string;
+  course_title: string;
+  current_streak_days: number;
+  progress_percent: number;
+  access_tier: "free" | "course" | "subscription" | string;
+  last_activity_date?: string | null;
+}
+
+export interface ApiGlobalCourseOption {
+  id: string;
+  title: string;
+}
+
+export interface ApiGlobalStudentsResponse {
+  items: ApiGlobalStudentItem[];
+  total: number;
+  courses: ApiGlobalCourseOption[];
+}
+
+export async function getTeacherGlobalStudentsApi(params?: {
+  q?: string;
+  plan?: string;
+  level?: string;
+  course_id?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{
+  data: ApiGlobalStudentsResponse | null;
+  error: string | null;
+}> {
+  const qs = new URLSearchParams();
+  if (params?.q?.trim()) qs.set("q", params.q.trim());
+  if (params?.plan && params.plan !== "all") qs.set("plan", params.plan);
+  if (params?.level && params.level !== "all") qs.set("level", params.level);
+  if (params?.course_id && params.course_id !== "all") qs.set("course_id", params.course_id);
+  if (params?.limit) qs.set("limit", String(params.limit));
+  if (params?.offset) qs.set("offset", String(params.offset));
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return apiRequest<ApiGlobalStudentsResponse>(
+    `${API_V1_URL}/teacher/global-students${query}`,
+    { cache: "no-store" }
+  );
+}

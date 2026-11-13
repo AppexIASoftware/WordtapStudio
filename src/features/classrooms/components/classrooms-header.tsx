@@ -87,10 +87,7 @@ export function ClassroomsHeader({
                 : "text-slate-muted hover:text-white"
             }`}
           >
-            Alumnos del Catálogo Global{" "}
-            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 ml-1">
-              Demo
-            </span>
+            Alumnos del Catálogo Global
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-context";
@@ -10,6 +10,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useModeratorApprovals } from "../hooks/use-moderator-approvals";
+import { belongsToReviewTab, type ReviewTab } from "../hooks/review-selection";
 import { ApprovalsTable } from "../components/approvals-table";
 import { ApprovalAuditDrawer } from "../components/approval-audit-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
@@ -26,6 +27,8 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
   const queryCourse = searchParams?.get("courseId");
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
 
+  const handledDeepLinkRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (currentRole === "instructor") {
       router.replace("/teacher/approvals");
@@ -33,6 +36,7 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
   }, [currentRole, router]);
 
   const {
+    prs,
     filteredPrs,
     activePr,
     selectedPrId,
@@ -50,28 +54,40 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
     setShowRejectModal,
     showRequestChangesModal,
     setShowRequestChangesModal,
+    showSuspendModal,
+    setShowSuspendModal,
     thread,
     toastMessage,
     handlePublishCourse,
     handleRequestChanges,
     handleRejectCourse,
     handleReassign,
+    handleSuspendToReview,
   } = useModeratorApprovals({ isAdmin });
 
   useEffect(() => {
-    if (filteredPrs.length === 0) return;
-    if (queryPr || queryCourse) {
-      const match = filteredPrs.find(
-        (p) =>
-          (queryPr && (p.id === queryPr || p.originalId === queryPr)) ||
-          (queryCourse && p.courseId === queryCourse)
-      );
-      if (match) {
-        setSelectedPrId(match.id);
-        setIsAuditDrawerOpen(true);
+    if (prs.length === 0 || (!queryPr && !queryCourse)) return;
+    const deepLinkKey = `${queryPr ?? ""}|${queryCourse ?? ""}`;
+    if (handledDeepLinkRef.current === deepLinkKey) return;
+
+    const match =
+      (queryPr
+        ? prs.find((p) => p.id === queryPr || p.originalId === queryPr)
+        : undefined) ??
+      (queryCourse ? prs.find((p) => p.courseId === queryCourse) : undefined);
+
+    if (match) {
+      handledDeepLinkRef.current = deepLinkKey;
+      if (!belongsToReviewTab(match, activeTab)) {
+        const targetTab = (["open", "my", "approved", "history"] as ReviewTab[]).find(
+          (tab) => belongsToReviewTab(match, tab)
+        );
+        if (targetTab) setActiveTab(targetTab);
       }
+      setSelectedPrId(match.id);
+      setIsAuditDrawerOpen(true);
     }
-  }, [filteredPrs, queryPr, queryCourse, setSelectedPrId]);
+  }, [prs, queryPr, queryCourse, activeTab, setActiveTab, setSelectedPrId]);
 
   if (currentRole === "instructor") {
     return null;
@@ -223,6 +239,8 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
         setShowRejectModal={setShowRejectModal}
         showRequestChangesModal={showRequestChangesModal}
         setShowRequestChangesModal={setShowRequestChangesModal}
+        showSuspendModal={showSuspendModal}
+        setShowSuspendModal={setShowSuspendModal}
         onPublish={async () => {
           await handlePublishCourse();
           setIsAuditDrawerOpen(false);
@@ -238,6 +256,7 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
         onReassign={async (reviewer) => {
           await handleReassign(reviewer);
         }}
+        onSuspendToReview={handleSuspendToReview}
       />
     </div>
   );

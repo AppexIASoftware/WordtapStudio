@@ -200,8 +200,9 @@ export function CurriculumPreviewTab({
                                 {item.pos || item.itemType || "word"}
                               </span>
                               {item.contentBankItemId && (
-                                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                  🌐 Content Vault
+                                <span className="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  <Layers className="w-3 h-3" />
+                                  <span>Content Vault</span>
                                 </span>
                               )}
                             </div>

@@ -101,13 +101,23 @@ export function ModeratorCoursesHeader({
           </button>
         )}
 
-        <Link
-          href={returnUrl}
-          className="px-3.5 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-        >
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>Emitir Dictamen</span>
-        </Link>
+        {(currentCourse.status as string) !== "published" ? (
+          <Link
+            href={returnUrl}
+            className="px-3.5 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Emitir Dictamen</span>
+          </Link>
+        ) : (
+          <Link
+            href={returnUrl}
+            className="px-3.5 py-1.5 rounded-xl bg-emerald-brand/10 border border-emerald-brand/30 text-emerald-brand font-bold text-xs flex items-center gap-1.5 hover:bg-emerald-brand/20 transition-colors cursor-pointer"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Volver a Aprobaciones</span>
+          </Link>
+        )}
       </div>
     </div>
   );

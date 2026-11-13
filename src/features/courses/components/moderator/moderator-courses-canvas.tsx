@@ -2,10 +2,13 @@
 
 import { BookOpen, Smartphone, Gamepad2 } from "lucide-react";
 import { Lesson } from "@/features/courses/types";
+import { LessonGameDTO } from "@/services/api";
 import { ModeratorLessonInspector } from "@/features/moderation/components/moderator-lesson-inspector";
 
 interface ModeratorCoursesCanvasProps {
   currentLesson: Lesson | null;
+  lessonGames: LessonGameDTO[];
+  isLoadingGames: boolean;
   activeTab: "cards" | "simulator" | "games";
   onTabChange: (tab: "cards" | "simulator" | "games") => void;
   onSpeak: (text: string) => void;
@@ -15,6 +18,8 @@ interface ModeratorCoursesCanvasProps {
 /** Canvas de inspeccion modular: pestanas y renderizado de tarjetas/simulador/juegos. */
 export function ModeratorCoursesCanvas({
   currentLesson,
+  lessonGames,
+  isLoadingGames,
   activeTab,
   onTabChange,
   onSpeak,
@@ -67,6 +72,11 @@ export function ModeratorCoursesCanvas({
           >
             <Gamepad2 className="w-3.5 h-3.5" />
             <span>Juegos Didácticos</span>
+            {currentLesson && (
+              <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">
+                {lessonGames.length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -81,6 +91,8 @@ export function ModeratorCoursesCanvas({
       <div className="flex-1 overflow-y-auto p-5">
         <ModeratorLessonInspector
           currentLesson={currentLesson}
+          lessonGames={lessonGames}
+          isLoadingGames={isLoadingGames}
           activeTab={activeTab}
           onSpeak={onSpeak}
           onOpenPlaytestDrawer={onOpenPlaytestDrawer}

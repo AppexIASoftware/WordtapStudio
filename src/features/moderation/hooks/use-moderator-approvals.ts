@@ -6,6 +6,7 @@ import {
   getAdminCourseReviewsApi,
   getAdminCourseReviewHistoryApi,
   decideCourseReviewApi,
+  suspendCourseReviewApi,
   ApiCourseReviewRequest,
   updateSyncedReview,
   subscribeSyncedReviews,
@@ -117,6 +118,7 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
   const [showReassignModal, setShowReassignModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showRequestChangesModal, setShowRequestChangesModal] = useState(false);
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
 
   // Hilo de feedback pedagógico oficial
   const [thread, setThread] = useState<
@@ -295,6 +297,32 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
     triggerToast(`Solicitud reasignada a: ${newReviewer}`);
   };
 
+  const handleSuspendToReview = async (
+    reason: string
+  ): Promise<{ ok: boolean; error?: string }> => {
+    if (!activePr?.courseId) {
+      return { ok: false, error: "No se encontró el identificador del curso." };
+    }
+    const res = await suspendCourseReviewApi(activePr.courseId, reason);
+    if (res.error || !res.data) {
+      return {
+        ok: false,
+        error: res.error || "No se pudo suspender la publicación del curso.",
+      };
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["courses"] });
+    queryClient.invalidateQueries({ queryKey: ["teacher-courses"] });
+    await refreshReviews();
+    if (res.data.request?.id) {
+      setSelectedPrId(res.data.request.id);
+      setActiveTab("open");
+    }
+    setShowSuspendModal(false);
+    triggerToast("Publicación suspendida: el curso volvió a En Revisión");
+    return { ok: true };
+  };
+
   const counts = useMemo(() => {
     return {
       open: prs.filter((p) => belongsToReviewTab(p, "open")).length,
@@ -323,6 +351,8 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
     setShowRejectModal,
     showRequestChangesModal,
     setShowRequestChangesModal,
+    showSuspendModal,
+    setShowSuspendModal,
     thread,
     toastMessage,
     triggerToast,
@@ -330,5 +360,6 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
     handleRequestChanges,
     handleRejectCourse,
     handleReassign,
+    handleSuspendToReview,
   };
 }

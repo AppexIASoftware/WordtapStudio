@@ -9,7 +9,13 @@ import { ModeratorCoursesCanvas } from "../components/moderator/moderator-course
 
 import { COURSES_DATA } from "@/features/courses/data/mock-courses";
 import { Course, Lesson } from "@/features/courses/types";
-import { getCourseDetailApi, getAdminCourseReviewsApi } from "@/services/api";
+import {
+  getCourseDetailApi,
+  getAdminCourseReviewsApi,
+  getLessonGamesApi,
+  LessonGameDTO,
+} from "@/services/api";
+import { useAuth } from "@/features/auth/auth-context";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
 import { ToastNotification } from "@/components/ui/toast-notification";
@@ -18,10 +24,13 @@ import { useUrlParam } from "@/hooks/use-url-params";
 const COURSE_TABS = ["cards", "simulator", "games"] as const;
 
 export function ModeratorCoursesView() {
+  const { currentRole } = useAuth();
   const searchParams = useSearchParams();
   const queryCourseId = searchParams?.get("courseId");
   const queryPrId = searchParams?.get("pr");
-  const fromUrl = searchParams?.get("from") || "/moderator/approvals";
+  const rawFromUrl = searchParams?.get("from");
+  const defaultApprovalsRoute = currentRole === "admin" ? "/admin/approvals" : "/moderator/approvals";
+  const fromUrl = !rawFromUrl || rawFromUrl === "/approvals" ? defaultApprovalsRoute : rawFromUrl;
 
   const [courseList, setCourseList] = useState<{ id: string; title: string; status?: string }[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(
@@ -59,6 +68,8 @@ export function ModeratorCoursesView() {
     "cards"
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [lessonGames, setLessonGames] = useState<LessonGameDTO[]>([]);
+  const [isLoadingGames, setIsLoadingGames] = useState(false);
   const [showPlaytestDrawer, setShowPlaytestDrawer] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -117,7 +128,7 @@ export function ModeratorCoursesView() {
 
     const fetchDetail = async () => {
       try {
-        const res = await getCourseDetailApi(selectedCourseId);
+        const res = await getCourseDetailApi(selectedCourseId, { audit: true });
         if (!isMounted) return;
 
         if (res.data) {
@@ -171,6 +182,34 @@ export function ModeratorCoursesView() {
     return currentCourse.lessons.find((l) => l.id === selectedLessonId) || currentCourse.lessons[0] || null;
   }, [currentCourse.lessons, selectedLessonId]);
 
+  useEffect(() => {
+    if (!currentLesson?.id) {
+      setLessonGames([]);
+      return;
+    }
+    let isMounted = true;
+    setIsLoadingGames(true);
+    getLessonGamesApi(currentLesson.id)
+      .then((res) => {
+        if (!isMounted) return;
+        setLessonGames(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setLessonGames([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingGames(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [currentLesson?.id]);
+
+  const hasPlaytestContent = Boolean(
+    currentLesson && (currentLesson.items.length > 0 || lessonGames.length > 0)
+  );
+
   const speak = useSpeak({
     onUnavailable: (text) => triggerToast("Pronunciando: " + text),
   });
@@ -188,7 +227,7 @@ export function ModeratorCoursesView() {
         courseList={courseList}
         selectedCourseId={selectedCourseId}
         onSelectCourseId={setSelectedCourseId}
-        hasCurrentLesson={!!currentLesson}
+        hasCurrentLesson={hasPlaytestContent}
         onOpenPlaytest={() => setShowPlaytestDrawer(true)}
       />
 
@@ -205,6 +244,8 @@ export function ModeratorCoursesView() {
         {/* Panel Derecho: Canvas de Inspeccion */}
         <ModeratorCoursesCanvas
           currentLesson={currentLesson}
+          lessonGames={lessonGames}
+          isLoadingGames={isLoadingGames}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onSpeak={speak}

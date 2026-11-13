@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSpeak } from "@/hooks/use-speak";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   X,
   CheckCircle2,
@@ -14,12 +15,14 @@ import {
   BookOpen,
   FileText,
   ExternalLink,
+  PauseCircle,
 } from "lucide-react";
 import { ModeratorPR } from "@/features/moderation/types";
 import { PublishCourseModal } from "./publish-course-modal";
 import { ReassignReviewerModal } from "./reassign-reviewer-modal";
 import { RejectCourseModal } from "./reject-course-modal";
 import { RequestChangesModal } from "./request-changes-modal";
+import { SuspendReviewModal } from "./suspend-review-modal";
 import { CurriculumPreviewTab } from "./curriculum-preview-tab";
 import { FeedbackTextRenderer } from "@/components/ui/feedback-text-renderer";
 import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
@@ -27,6 +30,24 @@ import { Lesson } from "@/features/courses/types";
 import { getCourseDetailApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
 import { COURSES_DATA } from "@/features/courses/data/mock-courses";
+
+const PR_STATUS = {
+  OPEN: "open",
+  IN_REVIEW: "in_review",
+  APPROVED: "approved",
+  CHANGES_REQUESTED: "changes_requested",
+  REJECTED: "rejected",
+  WITHDRAWN: "withdrawn",
+} as const;
+
+const CAN_REVIEW_STATUS: Record<ModeratorPR["status"], boolean> = {
+  [PR_STATUS.OPEN]: true,
+  [PR_STATUS.IN_REVIEW]: true,
+  [PR_STATUS.APPROVED]: false,
+  [PR_STATUS.CHANGES_REQUESTED]: false,
+  [PR_STATUS.REJECTED]: false,
+  [PR_STATUS.WITHDRAWN]: false,
+};
 
 interface ApprovalAuditDrawerProps {
   isOpen: boolean;
@@ -41,10 +62,13 @@ interface ApprovalAuditDrawerProps {
   setShowRejectModal: (open: boolean) => void;
   showRequestChangesModal: boolean;
   setShowRequestChangesModal: (open: boolean) => void;
+  showSuspendModal: boolean;
+  setShowSuspendModal: (open: boolean) => void;
   onPublish: () => void | Promise<void>;
   onRequestChanges: (feedback: string) => void | Promise<void>;
   onReject: (feedback: string) => void | Promise<void>;
   onReassign: (reviewerName: string) => void | Promise<void>;
+  onSuspendToReview: (reason: string) => Promise<{ ok: boolean; error?: string }>;
 }
 
 export function ApprovalAuditDrawer({
@@ -60,11 +84,19 @@ export function ApprovalAuditDrawer({
   setShowRejectModal,
   showRequestChangesModal,
   setShowRequestChangesModal,
+  showSuspendModal,
+  setShowSuspendModal,
   onPublish,
   onRequestChanges,
   onReject,
   onReassign,
+  onSuspendToReview,
 }: ApprovalAuditDrawerProps) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith("/admin");
+  const approvalsPath = isAdminRoute ? "/admin/approvals" : "/moderator/approvals";
+  const catalogPath = isAdminRoute ? "/admin/courses" : "/moderator/courses";
+  const canDecide = activePr ? CAN_REVIEW_STATUS[activePr.status] : false;
   const [activeTab, setActiveTab] = useState<"curriculum" | "verdict">("curriculum");
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [isLoadingLessons, setIsLoadingLessons] = useState(false);
@@ -105,7 +137,7 @@ export function ApprovalAuditDrawer({
 
     const loadCourse = async () => {
       try {
-        const res = await getCourseDetailApi(activePr.courseId!);
+        const res = await getCourseDetailApi(activePr.courseId!, { audit: true });
         if (!isMounted) return;
 
         if (res.data?.lessons && res.data.lessons.length > 0) {
@@ -182,66 +214,101 @@ export function ApprovalAuditDrawer({
             </p>
           </div>
 
-          {/* Barra de Acciones de Decisión */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border-default/60">
-            {lessons.length > 0 && (
+          {/* Barra de Acciones de Inspección y Dictamen */}
+          <div className="space-y-2.5 pt-2.5 border-t border-border-default/60">
+            <div className="flex flex-wrap items-center gap-2">
+              {lessons.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenPlaytest(lessons[0])}
+                  className="px-3 py-1.5 rounded-xl bg-card border border-emerald-brand/50 hover:border-emerald-brand text-emerald-brand hover:bg-emerald-brand/10 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  title="Abrir Simulador Móvil de Playtest con las lecciones reales del curso"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>Playtest Móvil</span>
+                </button>
+              )}
+
+              {activePr.courseId && (
+                <Link
+                  href={`/moderator/courses?courseId=${activePr.courseId}&pr=${activePr.id}&from=${approvalsPath}`}
+                  className="px-3 py-1.5 rounded-xl bg-card border border-blue-500/40 hover:border-blue-500 text-blue-300 hover:text-white hover:bg-blue-500/10 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  title="Abrir en vista de pantalla completa tipo Creador de Cursos (Solo Lectura)"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Vista Completa (Creador)</span>
+                </Link>
+              )}
+
+              {canDecide && (
+                <button
+                  type="button"
+                  onClick={() => setShowReassignModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-canvas border border-border-default hover:border-blue-400 text-xs font-medium text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer ml-auto"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Reasignar</span>
+                </button>
+              )}
+
+              {activePr.status === PR_STATUS.APPROVED && (
+                <div className="flex flex-wrap items-center gap-2 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowSuspendModal(true)}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-400 text-xs font-semibold text-amber-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <PauseCircle className="w-3.5 h-3.5" />
+                    <span>Suspender & Enviar a Revisión</span>
+                  </button>
+                  <Link
+                    href={catalogPath}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-brand/10 border border-emerald-brand/30 hover:border-emerald-brand text-xs font-semibold text-emerald-brand transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Ver en Catálogo</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {canDecide && (
+              <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => handleOpenPlaytest(lessons[0])}
-                className="px-3 py-1.5 rounded-xl bg-card border border-emerald-brand/50 hover:border-emerald-brand text-emerald-brand hover:bg-emerald-brand/10 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-                title="Abrir Simulador Móvil de Playtest con las lecciones reales del curso"
+                onClick={() => setShowRejectModal(true)}
+                className="px-3 py-2 rounded-xl bg-card border border-rose-500/30 hover:border-rose-500 text-xs font-semibold text-rose-400 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Playtest Móvil</span>
+                <XCircle className="w-3.5 h-3.5" />
+                <span>Rechazar</span>
               </button>
-            )}
 
-            {activePr.courseId && (
-              <Link
-                href={`/moderator/courses?courseId=${activePr.courseId}&pr=${activePr.id}&from=/approvals`}
-                className="px-3 py-1.5 rounded-xl bg-card border border-blue-500/40 hover:border-blue-500 text-blue-300 hover:text-white hover:bg-blue-500/10 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-                title="Abrir en vista de pantalla completa tipo Creador de Cursos (Solo Lectura)"
+              <button
+                type="button"
+                onClick={() => setShowRequestChangesModal(true)}
+                className="px-3 py-2 rounded-xl bg-card border border-amber-500/30 hover:border-amber-500 text-xs font-semibold text-amber-400 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Vista Completa (Creador)</span>
-              </Link>
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Pedir Cambios</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPublishModal(true)}
+                className="px-3.5 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center justify-center gap-1.5 shadow-glow-emerald cursor-pointer"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Aprobar & Publicar</span>
+              </button>
+              </div>
             )}
-
-            <button
-              type="button"
-              onClick={() => setShowReassignModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-canvas border border-border-default hover:border-blue-400 text-xs font-medium text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Reasignar</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowRejectModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-card border border-rose-500/30 hover:border-rose-500 text-xs font-semibold text-rose-400 transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <XCircle className="w-3.5 h-3.5" />
-              <span>Rechazar</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowRequestChangesModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-card border border-amber-500/30 hover:border-amber-500 text-xs font-semibold text-amber-400 transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Pedir Cambios</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowPublishModal(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1.5 shadow-glow-emerald cursor-pointer ml-auto"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Aprobar & Publicar</span>
-            </button>
+            {!canDecide && (
+              <p className="text-[11px] text-slate-muted font-mono">
+                {activePr.status === PR_STATUS.APPROVED
+                  ? "Curso aprobado y publicado en el catálogo oficial."
+                  : "Dictamen emitido — a la espera de actualización por parte del docente."}
+              </p>
+            )}
           </div>
         </div>
 
@@ -379,6 +446,13 @@ export function ApprovalAuditDrawer({
           isOpen={showRequestChangesModal}
           onClose={() => setShowRequestChangesModal(false)}
           onConfirm={onRequestChanges}
+          activePr={activePr}
+        />
+
+        <SuspendReviewModal
+          isOpen={showSuspendModal}
+          onClose={() => setShowSuspendModal(false)}
+          onConfirm={onSuspendToReview}
           activePr={activePr}
         />
 

@@ -1,10 +1,13 @@
 "use client";
 
-import { Volume2, Sparkles, Gamepad2, Play } from "lucide-react";
+import { Volume2, Sparkles, Gamepad2, Play, BookOpen } from "lucide-react";
 import { Lesson } from "@/features/courses/types";
+import { LessonGameDTO } from "@/services/api";
 
 interface ModeratorLessonInspectorProps {
   currentLesson: Lesson | null;
+  lessonGames: LessonGameDTO[];
+  isLoadingGames: boolean;
   activeTab: "cards" | "simulator" | "games";
   onSpeak: (text: string) => void;
   onOpenPlaytestDrawer: () => void;
@@ -12,6 +15,8 @@ interface ModeratorLessonInspectorProps {
 
 export function ModeratorLessonInspector({
   currentLesson,
+  lessonGames,
+  isLoadingGames,
   activeTab,
   onSpeak,
   onOpenPlaytestDrawer,
@@ -101,6 +106,18 @@ export function ModeratorLessonInspector({
   }
 
   if (activeTab === "simulator") {
+    if (currentLesson.items.length === 0) {
+      return (
+        <div className="max-w-md mx-auto p-8 rounded-2xl bg-card border border-border-default text-center space-y-2.5">
+          <BookOpen className="w-8 h-8 text-slate-500 mx-auto" />
+          <h4 className="text-sm font-bold text-white">Sin tarjetas para simular</h4>
+          <p className="text-xs text-slate-muted">
+            Esta lección aún no tiene tarjetas pedagógicas cargadas para previsualizar en el simulador móvil.
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center justify-center p-4">
         <div className="w-[320px] h-[580px] bg-slate-950 rounded-[42px] border-[6px] border-slate-800 shadow-2xl overflow-hidden flex flex-col text-slate-900">
@@ -139,22 +156,71 @@ export function ModeratorLessonInspector({
     );
   }
 
+  if (isLoadingGames) {
+    return (
+      <div className="max-w-md mx-auto p-6 rounded-2xl bg-card border border-border-default space-y-3 animate-pulse">
+        <div className="h-4 w-44 rounded bg-slate-200/15 mx-auto" />
+        <div className="h-3 w-64 rounded bg-slate-200/10 mx-auto" />
+        <div className="h-14 w-full rounded-xl bg-canvas border border-border-default" />
+      </div>
+    );
+  }
+
+  if (lessonGames.length === 0) {
+    return (
+      <div className="max-w-md mx-auto p-8 rounded-2xl bg-card border border-border-default text-center space-y-2.5">
+        <Gamepad2 className="w-8 h-8 text-slate-500 mx-auto" />
+        <h4 className="text-sm font-bold text-white">Sin juegos didácticos vinculados</h4>
+        <p className="text-xs text-slate-muted">
+          Esta lección no tiene minijuegos asignados por el docente todavía.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-md mx-auto p-8 rounded-2xl bg-card border border-border-default text-center space-y-3">
-      <Gamepad2 className="w-8 h-8 text-blue-400 mx-auto" />
-      <h4 className="text-sm font-bold text-white">Prueba de Juegos Didácticos</h4>
-      <p className="text-xs text-slate-muted">
-        Esta lección cuenta con {currentLesson.items.length} tarjetas compatibles con los modos Speed
-        Match, Memory Pairs y Sentence Builder.
-      </p>
-      <button
-        type="button"
-        onClick={onOpenPlaytestDrawer}
-        className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-      >
-        <Play className="w-3.5 h-3.5 fill-current" />
-        <span>Lanzar en Playtest Móvil</span>
-      </button>
+    <div className="max-w-2xl mx-auto space-y-4">
+      <div className="flex items-center justify-between border-b border-border-default pb-3">
+        <div>
+          <h4 className="text-sm font-bold text-white">
+            Juegos Didácticos Vinculados ({lessonGames.length})
+          </h4>
+          <p className="text-xs text-slate-muted">
+            Minijuegos reales configurados para esta lección.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenPlaytestDrawer}
+          className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <Play className="w-3.5 h-3.5 fill-current" />
+          <span>Lanzar en Playtest Móvil</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {lessonGames.map((game) => (
+          <div
+            key={game.id}
+            className="p-4 rounded-2xl bg-card border border-border-default space-y-2"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-bold text-white truncate">{game.title}</span>
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                {game.base_archetype}
+              </span>
+            </div>
+            {game.description && (
+              <p className="text-xs text-slate-muted line-clamp-2">{game.description}</p>
+            )}
+            <div className="flex items-center justify-between text-[11px] font-mono text-slate-subtle pt-1">
+              <span>{game.item_count} ítems • {game.time_limit_seconds}s</span>
+              <span className="text-emerald-brand">+{game.reward_xp} XP</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

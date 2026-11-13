@@ -40,11 +40,15 @@ export async function createCourseApi(payload: CreateCoursePayload): Promise<{
 }
 
 // GET /api/v1/courses/:id
-export async function getCourseDetailApi(id: string): Promise<{
+export async function getCourseDetailApi(
+  id: string,
+  options?: { audit?: boolean }
+): Promise<{
   data: ApiCourse | null;
   error: string | null;
 }> {
-  return apiRequest<ApiCourse>(`${API_V1_URL}/courses/${id}`, {
+  const query = options?.audit ? "?audit=1" : "";
+  return apiRequest<ApiCourse>(`${API_V1_URL}/courses/${id}${query}`, {
     cache: "no-store",
   });
 }
@@ -151,6 +155,23 @@ export async function decideCourseReviewApi(
     {
       method: "POST",
       body: JSON.stringify(payload),
+    }
+  );
+}
+
+// POST /api/v1/admin/courses/:id/suspend-review
+export async function suspendCourseReviewApi(
+  courseId: string,
+  changeSummary?: string
+): Promise<{
+  data: { status: string; request: ApiCourseReviewRequest } | null;
+  error: string | null;
+}> {
+  return apiRequest<{ status: string; request: ApiCourseReviewRequest }>(
+    `${API_V1_URL}/admin/courses/${courseId}/suspend-review`,
+    {
+      method: "POST",
+      body: JSON.stringify({ change_summary: changeSummary?.trim() || undefined }),
     }
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   listTeacherApplicationsApi,
@@ -11,34 +11,99 @@ import {
   deleteTeacherApplicationApi,
   ApiTeacherApplication,
 } from "@/services/api/teacher-applications";
-import {
-  CheckCircle,
-  Clock,
-  Loader2,
-  RefreshCw,
-  UserCheck,
-  AlertCircle,
-  Trash2,
-} from "lucide-react";
+import { RefreshCw, UserCheck, Search } from "lucide-react";
 import { SuspendTeacherModal } from "./suspend-teacher-modal";
 import { DeleteTeacherModal } from "./delete-teacher-modal";
 import { TeacherApplicationRow } from "./teacher-application-row";
+import {
+  ApplicationDecisionModal,
+  ApplicationDecisionType,
+  APPLICATION_DECISION_TYPE,
+} from "./application-decision-modal";
 
 interface TeacherApplicationsTableProps {
   onNotify: (msg: string) => void;
   isAdmin: boolean;
 }
 
+const APPLICATION_STATUS_FILTERS = [
+  { id: "pending", label: "Pendientes" },
+  { id: "approved", label: "Aprobados" },
+  { id: "suspended", label: "Suspendidos" },
+  { id: "rejected", label: "Rechazados" },
+  { id: "all", label: "Todos" },
+] as const;
+
+function ApplicationsTableSkeleton() {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border-default bg-card shadow-sm">
+      <table className="w-full text-left text-xs">
+        <thead className="bg-canvas text-slate-subtle font-mono text-[11px] uppercase border-b border-border-default">
+          <tr>
+            <th className="py-3 px-4">Postulante (Google)</th>
+            <th className="py-3 px-4">Especialidad & Bio</th>
+            <th className="py-3 px-4">Fecha de Solicitud</th>
+            <th className="py-3 px-4">Estado</th>
+            <th className="py-3 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border-default/60">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <tr key={idx} className="animate-pulse">
+              <td className="py-3 px-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-slate-700/40 flex-shrink-0" />
+                  <div className="space-y-1.5">
+                    <div className="h-3 w-28 rounded bg-slate-700/40" />
+                    <div className="h-2.5 w-36 rounded bg-slate-700/30" />
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-4 space-y-1.5">
+                <div className="h-3 w-28 rounded bg-slate-700/40" />
+                <div className="h-2.5 w-44 rounded bg-slate-700/30" />
+              </td>
+              <td className="py-3 px-4">
+                <div className="h-3 w-24 rounded bg-slate-700/30" />
+              </td>
+              <td className="py-3 px-4">
+                <div className="h-4 w-20 rounded-full bg-slate-700/40" />
+              </td>
+              <td className="py-3 px-4 text-right">
+                <div className="h-6 w-28 rounded-xl bg-slate-700/40 ml-auto" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicationsTableProps) {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("pending");
+  const [searchTerm, setSearchTerm] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const [decisionState, setDecisionState] = useState<{
+    app: ApiTeacherApplication;
+    type: ApplicationDecisionType;
+  } | null>(null);
+  const [isDecisionSubmitting, setIsDecisionSubmitting] = useState(false);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
+
   const [suspendingApp, setSuspendingApp] = useState<ApiTeacherApplication | null>(null);
   const [isSuspending, setIsSuspending] = useState(false);
   const [deletingApp, setDeletingApp] = useState<ApiTeacherApplication | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: applications = [], isLoading, refetch } = useQuery({
+  const {
+    data: applications = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ["teacher-applications", statusFilter],
     queryFn: async () => {
       const res = await listTeacherApplicationsApi(statusFilter === "all" ? undefined : statusFilter);
@@ -49,47 +114,66 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
     },
   });
 
+  const filteredApplications = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return applications;
+    return applications.filter(
+      (a) =>
+        (a.user?.name || "").toLowerCase().includes(q) ||
+        (a.user?.email || "").toLowerCase().includes(q)
+    );
+  }, [applications, searchTerm]);
+
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["teacher-applications"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
   };
 
-  const handleApprove = async (app: ApiTeacherApplication) => {
+  const openDecisionModal = (app: ApiTeacherApplication, type: ApplicationDecisionType) => {
     if (!isAdmin) {
-      onNotify("Solo administradores o moderadores pueden aprobar docentes");
+      onNotify("Solo administradores pueden gestionar postulaciones docentes");
       return;
     }
-    setActionLoadingId(app.id);
-    try {
-      const res = await approveTeacherApplicationApi(app.id);
-      if (res.error) {
-        onNotify(`Error: ${res.error}`);
-      } else {
-        onNotify(`¡Postulación de ${app.user?.name || app.user?.email} aprobada! Rol cambiado a Instructor.`);
-        invalidate();
-      }
-    } finally {
-      setActionLoadingId(null);
-    }
+    setDecisionError(null);
+    setDecisionState({ app, type });
   };
 
-  const handleReject = async (app: ApiTeacherApplication) => {
-    if (!isAdmin) {
-      onNotify("Solo administradores o moderadores pueden rechazar postulaciones");
-      return;
-    }
-    const reason = prompt("Ingresa el motivo del rechazo (opcional):", "No cumple con los requisitos pedagógicos.");
-    if (reason === null) return;
+  const handleConfirmDecision = async (reason?: string) => {
+    if (!decisionState || isDecisionSubmitting) return;
+    const { app, type } = decisionState;
 
+    setIsDecisionSubmitting(true);
+    setDecisionError(null);
     setActionLoadingId(app.id);
+
     try {
-      const res = await rejectTeacherApplicationApi(app.id, reason);
-      if (res.error) {
-        onNotify(`Error: ${res.error}`);
-      } else {
+      if (type === APPLICATION_DECISION_TYPE.APPROVE) {
+        const res = await approveTeacherApplicationApi(app.id);
+        if (res.error) {
+          setDecisionError(res.error);
+          return;
+        }
+        onNotify(`Postulación de ${app.user?.name || app.user?.email} aprobada. Rol asignado: Docente.`);
+      } else if (type === APPLICATION_DECISION_TYPE.REJECT) {
+        const res = await rejectTeacherApplicationApi(app.id, reason || "");
+        if (res.error) {
+          setDecisionError(res.error);
+          return;
+        }
         onNotify(`Postulación de ${app.user?.name || app.user?.email} rechazada.`);
-        invalidate();
+      } else {
+        const res = await reactivateTeacherApplicationApi(app.id);
+        if (res.error) {
+          setDecisionError(res.error);
+          return;
+        }
+        onNotify(`Docente ${app.user?.name || app.user?.email} reactivado con rol de Docente.`);
       }
+
+      setDecisionState(null);
+      invalidate();
     } finally {
+      setIsDecisionSubmitting(false);
       setActionLoadingId(null);
     }
   };
@@ -111,31 +195,12 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
       if (res.error) {
         onNotify(`Error: ${res.error}`);
       } else {
-        onNotify(`Docente ${suspendingApp.user?.name || suspendingApp.user?.email} suspendido. Sesiones invalidadas.`);
+        onNotify(`Docente ${suspendingApp.user?.name || suspendingApp.user?.email} suspendido.`);
         setSuspendingApp(null);
         invalidate();
       }
     } finally {
       setIsSuspending(false);
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleReactivate = async (app: ApiTeacherApplication) => {
-    if (!isAdmin) {
-      onNotify("Solo administradores pueden reactivar docentes");
-      return;
-    }
-    setActionLoadingId(app.id);
-    try {
-      const res = await reactivateTeacherApplicationApi(app.id);
-      if (res.error) {
-        onNotify(`Error: ${res.error}`);
-      } else {
-        onNotify(`Docente ${app.user?.name || app.user?.email} reactivado con rol de Instructor.`);
-        invalidate();
-      }
-    } finally {
       setActionLoadingId(null);
     }
   };
@@ -157,7 +222,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
       if (res.error) {
         onNotify(`Error: ${res.error}`);
       } else {
-        onNotify(`Registro eliminado y permisos de docente revocados.`);
+        onNotify("Registro eliminado y permisos de docente revocados.");
         setDeletingApp(null);
         invalidate();
       }
@@ -167,22 +232,13 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
     }
   };
 
-  const pendingCount = applications.filter((a) => a.status === "pending").length;
-
   return (
     <div className="space-y-4">
-      {/* Barra de control y filtros */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-card rounded-2xl border border-border-default">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 bg-card rounded-2xl border border-border-default">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-mono text-slate-subtle uppercase">Filtrar por estado:</span>
-          <div className="flex items-center gap-1.5">
-            {[
-              { id: "pending", label: "Pendientes" },
-              { id: "approved", label: "Aprobados" },
-              { id: "suspended", label: "Suspendidos" },
-              { id: "rejected", label: "Rechazados" },
-              { id: "all", label: "Todos" },
-            ].map((tab) => (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {APPLICATION_STATUS_FILTERS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -199,29 +255,50 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="px-3 py-1.5 rounded-xl bg-canvas border border-border-default hover:text-white text-slate-muted text-xs font-mono flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
-          <span>Actualizar</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search
+              size={13}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+            />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar postulante..."
+              className="pl-8 pr-3 py-1.5 bg-canvas border border-border-default rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-brand w-48"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={async () => {
+              const res = await refetch();
+              if (!res.isError) onNotify("Cola de postulaciones actualizada.");
+            }}
+            disabled={isLoading || isFetching}
+            className="px-3 py-1.5 rounded-xl bg-canvas border border-border-default hover:text-white text-slate-muted text-xs font-mono flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={isLoading || isFetching ? "animate-spin" : ""} />
+            <span>Actualizar</span>
+          </button>
+        </div>
       </div>
 
-      {/* Lista / Tabla de Postulaciones */}
       {isLoading ? (
-        <div className="p-12 text-center text-slate-muted bg-card rounded-2xl border border-border-default flex flex-col items-center gap-2">
-          <Loader2 className="w-6 h-6 animate-spin text-emerald-brand" />
-          <span className="text-xs font-mono">Cargando postulaciones docentes...</span>
-        </div>
-      ) : applications.length === 0 ? (
+        <ApplicationsTableSkeleton />
+      ) : filteredApplications.length === 0 ? (
         <div className="p-12 text-center bg-card rounded-2xl border border-border-default space-y-2">
           <UserCheck className="w-8 h-8 text-emerald-brand/40 mx-auto" />
-          <p className="text-sm font-bold text-white">No hay postulaciones {statusFilter !== "all" ? `en estado '${statusFilter}'` : ""}</p>
+          <p className="text-sm font-bold text-white">
+            {applications.length === 0
+              ? `No hay postulaciones ${statusFilter !== "all" ? `en estado '${statusFilter}'` : ""}`
+              : "No hay coincidencias para tu búsqueda"}
+          </p>
           <p className="text-xs text-slate-muted">
-            Cuando un docente se registre con Google en Wordtap Studio, aparecerá aquí para su evaluación.
+            {applications.length === 0
+              ? "Cuando un docente se registre con Google en Wordtap Studio, aparecerá aquí para su evaluación."
+              : "Prueba limpiando el campo de búsqueda."}
           </p>
         </div>
       ) : (
@@ -237,15 +314,17 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
               </tr>
             </thead>
             <tbody className="divide-y divide-border-default/60 text-slate-200">
-              {applications.map((app) => (
+              {filteredApplications.map((app) => (
                 <TeacherApplicationRow
                   key={app.id}
                   app={app}
                   isItemLoading={actionLoadingId === app.id}
-                  onApprove={handleApprove}
-                  onReject={handleReject}
+                  onApprove={(target) => openDecisionModal(target, APPLICATION_DECISION_TYPE.APPROVE)}
+                  onReject={(target) => openDecisionModal(target, APPLICATION_DECISION_TYPE.REJECT)}
                   onOpenSuspendModal={handleOpenSuspendModal}
-                  onReactivate={handleReactivate}
+                  onReactivate={(target) =>
+                    openDecisionModal(target, APPLICATION_DECISION_TYPE.REACTIVATE)
+                  }
                   onOpenDeleteModal={handleOpenDeleteModal}
                 />
               ))}
@@ -253,6 +332,20 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
           </table>
         </div>
       )}
+
+      <ApplicationDecisionModal
+        application={decisionState?.app ?? null}
+        decisionType={decisionState?.type ?? null}
+        isSubmitting={isDecisionSubmitting}
+        errorMsg={decisionError}
+        onClose={() => {
+          if (!isDecisionSubmitting) {
+            setDecisionState(null);
+            setDecisionError(null);
+          }
+        }}
+        onConfirm={(reason) => void handleConfirmDecision(reason)}
+      />
 
       <SuspendTeacherModal
         isOpen={Boolean(suspendingApp)}

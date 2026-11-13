@@ -19,6 +19,28 @@ interface TeacherApplicationRowProps {
   onOpenDeleteModal: (app: ApiTeacherApplication) => void;
 }
 
+const STATUS_DISPLAY: Record<
+  ApiTeacherApplication["status"],
+  { label: string; badgeClass: string }
+> = {
+  approved: {
+    label: "Aprobado",
+    badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+  },
+  suspended: {
+    label: "Suspendido",
+    badgeClass: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+  },
+  rejected: {
+    label: "Rechazado",
+    badgeClass: "bg-rose-500/10 text-rose-400 border-rose-500/30",
+  },
+  pending: {
+    label: "Pendiente",
+    badgeClass: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+  },
+};
+
 /** Fila individual de postulacion docente con badges de estado y acciones contextuales. */
 export function TeacherApplicationRow({
   app,
@@ -61,16 +83,10 @@ export function TeacherApplicationRow({
         <td className="py-3 px-4">
           <span
             className={`text-[10px] font-mono px-2 py-0.5 rounded-full uppercase font-bold border ${
-              app.status === "approved"
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                : app.status === "suspended"
-                ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                : app.status === "rejected"
-                ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
-                : "bg-blue-500/10 text-blue-400 border-blue-500/30"
+              (STATUS_DISPLAY[app.status] ?? STATUS_DISPLAY.pending).badgeClass
             }`}
           >
-            {app.status}
+            {(STATUS_DISPLAY[app.status] ?? STATUS_DISPLAY.pending).label}
           </span>
           {app.rejection_reason && (
             <p className="text-[10px] text-rose-400 mt-1 truncate max-w-xs">

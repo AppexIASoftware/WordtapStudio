@@ -3,18 +3,24 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Plus, Download, Users, BookOpen, Gamepad2 } from "lucide-react";
-import { CLASSROOMS_DATA, GLOBAL_STUDENTS_DATA } from "@/features/classrooms/data/mock-classrooms";
+import { CLASSROOMS_DATA } from "@/features/classrooms/data/mock-classrooms";
 import { Classroom } from "@/features/classrooms/types";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { getTeacherClassroomsApi } from "@/services/api/classroom";
+import { useUrlParam } from "@/hooks/use-url-params";
+import { useGlobalStudents } from "../hooks/use-global-students";
 import { CohortCardsGrid } from "../components/cohort-cards-grid";
 import { CohortStumbleCards } from "../components/cohort-stumble-cards";
 import { ClassroomsHeader } from "../components/classrooms-header";
 import { CohortManagementPanel } from "../components/cohort-management-panel";
+import { CohortsSkeleton } from "../components/cohorts-skeleton";
+import { filterClassroomStudents } from "../components/cohort-student-table";
 import { GlobalStudentsTable } from "../components/global-students-table";
 import { CohortCreationWorkspace } from "../components/cohort-creation-workspace";
 import { StumbleReinforcementDrawer } from "../components/stumble-reinforcement-drawer";
 import { BroadcastClassroomModal } from "../components/broadcast-classroom-modal";
+
+const STUDENT_MAIN_TABS = ["cohorts", "global"] as const;
 
 export function StudentsProgressView() {
   const router = useRouter();
@@ -22,6 +28,7 @@ export function StudentsProgressView() {
   const pathname = usePathname();
 
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [isLoadingClassrooms, setIsLoadingClassrooms] = useState(true);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "create" | "detail">(
     searchParams.get("view") === "create"
@@ -31,16 +38,20 @@ export function StudentsProgressView() {
       : "list"
   );
   const [detailClassroom, setDetailClassroom] = useState<Classroom | null>(null);
-  const [mainTab, setMainTab] = useState<"cohorts" | "global">("cohorts");
+  const [mainTab, setMainTab] = useUrlParam<"cohorts" | "global">(
+    "tab",
+    STUDENT_MAIN_TABS,
+    "cohorts"
+  );
   const [cohortSubTab, setCohortSubTab] = useState<"students" | "courses" | "games">("students");
   const [cohortFilter, setCohortFilter] = useState<
     "all" | "subscription" | "trial" | "free" | "stumbled"
   >("all");
   const [cohortSearch, setCohortSearch] = useState("");
-  const [globalSearch, setGlobalSearch] = useState("");
   const [showReinforcementDrawer, setShowReinforcementDrawer] = useState(false);
   const [broadcastClassroom, setBroadcastClassroom] = useState<Classroom | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const globalStudentsState = useGlobalStudents(mainTab === "global");
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -138,6 +149,7 @@ export function StudentsProgressView() {
 
   useEffect(() => {
     async function loadClassrooms() {
+      setIsLoadingClassrooms(true);
       try {
         const res = await getTeacherClassroomsApi();
         if (res.data && res.data.length > 0) {
@@ -161,6 +173,8 @@ export function StudentsProgressView() {
         const demoData = CLASSROOMS_DATA.map((c) => ({ ...c, isDemo: true }));
         setClassrooms(demoData);
         setSelectedClassId(demoData[0].id);
+      } finally {
+        setIsLoadingClassrooms(false);
       }
     }
     loadClassrooms();
@@ -205,30 +219,54 @@ export function StudentsProgressView() {
     }
   };
 
-  const filteredStudents = selectedClass.students.filter((st) => {
-    if (cohortFilter === "subscription" && st.payStatus !== "subscription") return false;
-    if (cohortFilter === "trial" && st.payStatus !== "trial") return false;
-    if (cohortFilter === "free" && st.payStatus !== "free") return false;
-    if (cohortFilter === "stumbled" && parseInt(st.accuracy) >= 75) return false;
+  const filteredStudents = filterClassroomStudents(
+    selectedClass.students,
+    cohortFilter,
+    cohortSearch
+  );
 
-    if (cohortSearch.trim()) {
-      const q = cohortSearch.toLowerCase();
-      return st.name.toLowerCase().includes(q) || st.email.toLowerCase().includes(q);
-    }
-    return true;
-  });
-
-  const filteredGlobalStudents = GLOBAL_STUDENTS_DATA.filter((st) => {
-    if (globalSearch.trim()) {
-      const q = globalSearch.toLowerCase();
-      return (
-        st.name.toLowerCase().includes(q) ||
-        st.email.toLowerCase().includes(q) ||
-        st.course.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  const handleExportCsv = () => {
+    const rows =
+      mainTab === "global"
+        ? [
+            ["Nombre", "Correo", "Curso", "Nivel", "Racha", "Progreso", "Plan", "Ultima Sesion"],
+            ...globalStudentsState.students.map((st) => [
+              st.name,
+              st.email,
+              st.course,
+              st.cefr,
+              st.streak,
+              `${st.progress}%`,
+              st.payLabel,
+              st.lastActive,
+            ]),
+          ]
+        : [
+            ["Nombre", "Correo", "Nivel", "Racha", "Precision", "Plan", "Ultima Actividad"],
+            ...filteredStudents.map((st) => [
+              st.name,
+              st.email,
+              st.level,
+              st.streak,
+              st.accuracy,
+              st.payLabel,
+              st.lastActive,
+            ]),
+          ];
+    const csv = rows
+      .map((line) => line.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = mainTab === "global" ? "wordtap-global-students.csv" : "wordtap-cohort-students.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    triggerToast("Descarga iniciada: Lista de estudiantes en formato CSV");
+  };
 
   if (viewMode === "create" || viewMode === "detail") {
     return (
@@ -273,13 +311,16 @@ export function StudentsProgressView() {
       <ClassroomsHeader
         classroomsCount={classrooms.length}
         mainTab={mainTab}
-        onTabChange={setMainTab}
+        onTabChange={(tab) => setMainTab(tab)}
         onCreateClassroom={handleOpenCreate}
-        onExportCsv={() => triggerToast("Exportando lista de estudiantes en formato CSV...")}
+        onExportCsv={handleExportCsv}
       />
 
       {/* Contenido según pestaña */}
       {mainTab === "cohorts" && (
+        isLoadingClassrooms ? (
+          <CohortsSkeleton />
+        ) : (
         <div className="space-y-6">
           <CohortCardsGrid
             classrooms={classrooms}
@@ -317,13 +358,26 @@ export function StudentsProgressView() {
             triggerToast={triggerToast}
           />
         </div>
+        )
       )}
 
       {mainTab === "global" && (
         <GlobalStudentsTable
-          students={filteredGlobalStudents}
-          searchQuery={globalSearch}
-          onSearchChange={setGlobalSearch}
+          students={globalStudentsState.students}
+          courses={globalStudentsState.courses}
+          total={globalStudentsState.total}
+          page={globalStudentsState.page}
+          pageSize={globalStudentsState.pageSize}
+          onPageChange={globalStudentsState.setPage}
+          searchQuery={globalStudentsState.searchQuery}
+          onSearchChange={globalStudentsState.setSearchQuery}
+          planFilter={globalStudentsState.planFilter}
+          onPlanFilterChange={globalStudentsState.setPlanFilter}
+          levelFilter={globalStudentsState.levelFilter}
+          onLevelFilterChange={globalStudentsState.setLevelFilter}
+          courseFilter={globalStudentsState.courseFilter}
+          onCourseFilterChange={globalStudentsState.setCourseFilter}
+          isLoading={globalStudentsState.isLoading}
         />
       )}
 

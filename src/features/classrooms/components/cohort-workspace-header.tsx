@@ -11,6 +11,7 @@ interface CohortWorkspaceHeaderProps {
   activeTab: CohortTab;
   selectedCourseCount: number;
   selectedLessonCount: number;
+  studentsCount?: number;
   isSubmitting: boolean;
   onCancel: () => void;
   onEnableEdit: () => void;
@@ -27,6 +28,7 @@ export function CohortWorkspaceHeader({
   activeTab,
   selectedCourseCount,
   selectedLessonCount,
+  studentsCount = 0,
   isSubmitting,
   onCancel,
   onEnableEdit,
@@ -158,17 +160,34 @@ export function CohortWorkspaceHeader({
         </button>
 
         {isExisting && (
-          <button
-            type="button"
-            onClick={() => onTabChange(COHORT_TAB.HISTORY)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === COHORT_TAB.HISTORY
-                ? "bg-emerald-brand text-canvas shadow-sm"
-                : "bg-card border border-border-default text-slate-400 hover:text-white"
-            }`}
-          >
-            <span>3. Historial de Avisos</span>
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => onTabChange(COHORT_TAB.HISTORY)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                activeTab === COHORT_TAB.HISTORY
+                  ? "bg-emerald-brand text-canvas shadow-sm"
+                  : "bg-card border border-border-default text-slate-400 hover:text-white"
+              }`}
+            >
+              <span>3. Historial de Avisos</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange(COHORT_TAB.STUDENTS)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                activeTab === COHORT_TAB.STUDENTS
+                  ? "bg-emerald-brand text-canvas shadow-sm"
+                  : "bg-card border border-border-default text-slate-400 hover:text-white"
+              }`}
+            >
+              <span>4. Estudiantes</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/20">
+                {studentsCount}
+              </span>
+            </button>
+          </>
         )}
       </div>
     </div>

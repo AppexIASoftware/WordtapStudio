@@ -2,6 +2,7 @@ export const COHORT_TAB = {
   GENERAL: "general",
   CURRICULUM: "curriculum",
   HISTORY: "history",
+  STUDENTS: "students",
 } as const;
 
 export type CohortTab = (typeof COHORT_TAB)[keyof typeof COHORT_TAB];

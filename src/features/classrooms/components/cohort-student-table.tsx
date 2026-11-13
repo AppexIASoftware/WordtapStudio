@@ -3,6 +3,28 @@
 import { Search, UserCheck } from "lucide-react";
 import { ClassroomStudent } from "@/features/classrooms/types";
 
+export type CohortStudentFilter = "all" | "subscription" | "trial" | "free" | "stumbled";
+
+/** Filters classroom students by subscription plan, stumble threshold, and search query. */
+export function filterClassroomStudents(
+  students: ClassroomStudent[],
+  filter: CohortStudentFilter,
+  searchQuery: string
+): ClassroomStudent[] {
+  return students.filter((st) => {
+    if (filter === "subscription" && st.payStatus !== "subscription") return false;
+    if (filter === "trial" && st.payStatus !== "trial") return false;
+    if (filter === "free" && st.payStatus !== "free") return false;
+    if (filter === "stumbled" && parseInt(st.accuracy) >= 75) return false;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return st.name.toLowerCase().includes(q) || st.email.toLowerCase().includes(q);
+    }
+    return true;
+  });
+}
+
 interface CohortStudentTableProps {
   students: ClassroomStudent[];
   totalStudents: number;

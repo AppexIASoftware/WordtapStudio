@@ -48,10 +48,14 @@ export function useCohortForm({
     ];
   });
   const [weeklyGoal, setWeeklyGoal] = useState(initialClassroom?.weeklyGoalWords || 50);
+  const resolveTab = (raw: string | null): CohortTab => {
+    if (raw === COHORT_TAB.CURRICULUM) return COHORT_TAB.CURRICULUM;
+    if (raw === COHORT_TAB.HISTORY) return COHORT_TAB.HISTORY;
+    if (raw === COHORT_TAB.STUDENTS) return COHORT_TAB.STUDENTS;
+    return COHORT_TAB.GENERAL;
+  };
   const [activeTab, setActiveTab] = useState<CohortTab>(
-    searchParams.get("tab") === COHORT_TAB.CURRICULUM
-      ? COHORT_TAB.CURRICULUM
-      : COHORT_TAB.GENERAL
+    resolveTab(searchParams.get("tab"))
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { customGames } = useTeacherGames();
@@ -77,10 +81,8 @@ export function useCohortForm({
 
   useEffect(() => {
     const tabFromUrl = searchParams.get("tab") || searchParams.get("step");
-    if (tabFromUrl === COHORT_TAB.CURRICULUM) {
-      setActiveTab(COHORT_TAB.CURRICULUM);
-    } else if (tabFromUrl === COHORT_TAB.GENERAL) {
-      setActiveTab(COHORT_TAB.GENERAL);
+    if (tabFromUrl) {
+      setActiveTab(resolveTab(tabFromUrl));
     }
   }, [searchParams]);
 

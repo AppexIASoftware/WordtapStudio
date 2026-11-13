@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowRight, Sparkles, Save, Pencil } from "lucide-react";
 import { Classroom, COHORT_TAB } from "@/features/classrooms/types";
 import { createClassroomApi, updateClassroomApi } from "@/services/api/classroom";
@@ -11,6 +12,11 @@ import { CohortCurriculumPanel } from "./cohort-curriculum-panel";
 import { CohortCourseSelector } from "./cohort-course-selector";
 import { CohortGoalSelector } from "./cohort-goal-selector";
 import { NotificationHistoryPanel } from "./notifications/panel";
+import {
+  CohortStudentFilter,
+  CohortStudentTable,
+  filterClassroomStudents,
+} from "./cohort-student-table";
 
 interface CohortCreationWorkspaceProps {
   onCancel: () => void;
@@ -58,6 +64,15 @@ export function CohortCreationWorkspace({
     simulatedCode,
     primaryCourse,
   } = useCohortForm({ initialClassroom, initialMode });
+
+  const [studentFilter, setStudentFilter] = useState<CohortStudentFilter>("all");
+  const [studentSearch, setStudentSearch] = useState("");
+  const classroomStudents = initialClassroom?.students ?? [];
+  const filteredClassroomStudents = filterClassroomStudents(
+    classroomStudents,
+    studentFilter,
+    studentSearch
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,6 +198,7 @@ export function CohortCreationWorkspace({
         activeTab={activeTab}
         selectedCourseCount={selectedCourseIds.length}
         selectedLessonCount={selectedLessonIds.length}
+        studentsCount={classroomStudents.length}
         isSubmitting={isSubmitting}
         onCancel={onCancel}
         onEnableEdit={() => {
@@ -280,6 +296,18 @@ export function CohortCreationWorkspace({
             triggerToast("Modo edición habilitado. Puedes ajustar los parámetros del aula.");
           }}
           onSubmit={handleSubmit}
+        />
+      ) : activeTab === COHORT_TAB.STUDENTS && initialClassroom ? (
+        <CohortStudentTable
+          students={filteredClassroomStudents}
+          totalStudents={classroomStudents.length}
+          stats={initialClassroom.stats}
+          classroomName={initialClassroom.name}
+          isDemo={initialClassroom.isDemo}
+          filter={studentFilter}
+          onFilterChange={setStudentFilter}
+          searchQuery={studentSearch}
+          onSearchChange={setStudentSearch}
         />
       ) : (
         <NotificationHistoryPanel

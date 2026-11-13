@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/auth-context";
 import {
   UserPlus,
@@ -10,14 +11,26 @@ import {
   AlertTriangle,
   UserCheck,
 } from "lucide-react";
-import { StaffMember, RbacMatrixState } from "../types";
+import { RbacMatrixState } from "../types";
 import {
-  INITIAL_STAFF_DATA,
   RBAC_MODULES_DATA,
   buildInitialRbacState,
 } from "../data/rbac-data";
+import {
+  ApiStaffUser,
+  ProvisionStaffPayload,
+  listStaffApi,
+  provisionStaffApi,
+  updateStaffStatusApi,
+  deleteStaffApi,
+} from "@/services/api/staff";
 import { InviteStaffModal } from "../components/invite-staff-modal";
 import { StaffDirectoryTable } from "../components/staff-directory-table";
+import {
+  StaffActionModal,
+  StaffActionType,
+  STAFF_ACTION_TYPE,
+} from "../components/staff-action-modal";
 import { TeacherApplicationsTable } from "../components/teacher-applications-table";
 import { PlatformSettingsCard } from "../components/platform-settings-card";
 import { RbacMatrixConsole } from "../components/rbac-matrix-console";
@@ -27,8 +40,9 @@ import { useUrlParam } from "@/hooks/use-url-params";
 const ROLES_TABS = ["staff", "applications", "matrix"] as const;
 
 export function RolesView() {
-  const { currentRole } = useAuth();
+  const { currentRole, user } = useAuth();
   const isAdmin = currentRole === "admin";
+  const queryClient = useQueryClient();
 
   // La pestaña activa vive en la URL para que la vista sea compartible.
   const [activeTab, setActiveTab] = useUrlParam<"staff" | "applications" | "matrix">(
@@ -36,8 +50,30 @@ export function RolesView() {
     ROLES_TABS,
     "staff"
   );
-  const [staffList, setStaffList] = useState<StaffMember[]>(INITIAL_STAFF_DATA);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    member: ApiStaffUser;
+    action: StaffActionType;
+  } | null>(null);
+  const [isActionSubmitting, setIsActionSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const {
+    data: staffList = [],
+    isLoading: isStaffLoading,
+    isFetching: isStaffFetching,
+    refetch: refetchStaff,
+  } = useQuery({
+    queryKey: ["admin-staff"],
+    queryFn: async () => {
+      const res = await listStaffApi();
+      if (res.error) {
+        triggerToast(res.error);
+        return [];
+      }
+      return res.data?.staff || [];
+    },
+  });
 
   const [rbacState, setRbacState] = useState<RbacMatrixState>(() =>
     buildInitialRbacState()
@@ -83,32 +119,64 @@ export function RolesView() {
     return { totalPerms, invariantCount, toggleCount };
   }, [rbacState]);
 
-  const handleInviteStaff = (newMember: StaffMember) => {
-    setStaffList((prev) => [newMember, ...prev]);
-    triggerToast(`¡Invitación enviada a ${newMember.email}! Token seguro generado.`);
-  };
-
-  const handleToggleStaffAccess = (member: StaffMember) => {
-    setStaffList((prev) =>
-      prev.map((m) => {
-        if (m.id === member.id) {
-          const nextStatus = m.status === "Suspendido" ? "Activo" : "Suspendido";
-          return { ...m, status: nextStatus };
-        }
-        return m;
-      })
-    );
-
-    if (member.status === "Suspendido") {
-      triggerToast(`Acceso restablecido para ${member.name}`);
-    } else {
-      triggerToast(`Acceso suspendido para ${member.name}. Sesión JWT invalidada.`);
+  const handleInviteStaff = async (
+    payload: ProvisionStaffPayload
+  ): Promise<{ ok: boolean; error?: string }> => {
+    if (!isAdmin) {
+      return { ok: false, error: "Solo administradores pueden integrar usuarios de staff." };
     }
+
+    const res = await provisionStaffApi(payload);
+    if (res.error || !res.data) {
+      return { ok: false, error: res.error || "No se pudo integrar el usuario." };
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+    const actionLabel = res.data.created ? "integrado" : "actualizado";
+    triggerToast(`${res.data.user.email} ${actionLabel} como ${res.data.user.role}.`);
+    return { ok: true };
   };
 
-  const handleRevokeInvite = (id: string, name: string) => {
-    setStaffList((prev) => prev.filter((m) => m.id !== id));
-    triggerToast(`Invitación revocada para ${name}`);
+  const handleConfirmStaffAction = async () => {
+    if (!pendingAction || isActionSubmitting) return;
+    const { member, action } = pendingAction;
+
+    if (!isAdmin) {
+      triggerToast("Solo administradores pueden gestionar cuentas de staff.");
+      setPendingAction(null);
+      return;
+    }
+
+    setIsActionSubmitting(true);
+    setActionError(null);
+    if (action === STAFF_ACTION_TYPE.DELETE) {
+      const res = await deleteStaffApi(member.id);
+      setIsActionSubmitting(false);
+      if (res.error) {
+        setActionError(res.error);
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+      triggerToast(`Usuario ${member.email} eliminado del sistema.`);
+      setPendingAction(null);
+      return;
+    }
+
+    const nextActive = action === STAFF_ACTION_TYPE.REACTIVATE;
+    const res = await updateStaffStatusApi(member.id, nextActive);
+    setIsActionSubmitting(false);
+    if (res.error) {
+      setActionError(res.error);
+      return;
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+    triggerToast(
+      nextActive
+        ? `Acceso restablecido para ${member.name}.`
+        : `Acceso suspendido para ${member.name}.`
+    );
+    setPendingAction(null);
   };
 
   const handleTogglePermission = (
@@ -195,7 +263,7 @@ export function RolesView() {
             </span>
           </div>
           <p className="text-sm text-slate-muted mt-1 leading-relaxed">
-            Aprovisionamiento de docentes y moderadores, asignación de cuotas de borradores y políticas granulares de permisos.
+            Aprovisionamiento de administradores, moderadores y docentes, y políticas granulares de permisos.
           </p>
         </div>
 
@@ -203,25 +271,28 @@ export function RolesView() {
           <button
             type="button"
             onClick={() => setIsInviteModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1.5 shadow-glow-emerald cursor-pointer"
+            disabled={!isAdmin}
+            className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1.5 shadow-glow-emerald cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <UserPlus size={14} />
-            <span>Invitar Docente / Moderador</span>
+            <span>Integrar Usuario Staff</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleSaveRbacMatrix}
-            disabled={!isAdmin}
-            className={`px-3.5 py-2 rounded-xl font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 ${
-              isDirty && isAdmin
-                ? "bg-emerald-brand text-canvas hover:bg-mint-brand shadow-glow-emerald"
-                : "bg-card border border-border-default text-slate-muted hover:text-white"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            <Save size={14} />
-            <span>Guardar Matriz</span>
-          </button>
+          {activeTab === "matrix" && (
+            <button
+              type="button"
+              onClick={handleSaveRbacMatrix}
+              disabled={!isAdmin}
+              className={`px-3.5 py-2 rounded-xl font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 ${
+                isDirty && isAdmin
+                  ? "bg-emerald-brand text-canvas hover:bg-mint-brand shadow-glow-emerald"
+                  : "bg-card border border-border-default text-slate-muted hover:text-white"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <Save size={14} />
+              <span>Guardar Matriz</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -271,9 +342,17 @@ export function RolesView() {
       {activeTab === "staff" && (
         <StaffDirectoryTable
           staffList={staffList}
-          onNotify={triggerToast}
-          onToggleAccess={handleToggleStaffAccess}
-          onRevokeInvite={handleRevokeInvite}
+          isLoading={isStaffLoading}
+          isRefreshing={isStaffFetching}
+          isAdmin={isAdmin}
+          currentUserId={user?.id}
+          onRequestAction={(member, action) => setPendingAction({ member, action })}
+          onRefresh={async () => {
+            const res = await refetchStaff();
+            if (!res.isError) {
+              triggerToast("Listado de staff actualizado.");
+            }
+          }}
         />
       )}
 
@@ -315,6 +394,21 @@ export function RolesView() {
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         onInvite={handleInviteStaff}
+      />
+
+      {/* Modal de Confirmación de Cambio de Estado o Eliminación */}
+      <StaffActionModal
+        member={pendingAction?.member ?? null}
+        action={pendingAction?.action ?? null}
+        isSubmitting={isActionSubmitting}
+        errorMsg={actionError}
+        onClose={() => {
+          if (!isActionSubmitting) {
+            setPendingAction(null);
+            setActionError(null);
+          }
+        }}
+        onConfirm={() => void handleConfirmStaffAction()}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/auth-context";
 import {
@@ -11,11 +11,8 @@ import {
   AlertTriangle,
   UserCheck,
 } from "lucide-react";
-import { RbacMatrixState } from "../types";
-import {
-  RBAC_MODULES_DATA,
-  buildInitialRbacState,
-} from "../data/rbac-data";
+import { useRbacMatrix } from "../hooks/use-rbac-matrix";
+import { RbacConfirmModal } from "../components/rbac-confirm-modal";
 import {
   ApiStaffUser,
   ProvisionStaffPayload,
@@ -75,49 +72,26 @@ export function RolesView() {
     },
   });
 
-  const [rbacState, setRbacState] = useState<RbacMatrixState>(() =>
-    buildInitialRbacState()
-  );
-  const [rbacBaseline, setRbacBaseline] = useState<RbacMatrixState>(() =>
-    buildInitialRbacState()
-  );
-
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const isDirty = useMemo(() => {
-    for (const key in rbacState) {
-      const roles = ["student", "instructor", "moderator", "admin"] as const;
-      for (const r of roles) {
-        if (rbacState[key]?.[r]?.val !== rbacBaseline[key]?.[r]?.val) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }, [rbacState, rbacBaseline]);
-
-  const matrixStats = useMemo(() => {
-    let totalPerms = 0;
-    let invariantCount = 0;
-    let toggleCount = 0;
-
-    RBAC_MODULES_DATA.forEach((mod) => {
-      mod.permissions.forEach((perm) => {
-        totalPerms++;
-        const state = rbacState[perm.key];
-        (["student", "instructor", "moderator", "admin"] as const).forEach((r) => {
-          if (state?.[r]?.locked) invariantCount++;
-          else toggleCount++;
-        });
-      });
-    });
-
-    return { totalPerms, invariantCount, toggleCount };
-  }, [rbacState]);
+  const {
+    rbacState,
+    diffCount,
+    isDirty,
+    matrixStats,
+    rbacModalAction,
+    isRbacSubmitting,
+    rbacError,
+    handleTogglePermission,
+    requestReset: handleResetRbacDefaults,
+    requestSave: handleSaveRbacMatrix,
+    closeModal: closeRbacModal,
+    confirmModal: handleConfirmRbacModal,
+  } = useRbacMatrix(isAdmin, triggerToast);
 
   const handleInviteStaff = async (
     payload: ProvisionStaffPayload
@@ -177,59 +151,6 @@ export function RolesView() {
         : `Acceso suspendido para ${member.name}.`
     );
     setPendingAction(null);
-  };
-
-  const handleTogglePermission = (
-    key: string,
-    role: "student" | "instructor" | "moderator" | "admin",
-    checked: boolean
-  ) => {
-    if (!isAdmin) {
-      triggerToast("Acceso denegado: Solo administradores pueden modificar la matriz RBAC");
-      return;
-    }
-
-    setRbacState((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        [role]: {
-          ...prev[key][role],
-          val: checked,
-        },
-      },
-    }));
-  };
-
-  const handleResetRbacDefaults = () => {
-    const defaults = buildInitialRbacState();
-    setRbacState(defaults);
-    triggerToast("Matriz restablecida a las políticas de seguridad recomendadas");
-  };
-
-  const handleSaveRbacMatrix = () => {
-    if (!isAdmin) {
-      triggerToast("Acceso denegado: Solo administradores pueden modificar permisos RBAC");
-      return;
-    }
-
-    let diffCount = 0;
-    for (const key in rbacState) {
-      const roles = ["student", "instructor", "moderator", "admin"] as const;
-      for (const r of roles) {
-        if (rbacState[key]?.[r]?.val !== rbacBaseline[key]?.[r]?.val) {
-          diffCount++;
-        }
-      }
-    }
-
-    if (diffCount === 0) {
-      triggerToast("No hay cambios pendientes en la matriz de permisos RBAC");
-      return;
-    }
-
-    setRbacBaseline(JSON.parse(JSON.stringify(rbacState)));
-    triggerToast(`¡Matriz RBAC guardada con éxito! (${diffCount} políticas actualizadas)`);
   };
 
   return (
@@ -409,6 +330,15 @@ export function RolesView() {
           }
         }}
         onConfirm={() => void handleConfirmStaffAction()}
+      />
+
+      <RbacConfirmModal
+        action={rbacModalAction}
+        diffCount={diffCount}
+        isSubmitting={isRbacSubmitting}
+        errorMsg={rbacError}
+        onClose={closeRbacModal}
+        onConfirm={() => void handleConfirmRbacModal()}
       />
     </div>
   );

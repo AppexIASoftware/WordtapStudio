@@ -1,51 +1,4 @@
-import { StaffMember, RbacModule, RbacMatrixState } from "../types";
-
-export const INITIAL_STAFF_DATA: StaffMember[] = [
-  {
-    id: "staff-1",
-    name: "Prof. Mateo Silva",
-    email: "mateo.silva@wordtap.io",
-    role: "Docente",
-    scope: "Global (EN ↔ ES)",
-    quota: "5 cursos máx.",
-    status: "Activo",
-    avatar: "MS",
-    avatarBg: "bg-emerald-brand/20 text-emerald-brand",
-  },
-  {
-    id: "staff-2",
-    name: "Lic. Elena Ramos",
-    email: "elena.ramos@wordtap.io",
-    role: "Moderador",
-    scope: "Revisión B1 / B2 / Gramática",
-    quota: "Ilimitado",
-    status: "Activo",
-    avatar: "ER",
-    avatarBg: "bg-blue-500/20 text-blue-400",
-  },
-  {
-    id: "staff-3",
-    name: "Dra. Claudia Ortiz",
-    email: "claudia.ortiz@med-edu.com",
-    role: "Docente",
-    scope: "Inglés Médico (Acotado)",
-    quota: "2 cursos máx.",
-    status: "Invitación Pendiente",
-    avatar: "CO",
-    avatarBg: "bg-purple-500/20 text-purple-400",
-  },
-  {
-    id: "staff-4",
-    name: "Dr. Julian Vance",
-    email: "julian.vance@wordtap.io",
-    role: "Moderador",
-    scope: "Inglés Corporativo & Negocios",
-    quota: "Ilimitado",
-    status: "Activo",
-    avatar: "JV",
-    avatarBg: "bg-cyan-500/20 text-cyan-400",
-  },
-];
+import { RbacModule, RbacMatrixState } from "../types";
 
 export const RBAC_MODULES_DATA: RbacModule[] = [
   {
@@ -57,42 +10,42 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
       {
         key: "vault:consume_lessons",
         name: "Consumir lecciones y jugar minijuegos",
-        desc: "Acceso a la ejecución interactiva de unidades de aprendizaje y gamificación adaptativa.",
+        desc: "Acceso a la ejecución interactiva de unidades de aprendizaje y gamificación.",
         student: { val: true, locked: true },
         instructor: { val: true, locked: true },
         moderator: { val: true, locked: true },
         admin: { val: true, locked: true },
       },
       {
-        key: "vault:tts_preview",
-        name: "Probar síntesis neural TTS en vivo",
-        desc: "Escuchar muestras de audio sintetizado en tiempo real antes de guardar.",
-        student: { val: false, locked: true },
-        instructor: { val: true, locked: false },
-        moderator: { val: true, locked: false },
+        key: "notifications:inbox_prefs",
+        name: "Recibir notificaciones y configurar preferencias",
+        desc: "Bandeja de entrada, avisos de aulas y preferencias personales de alertas.",
+        student: { val: true, locked: true },
+        instructor: { val: true, locked: true },
+        moderator: { val: true, locked: true },
         admin: { val: true, locked: true },
       },
     ],
   },
   {
     moduleId: "authoring",
-    moduleName: "Autoría, Content Vault & Motor de Juegos",
+    moduleName: "Autoría, Content Vault & Minijuegos",
     badge: "STUDIO AUTHORING",
     badgeColor: "emerald",
     permissions: [
       {
         key: "vault:author_items",
         name: "Crear y editar ítems en Content Vault",
-        desc: "Gestión de vocabulario, frases contextuales, fonética IPA y pares mínimos propios.",
+        desc: "Gestión de vocabulario, frases contextuales, fonética y pares mínimos.",
         student: { val: false, locked: true },
         instructor: { val: true, locked: true },
-        moderator: { val: false, locked: false },
+        moderator: { val: true, locked: false },
         admin: { val: true, locked: true },
       },
       {
         key: "courses:create_drafts",
-        name: "Crear cursos y lecciones (sujeto a cuota)",
-        desc: "Apertura de nuevos borradores en Course Builder dentro de su cuota autorizada.",
+        name: "Crear cursos y lecciones en borrador",
+        desc: "Apertura de nuevos borradores de cursos y lecciones en el editor.",
         student: { val: false, locked: true },
         instructor: { val: true, locked: true },
         moderator: { val: false, locked: false },
@@ -100,8 +53,8 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
       },
       {
         key: "courses:author_free_courses",
-        name: "Habilitar creación de cursos gratuitos (Free)",
-        desc: "Exime al docente de la tarifa obligatoria ($4.99 - $99.99). Por defecto denegado para proteger la monetización del ecosistema.",
+        name: "Publicar cursos gratuitos en catálogo",
+        desc: "Permite crear cursos sin costo además de cursos de pago.",
         student: { val: false, locked: true },
         instructor: { val: false, locked: false },
         moderator: { val: false, locked: false },
@@ -109,8 +62,8 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
       },
       {
         key: "games:tune_levels",
-        name: "Calibrar dificultad y temporizadores (L1, L2, L3)",
-        desc: "Ajuste de distractores, hints pedagógicos y tiempos de respuesta en minijuegos.",
+        name: "Crear minijuegos y calibrar dificultad",
+        desc: "Configuración de actividades lúdicas, tiempos de respuesta y niveles.",
         student: { val: false, locked: true },
         instructor: { val: true, locked: false },
         moderator: { val: true, locked: false },
@@ -120,35 +73,26 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
   },
   {
     moduleId: "moderation",
-    moduleName: "Moderación & Publicación en Producción",
-    badge: "CALIDAD & RFC",
+    moduleName: "Moderación & Publicación",
+    badge: "CALIDAD",
     badgeColor: "amber",
     permissions: [
       {
-        key: "moderation:claim_queue",
-        name: "Tomar solicitudes en cola abierta (Self-Claim)",
-        desc: "Reclamar revisiones pendientes en la bandeja compartida de moderación (ADR-02).",
-        student: { val: false, locked: true },
-        instructor: { val: false, locked: true },
-        moderator: { val: true, locked: true },
-        admin: { val: true, locked: true },
-      },
-      {
-        key: "moderation:approve_deploy",
-        name: "Aprobar y desplegar en vivo a catálogo móvil",
-        desc: "Autoridad directa para publicar cambios sin requerir aprobación del Admin (ADR-27).",
+        key: "moderation:review_courses",
+        name: "Revisar, aprobar o rechazar cursos pendientes",
+        desc: "Evaluación pedagógica y publicación hacia el catálogo oficial.",
         student: { val: false, locked: true },
         instructor: { val: false, locked: true },
         moderator: { val: true, locked: false },
         admin: { val: true, locked: true },
       },
       {
-        key: "moderation:assign_others",
-        name: "Reasignar solicitudes a otros moderadores",
-        desc: "Delegar o reasignar una revisión pendiente a otro miembro del equipo.",
+        key: "moderation:manage_teacher_apps",
+        name: "Evaluar postulaciones docentes",
+        desc: "Revisión de solicitudes de nuevos instructores en la plataforma.",
         student: { val: false, locked: true },
         instructor: { val: false, locked: true },
-        moderator: { val: false, locked: false },
+        moderator: { val: true, locked: false },
         admin: { val: true, locked: true },
       },
     ],
@@ -156,33 +100,50 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
   {
     moduleId: "cohorts",
     moduleName: "Aulas Privadas & Alumnos",
-    badge: "COHORTES",
+    badge: "AULAS",
     badgeColor: "teal",
     permissions: [
       {
         key: "cohorts:create_classrooms",
-        name: "Crear aulas privadas y generar códigos",
-        desc: "Generación de grupos de cohortes con códigos alfanuméricos únicos (ADR-03).",
+        name: "Crear aulas privadas y generar códigos de acceso",
+        desc: "Creación de grupos privados con códigos únicos de inscripción.",
         student: { val: false, locked: true },
         instructor: { val: true, locked: true },
         moderator: { val: false, locked: false },
         admin: { val: true, locked: true },
       },
       {
-        key: "cohorts:grant_scholarships",
-        name: "Otorgar becas de cortesía de 30 días",
-        desc: "Exención temporal de paywall para alumnos de aula privada desde cupo docente (ADR-13b).",
+        key: "cohorts:view_own_students",
+        name: "Consultar progreso de alumnos en aulas propias",
+        desc: "Seguimiento de avance, lecciones completadas y vocabulario difícil.",
         student: { val: false, locked: true },
-        instructor: { val: true, locked: false },
+        instructor: { val: true, locked: true },
         moderator: { val: false, locked: true },
         admin: { val: true, locked: true },
       },
+    ],
+  },
+  {
+    moduleId: "notifications",
+    moduleName: "Notificaciones & Difusión",
+    badge: "COMUNICACIÓN",
+    badgeColor: "blue",
+    permissions: [
       {
-        key: "cohorts:view_global_directory",
-        name: "Consultar directorio de alumnos globales",
-        desc: "Visualización de telemetría, progreso y fechas de estudiantes del catálogo público.",
+        key: "notifications:classroom_broadcast",
+        name: "Enviar avisos y vocabulario a aulas privadas",
+        desc: "Despacho de recordatorios y palabras destacadas a estudiantes inscritos.",
         student: { val: false, locked: true },
-        instructor: { val: true, locked: false },
+        instructor: { val: true, locked: true },
+        moderator: { val: false, locked: false },
+        admin: { val: true, locked: true },
+      },
+      {
+        key: "notifications:global_announcements",
+        name: "Enviar anuncios globales a la plataforma",
+        desc: "Difusión de comunicados generales a toda la comunidad de usuarios.",
+        student: { val: false, locked: true },
+        instructor: { val: false, locked: true },
         moderator: { val: true, locked: false },
         admin: { val: true, locked: true },
       },
@@ -190,32 +151,23 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
   },
   {
     moduleId: "monetization",
-    moduleName: "Monetización, Tarifas & Pasarelas",
-    badge: "STRIPE & ADMOB",
+    moduleName: "Monetización & Tarifas",
+    badge: "COMERCIAL",
     badgeColor: "purple",
     permissions: [
       {
         key: "monetization:custom_course_price",
-        name: "Fijar precio en cursos propios ($4.99 a $99.99)",
-        desc: "Definición de precio standalone y desglose hacia cuenta conectada.",
+        name: "Fijar precio en cursos propios",
+        desc: "Definición del valor comercial de cursos de autoría propia.",
         student: { val: false, locked: true },
         instructor: { val: true, locked: false },
         moderator: { val: false, locked: true },
         admin: { val: true, locked: true },
       },
       {
-        key: "monetization:view_earnings",
-        name: "Ver balance y solicitar liquidaciones Stripe",
-        desc: "Acceso a la pestaña Mis Ganancias, reportes de regalías y botón de cobro.",
-        student: { val: false, locked: true },
-        instructor: { val: true, locked: true },
-        moderator: { val: false, locked: true },
-        admin: { val: true, locked: true },
-      },
-      {
-        key: "monetization:manage_gateway_tiers",
-        name: "Administrar planes, split y mapeo de pasarelas",
-        desc: "Edición de precios globales, AdMob y SKUs de Stripe, Apple y Google (ADR-29).",
+        key: "monetization:manage_platform_pricing",
+        name: "Administrar configuración comercial y anuncios",
+        desc: "Gestión global de parámetros de monetización y publicidad.",
         student: { val: false, locked: true },
         instructor: { val: false, locked: true },
         moderator: { val: false, locked: true },
@@ -225,31 +177,24 @@ export const RBAC_MODULES_DATA: RbacModule[] = [
   },
   {
     moduleId: "governance",
-    moduleName: "Gobernanza, Auditoría & Reportes",
-    badge: "AUDIT & SEGURIDAD",
+    moduleName: "Gobernanza & Administración",
+    badge: "SEGURIDAD",
     badgeColor: "indigo",
     permissions: [
       {
-        key: "audit:view_full_trail",
-        name: "Inspeccionar bitácora del sistema y diffs visuales",
-        desc: "Acceso a registros de auditoría inmutable, IP y mutaciones JSON (ADR-20).",
+        key: "governance:manage_staff_admins",
+        name: "Integrar administradores y gestionar accesos de staff",
+        desc: "Alta, promoción, suspensión y eliminación de cuentas del equipo autorizado.",
         student: { val: false, locked: true },
         instructor: { val: false, locked: true },
-        moderator: { val: false, locked: false },
-        admin: { val: true, locked: true },
-      },
-      {
-        key: "audit:resolve_reports",
-        name: "Resolver reportes de contenido de alumnos",
-        desc: "Triaje, asignación y resolución de incidentes pedagógicos reportados (ADR-21).",
-        student: { val: false, locked: true },
-        instructor: { val: false, locked: true },
-        moderator: { val: true, locked: false },
+        moderator: { val: false, locked: true },
         admin: { val: true, locked: true },
       },
     ],
   },
 ];
+
+export const RBAC_SETTING_KEY = "rbac_matrix_policies" as const;
 
 export function buildInitialRbacState(): RbacMatrixState {
   const state: RbacMatrixState = {};
@@ -264,4 +209,42 @@ export function buildInitialRbacState(): RbacMatrixState {
     });
   });
   return state;
+}
+
+export function mergeRbacState(rawJson?: string | null): RbacMatrixState {
+  const base = buildInitialRbacState();
+  if (!rawJson) return base;
+  try {
+    const parsed = JSON.parse(rawJson) as Record<string, Partial<Record<"student" | "instructor" | "moderator" | "admin", boolean>>>;
+    const roles = ["student", "instructor", "moderator", "admin"] as const;
+    for (const key of Object.keys(base)) {
+      const savedRow = parsed[key];
+      if (!savedRow) continue;
+      for (const r of roles) {
+        if (!base[key][r].locked && typeof savedRow[r] === "boolean") {
+          base[key][r].val = savedRow[r] as boolean;
+        }
+      }
+    }
+  } catch {
+    return base;
+  }
+  return base;
+}
+
+export function serializeRbacOverrides(state: RbacMatrixState): string {
+  const payload: Record<string, Partial<Record<"student" | "instructor" | "moderator" | "admin", boolean>>> = {};
+  const roles = ["student", "instructor", "moderator", "admin"] as const;
+  for (const key of Object.keys(state)) {
+    const row: Partial<Record<"student" | "instructor" | "moderator" | "admin", boolean>> = {};
+    let hasConfigurable = false;
+    for (const r of roles) {
+      if (!state[key][r].locked) {
+        row[r] = state[key][r].val;
+        hasConfigurable = true;
+      }
+    }
+    if (hasConfigurable) payload[key] = row;
+  }
+  return JSON.stringify(payload);
 }

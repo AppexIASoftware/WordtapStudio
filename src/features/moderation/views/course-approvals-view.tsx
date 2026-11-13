@@ -45,52 +45,19 @@ export function CourseApprovalsView() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
       <ToastNotification message={toastMessage} variant="emerald" />
 
-      {/* Encabezado y Estadísticas Dinámicas de la Cola */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Mis Solicitudes de Aprobación (PRs)
-            </h1>
-            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30">
-              Espacio Docente
-            </span>
-          </div>
-          <p className="text-sm text-slate-muted mt-1">
-            Seguimiento de cursos enviados a revisión y feedback pedagógico del revisor antes de su publicación en la app móvil.
-          </p>
+      {/* Encabezado */}
+      <div>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            Mis Solicitudes de Aprobación (PRs)
+          </h1>
+          <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30">
+            Espacio Docente
+          </span>
         </div>
-
-        {/* Indicadores Dinámicos de Estado */}
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          {counts.corrections > 0 && (
-            <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 text-amber-300">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>Correcciones Pedidas:</span>
-              <strong className="text-amber-400">{counts.corrections}</strong>
-            </div>
-          )}
-
-          {counts.rejected > 0 && (
-            <div className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center gap-2 text-rose-300">
-              <span className="w-2 h-2 rounded-full bg-rose-400" />
-              <span>Rechazadas:</span>
-              <strong className="text-rose-400">{counts.rejected}</strong>
-            </div>
-          )}
-
-          <div className="px-3 py-1.5 rounded-xl bg-card border border-border-default flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
-            <span className="text-slate-muted">En Revisión:</span>
-            <strong className="text-blue-400">{counts.pending}</strong>
-          </div>
-
-          <div className="px-3 py-1.5 rounded-xl bg-card border border-border-default flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-brand" />
-            <span className="text-slate-muted">Aprobadas:</span>
-            <strong className="text-emerald-brand">{counts.approved}</strong>
-          </div>
-        </div>
+        <p className="text-sm text-slate-muted mt-1">
+          Seguimiento de cursos enviados a revisión y feedback pedagógico del revisor antes de su publicación en la app móvil.
+        </p>
       </div>
 
       {/* Banner Informativo y Acceso Rápido al Creador */}

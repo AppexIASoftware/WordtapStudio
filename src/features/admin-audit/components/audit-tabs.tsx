@@ -6,10 +6,17 @@ import { AuditTab } from "../types";
 interface AuditTabsProps {
   activeTab: AuditTab;
   onTabChange: (tab: AuditTab) => void;
+  totalEvents: number;
+  pendingReports: number;
 }
 
 /** Selector entre la bitacora de eventos y los reportes. */
-export function AuditTabs({ activeTab, onTabChange }: AuditTabsProps) {
+export function AuditTabs({
+  activeTab,
+  onTabChange,
+  totalEvents,
+  pendingReports,
+}: AuditTabsProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border-default pb-3 gap-3">
       <div className="flex items-center gap-1 bg-card p-1 rounded-2xl border border-border-default text-xs font-medium">
@@ -23,9 +30,9 @@ export function AuditTabs({ activeTab, onTabChange }: AuditTabsProps) {
           }`}
         >
           <History size={14} />
-          <span>Bitácora de Eventos (Audit Logs)</span>
+          <span>Bitácora de Eventos</span>
           <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-purple-500/30 text-purple-200">
-            142
+            {totalEvents}
           </span>
         </button>
 
@@ -39,16 +46,16 @@ export function AuditTabs({ activeTab, onTabChange }: AuditTabsProps) {
           }`}
         >
           <AlertTriangle size={14} />
-          <span>Reportes de Estudiantes (Content Reports)</span>
+          <span>Reportes de Estudiantes</span>
           <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 font-bold">
-            3
+            {pendingReports}
           </span>
         </button>
       </div>
 
       <div className="flex items-center gap-2 text-xs font-mono text-slate-subtle">
         <span className="w-2 h-2 rounded-full bg-emerald-brand animate-pulse" />
-        <span>Audit Logging Activo</span>
+        <span>Registro de Auditoría Activo</span>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { AuditEvent, ContentReport, AuditCategory, AuditTab } from "../types";
-import { MOCK_AUDIT_EVENTS, MOCK_CONTENT_REPORTS } from "../data/audit-data";
+import { useState } from "react";
+import { AuditEvent, AuditCategory, AuditTab } from "../types";
+import { useAdminAudit } from "../hooks/use-admin-audit";
 import { AuditInspectorModal } from "../components/audit-inspector-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { useUrlParam } from "@/hooks/use-url-params";
@@ -11,23 +11,37 @@ import { AuditKpiRibbon } from "../components/audit-kpi-ribbon";
 import { AuditTabs } from "../components/audit-tabs";
 import { AuditLogsFilters } from "../components/audit-logs-filters";
 import { AuditLogsTable } from "../components/audit-logs-table";
-import { ContentReportsTable } from "../components/content-reports-table";
+import { AuditPagination } from "../components/audit-pagination";
+import { AuditSkeleton, AuditTableSkeleton } from "../components/audit-skeleton";
+import {
+  ContentReportsTable,
+  type ContentReportItem,
+} from "../components/content-reports-table";
+import {
+  ReportTriageModal,
+  type ReportTriageAction,
+} from "../components/report-triage-modal";
 
 const AUDIT_TABS = ["logs", "reports"] as const;
+const AUDIT_CATEGORIES = ["all", "review", "staff", "admob", "vault"] as const;
 
 export function AuditView() {
-  // La pestaña activa vive en la URL para que la vista sea compartible.
   const [activeTab, setActiveTab] = useUrlParam<AuditTab>(
     "tab",
     AUDIT_TABS,
     "logs"
   );
-  const [selectedCat, setSelectedCat] = useState<AuditCategory>("all");
+  const [selectedCat, setSelectedCat] = useUrlParam<AuditCategory>(
+    "cat",
+    AUDIT_CATEGORIES,
+    "all"
+  );
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [events] = useState<AuditEvent[]>(MOCK_AUDIT_EVENTS);
-  const [reports, setReports] = useState<ContentReport[]>(MOCK_CONTENT_REPORTS);
   const [selectedEvent, setSelectedEvent] = useState<AuditEvent | null>(null);
+  const [triageTarget, setTriageTarget] = useState<{
+    report: ContentReportItem;
+    action: ReportTriageAction;
+  } | null>(null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const triggerToast = (msg: string) => {
@@ -35,88 +49,138 @@ export function AuditView() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const filteredEvents = useMemo(() => {
-    return events.filter((evt) => {
-      if (selectedCat !== "all" && evt.cat !== selectedCat) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        return (
-          evt.actor_name.toLowerCase().includes(q) ||
-          evt.actor_email.toLowerCase().includes(q) ||
-          evt.ip_address.includes(q) ||
-          evt.badge.toLowerCase().includes(q) ||
-          evt.summary.toLowerCase().includes(q) ||
-          evt.entity_id.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
-  }, [events, selectedCat, searchQuery]);
+  const {
+    summary,
+    events,
+    reports,
+    logsPage,
+    setLogsPage,
+    logsTotal,
+    reportsPage,
+    setReportsPage,
+    reportsTotal,
+    pageSize,
+    isInitialLoading,
+    isTableLoading,
+    error,
+    decideReport,
+    downloadCsv,
+    downloadReportsJson,
+  } = useAdminAudit(activeTab, selectedCat, searchQuery);
 
-  const handleResolveReport = (reportId: string) => {
-    setReports((prev) =>
-      prev.map((r) => (r.id === reportId ? { ...r, status: "resolved" } : r))
-    );
-    triggerToast(`Reporte #${reportId} marcado como Resuelto`);
-  };
-
-  const handleDismissReport = (reportId: string) => {
-    setReports((prev) =>
-      prev.map((r) => (r.id === reportId ? { ...r, status: "dismissed" } : r))
-    );
-    triggerToast(`Reporte #${reportId} descartado`);
-  };
-
-  const handleExportCsv = () => {
-    triggerToast("Descarga iniciada: Bitácora de eventos en formato CSV");
-  };
-
-  const handleExportReportsJson = () => {
-    triggerToast("Descarga iniciada: Reportes de estudiantes en formato JSON");
+  const handleConfirmTriage = async (
+    reportId: string,
+    action: ReportTriageAction
+  ) => {
+    const res = await decideReport(reportId, action);
+    if (res.ok) {
+      setTriageTarget(null);
+      triggerToast(
+        action === "resolved"
+          ? "Reporte marcado como Resuelto"
+          : "Reporte descartado correctamente"
+      );
+    }
+    return res;
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      {/* Toast flotante */}
       <ToastNotification message={toastMessage} variant="purple" />
 
       <AuditHeader
-        onExportCsv={handleExportCsv}
-        onExportReportsJson={handleExportReportsJson}
+        onExportCsv={() => {
+          downloadCsv();
+          triggerToast("Descarga iniciada: Bitácora de eventos en formato CSV");
+        }}
+        onExportReportsJson={() => {
+          downloadReportsJson();
+          triggerToast("Descarga iniciada: Reportes de estudiantes en formato JSON");
+        }}
       />
 
-      <AuditKpiRibbon />
+      {isInitialLoading ? (
+        <AuditSkeleton />
+      ) : (
+        <>
+          <AuditKpiRibbon summary={summary} />
 
-      <AuditTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* SUB-TAB 1: AUDIT LOGS */}
-      {activeTab === "logs" && (
-        <div className="space-y-4">
-          <AuditLogsFilters
-            selectedCat={selectedCat}
-            onCategoryChange={setSelectedCat}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
+          <AuditTabs
+            activeTab={activeTab}
+            onTabChange={(tab) =>
+              setActiveTab(tab, { clear: tab === "reports" ? ["cat"] : undefined })
+            }
+            totalEvents={summary.total_events}
+            pendingReports={summary.open_reports + summary.reviewing_reports}
           />
-          <AuditLogsTable events={filteredEvents} onSelectEvent={setSelectedEvent} />
-        </div>
+
+          {error && (
+            <div
+              role="alert"
+              className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs"
+            >
+              {error}
+            </div>
+          )}
+
+          {activeTab === "logs" && (
+            <div className="space-y-4">
+              <AuditLogsFilters
+                selectedCat={selectedCat}
+                onCategoryChange={setSelectedCat}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+              {isTableLoading ? (
+                <AuditTableSkeleton />
+              ) : (
+                <>
+                  <AuditLogsTable events={events} onSelectEvent={setSelectedEvent} />
+                  <AuditPagination
+                    page={logsPage}
+                    pageSize={pageSize}
+                    total={logsTotal}
+                    onPageChange={setLogsPage}
+                  />
+                </>
+              )}
+            </div>
+          )}
+
+          {activeTab === "reports" &&
+            (isTableLoading ? (
+              <AuditTableSkeleton />
+            ) : (
+              <div className="space-y-4">
+                <ContentReportsTable
+                  reports={reports}
+                  onRequestTriage={(report, action) =>
+                    setTriageTarget({ report, action })
+                  }
+                  onToast={triggerToast}
+                />
+                <AuditPagination
+                  page={reportsPage}
+                  pageSize={pageSize}
+                  total={reportsTotal}
+                  onPageChange={setReportsPage}
+                />
+              </div>
+            ))}
+        </>
       )}
 
-      {/* SUB-TAB 2: REPORTES DE ESTUDIANTES */}
-      {activeTab === "reports" && (
-        <ContentReportsTable
-          reports={reports}
-          onResolveReport={handleResolveReport}
-          onDismissReport={handleDismissReport}
-          onToast={triggerToast}
-        />
-      )}
-
-      {/* Modal Inspector Híbrido ADR-22 */}
       <AuditInspectorModal
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
         onCopyNotice={() => triggerToast("¡Payload JSON copiado al portapapeles!")}
+      />
+
+      <ReportTriageModal
+        report={triageTarget?.report ?? null}
+        action={triageTarget?.action ?? null}
+        onClose={() => setTriageTarget(null)}
+        onConfirm={handleConfirmTriage}
       />
     </div>
   );

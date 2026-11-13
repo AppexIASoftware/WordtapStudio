@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, History } from "lucide-react";
 import { AuditEvent } from "../types";
 
 interface AuditLogsTableProps {
@@ -26,6 +26,19 @@ export function AuditLogsTable({ events, onSelectEvent }: AuditLogsTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border-default font-medium">
+            {events.length === 0 && (
+              <tr>
+                <td colSpan={7} className="p-10 text-center text-slate-muted">
+                  <div className="flex flex-col items-center gap-2 max-w-md mx-auto">
+                    <History className="w-6 h-6 text-purple-400/70" />
+                    <p className="font-semibold text-white">Sin eventos registrados en esta vista</p>
+                    <p className="text-[11px] leading-relaxed">
+                      La bitácora se irá llenando automáticamente cada vez que un administrador o moderador apruebe, suspenda o dictamine cursos y resuelva reportes.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            )}
             {events.map((evt) => (
               <tr
                 key={evt.id}

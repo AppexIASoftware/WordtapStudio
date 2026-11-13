@@ -11,4 +11,5 @@ export * from "./classroom";
 export * from "./games";
 export * from "./admin";
 export * from "./audit";
+export * from "./dashboard";
 export * from "./notifications";

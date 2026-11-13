@@ -46,3 +46,31 @@ export async function getAdminDashboardApi(): Promise<{
     cache: "no-store",
   });
 }
+
+export type TeacherDashboardPeriod = "today" | "7d" | "30d" | "year";
+
+export interface TeacherDashboardData {
+  period: TeacherDashboardPeriod;
+  active_students: number;
+  avg_streak_days: number;
+  total_students: number;
+  retention_percent: number;
+  vault_items: number;
+  vault_banks: number;
+  revenue_cents: number;
+  paid_orders: number;
+  active_subscriptions: number;
+  generated_at: string;
+}
+
+export async function getTeacherDashboardApi(
+  period: TeacherDashboardPeriod = "7d"
+): Promise<{
+  data: TeacherDashboardData | null;
+  error: string | null;
+}> {
+  return apiRequest<TeacherDashboardData>(
+    `${API_V1_URL}/teacher/dashboard?period=${encodeURIComponent(period)}`,
+    { cache: "no-store" }
+  );
+}

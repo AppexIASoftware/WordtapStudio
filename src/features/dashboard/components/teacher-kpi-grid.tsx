@@ -1,10 +1,121 @@
-import Link from "next/link";
-import { TEACHER_KPIS } from "@/features/dashboard/data/mock-teacher-metrics";
+"use client";
 
-export function TeacherKpiGrid() {
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  getTeacherDashboardApi,
+  TeacherDashboardData,
+  TeacherDashboardPeriod,
+} from "@/services/api";
+
+interface TeacherKpiGridProps {
+  period: TeacherDashboardPeriod;
+}
+
+interface KpiCardItem {
+  id: string;
+  title: string;
+  badgeText: string;
+  badgeVariant: "emerald" | "mint";
+  value: string;
+  subValue: string;
+  footerDotColor: string;
+  footerText: string;
+  actionText?: string;
+  href?: string;
+}
+
+function buildCards(data: TeacherDashboardData): KpiCardItem[] {
+  const revenueUsd = (data.revenue_cents / 100).toLocaleString("en-US", {
+    minimumFractionDigits: data.revenue_cents % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
+
+  return [
+    {
+      id: "kpi-active-students",
+      title: "Alumnos Activos",
+      badgeText: data.period === "today" ? "Hoy" : data.period.toUpperCase(),
+      badgeVariant: "emerald",
+      value: data.active_students.toLocaleString("en-US"),
+      subValue: "estudiantes",
+      footerDotColor: "bg-emerald-brand",
+      footerText: `Racha promedio: ${data.avg_streak_days.toFixed(1)} días`,
+    },
+    {
+      id: "kpi-retention",
+      title: "Retención Activa",
+      badgeText: `${data.total_students} totales`,
+      badgeVariant: "mint",
+      value: `${data.retention_percent.toFixed(1)}%`,
+      subValue: "sobre alumnos",
+      footerDotColor: "bg-mint-brand",
+      footerText: "Actividad registrada en el período",
+    },
+    {
+      id: "kpi-vault",
+      title: "Banco de Contenidos (Vault)",
+      badgeText: `${data.vault_items} ítems en ${data.vault_banks} Bancos`,
+      badgeVariant: "emerald",
+      value: String(data.vault_items),
+      subValue: "unidades disponibles",
+      footerDotColor: "bg-emerald-brand",
+      footerText: "Catálogo oficial y propio",
+      actionText: "Abrir Vault →",
+      href: "/teacher/vault",
+    },
+    {
+      id: "kpi-revenue",
+      title: "Ventas & Suscripciones",
+      badgeText: `${data.active_subscriptions} suscrip. activas`,
+      badgeVariant: "emerald",
+      value: `$${revenueUsd}`,
+      subValue: "USD",
+      footerDotColor: "bg-emerald-brand",
+      footerText: `${data.paid_orders} órdenes pagadas en período`,
+    },
+  ];
+}
+
+export function TeacherKpiGrid({ period }: TeacherKpiGridProps) {
+  const [data, setData] = useState<TeacherDashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setIsLoading(true);
+    getTeacherDashboardApi(period).then((res) => {
+      if (!active) return;
+      if (res.data) setData(res.data);
+      setIsLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [period]);
+
+  if (isLoading || !data) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div
+            key={idx}
+            className="p-5 rounded-2xl bg-card border border-border-default space-y-3 h-[136px]"
+          >
+            <div className="h-3.5 w-28 rounded bg-slate-800/80" />
+            <div className="h-8 w-24 rounded bg-slate-800" />
+            <div className="h-3 w-36 rounded bg-slate-800/60" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const cards = buildCards(data);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {TEACHER_KPIS.map((kpi) => {
+      {cards.map((kpi) => {
         const content = (
           <div
             className={`p-5 rounded-2xl bg-card border transition-all shadow-sm h-full flex flex-col justify-between ${
@@ -54,9 +165,7 @@ export function TeacherKpiGrid() {
             <div className="mt-3 flex items-center justify-between text-[11px] text-slate-muted">
               <div className="flex items-center gap-1.5">
                 <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    kpi.footerDotColor || "bg-emerald-brand"
-                  }`}
+                  className={`w-1.5 h-1.5 rounded-full ${kpi.footerDotColor}`}
                 />
                 <span>{kpi.footerText}</span>
               </div>
@@ -82,4 +191,3 @@ export function TeacherKpiGrid() {
     </div>
   );
 }
-

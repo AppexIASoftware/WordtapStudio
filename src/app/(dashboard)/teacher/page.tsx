@@ -73,7 +73,7 @@ export default function TeacherDashboardPage() {
       </div>
 
       {/* Cuadrícula de tarjetas KPI */}
-      <TeacherKpiGrid />
+      <TeacherKpiGrid period={period} />
 
       {/* Sección de mapa de calor y pipeline de cursos */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

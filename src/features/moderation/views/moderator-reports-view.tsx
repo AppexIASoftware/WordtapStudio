@@ -1,124 +1,109 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import {
-  Search,
-} from "lucide-react";
-import { CONTENT_REPORTS_DATA } from "../data/mock-moderator-data";
-import { ContentReport } from "@/features/moderation/types";
+import { useMemo, useState } from "react";
+import { Search, AlertCircle } from "lucide-react";
 import { ToastNotification } from "@/components/ui/toast-notification";
+import { useAdminAudit } from "@/features/admin-audit/hooks/use-admin-audit";
+import {
+  ContentReportsTable,
+  type ContentReportItem,
+} from "@/features/admin-audit/components/content-reports-table";
+import {
+  ReportTriageModal,
+  type ReportTriageAction,
+} from "@/features/admin-audit/components/report-triage-modal";
+import { AuditPagination } from "@/features/admin-audit/components/audit-pagination";
+import { AuditTableSkeleton } from "@/features/admin-audit/components/audit-skeleton";
+
+const REPORT_STATUS_FILTER = {
+  ALL: "all",
+  OPEN: "open",
+  REVIEWING: "reviewing",
+  RESOLVED: "resolved",
+} as const;
+
+type ReportStatusFilter =
+  (typeof REPORT_STATUS_FILTER)[keyof typeof REPORT_STATUS_FILTER];
 
 export function ModeratorReportsView() {
-  const [reports, setReports] = useState<ContentReport[]>(CONTENT_REPORTS_DATA);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<ReportStatusFilter>(
+    REPORT_STATUS_FILTER.ALL
+  );
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Toast
+  const [triageTarget, setTriageTarget] = useState<{
+    report: ContentReportItem;
+    action: ReportTriageAction;
+  } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleResolve = (id: string) => {
-    setReports((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, status: "resolved", resolvedBy: "Lic. Elena Ramos" } : r
-      )
-    );
-    triggerToast(`Reporte ${id} marcado como Resuelto con éxito`);
-  };
+  const {
+    summary,
+    reports,
+    reportsPage,
+    setReportsPage,
+    reportsTotal,
+    pageSize,
+    isInitialLoading,
+    isTableLoading,
+    error,
+    decideReport,
+  } = useAdminAudit("reports", "all", searchQuery);
 
-  const handleDismiss = (id: string) => {
-    setReports((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: "dismissed" } : r))
-    );
-    triggerToast(`Reporte ${id} descartado`);
-  };
+  const filteredReports = useMemo(() => {
+    if (statusFilter === REPORT_STATUS_FILTER.ALL) return reports;
+    return reports.filter((r) => r.status === statusFilter);
+  }, [reports, statusFilter]);
 
-  const filteredReports = reports.filter((rep) => {
-    if (statusFilter !== "all" && rep.status !== statusFilter) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return (
-        rep.reporterName.toLowerCase().includes(q) ||
-        rep.description.toLowerCase().includes(q) ||
-        rep.itemAffected.toLowerCase().includes(q) ||
-        rep.reason.toLowerCase().includes(q)
+  const handleConfirmTriage = async (
+    reportId: string,
+    action: ReportTriageAction
+  ) => {
+    const res = await decideReport(reportId, action);
+    if (res.ok) {
+      setTriageTarget(null);
+      triggerToast(
+        action === "resolved"
+          ? "Reporte marcado como Resuelto"
+          : "Reporte descartado correctamente"
       );
     }
-    return true;
-  });
-
-  const getReasonBadge = (reason: string, badgeColor: ContentReport["badgeColor"]) => {
-    const colorClasses =
-      badgeColor === "rose"
-        ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-        : badgeColor === "amber"
-        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-        : badgeColor === "purple"
-        ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-        : "bg-blue-500/10 text-blue-400 border-blue-500/20";
-
-    return (
-      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${colorClasses}`}>
-        {reason}
-      </span>
-    );
+    return res;
   };
+
+  const pendingCount = summary.open_reports + summary.reviewing_reports;
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
-      {/* Toast flotante */}
       <ToastNotification message={toastMessage} variant="blue" />
 
-      {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-              Incidencias Reportadas por Estudiantes en la App Móvil
-            </h1>
-            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              ADR-21 Triaje
-            </span>
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            Incidencias Reportadas por Estudiantes
+          </h1>
           <p className="text-sm text-slate-muted mt-1">
-            Reportes generados desde el botón de retroalimentación de la app WordTap. Resuelve dudas o corrige palabras erróneas directamente.
+            Reportes enviados desde la aplicación móvil. Triaje y resolución sobre contenido real.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-xl bg-card border border-border-default text-xs font-mono text-slate-300">
-            Pendientes:{" "}
-            <strong className="text-amber-400">
-              {reports.filter((r) => r.status === "open").length}
-            </strong>
-          </span>
-        </div>
+        <span className="px-3 py-1.5 rounded-xl bg-card border border-border-default text-xs font-mono text-slate-light self-start sm:self-auto">
+          Pendientes:{" "}
+          <strong className="text-amber-brand">{pendingCount}</strong>
+        </span>
       </div>
 
-      {/* Barra de Filtros y Búsqueda */}
       <div className="p-4 rounded-2xl bg-card border border-border-default flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           {[
-            { id: "all", label: "Todos", count: reports.length },
-            {
-              id: "open",
-              label: "Abiertos (Pendientes)",
-              count: reports.filter((r) => r.status === "open").length,
-            },
-            {
-              id: "reviewing",
-              label: "En Revisión",
-              count: reports.filter((r) => r.status === "reviewing").length,
-            },
-            {
-              id: "resolved",
-              label: "Resueltos",
-              count: reports.filter((r) => r.status === "resolved").length,
-            },
+            { id: REPORT_STATUS_FILTER.ALL, label: "Todos", count: summary.total_reports },
+            { id: REPORT_STATUS_FILTER.OPEN, label: "Abiertos", count: summary.open_reports },
+            { id: REPORT_STATUS_FILTER.REVIEWING, label: "En Revisión", count: summary.reviewing_reports },
+            { id: REPORT_STATUS_FILTER.RESOLVED, label: "Resueltos", count: summary.resolved_today_reports },
           ].map((f) => (
             <button
               key={f.id}
@@ -126,7 +111,7 @@ export function ModeratorReportsView() {
               onClick={() => setStatusFilter(f.id)}
               className={`px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
                 statusFilter === f.id
-                  ? "bg-canvas text-blue-300 font-bold border border-blue-500/40 shadow-sm"
+                  ? "bg-canvas text-blue-400 font-bold border border-blue-500/40 shadow-sm"
                   : "bg-card border border-border-default text-slate-muted hover:text-white"
               }`}
             >
@@ -139,7 +124,7 @@ export function ModeratorReportsView() {
           <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-subtle" />
           <input
             type="text"
-            placeholder="Buscar por alumno o palabra..."
+            placeholder="Buscar por alumno, curso o motivo..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 bg-canvas rounded-xl border border-border-default text-xs text-white placeholder-slate-500 focus:border-blue-400 outline-none"
@@ -147,92 +132,43 @@ export function ModeratorReportsView() {
         </div>
       </div>
 
-      {/* Tabla de Reportes (Content Reports Table) */}
-      <div className="rounded-2xl bg-card border border-border-default overflow-hidden shadow-sm text-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-card-hover/80 text-slate-subtle border-b border-border-default font-mono uppercase text-[10px]">
-              <tr>
-                <th className="p-3.5">ID Reporte</th>
-                <th className="p-3.5">Alumno Reportante</th>
-                <th className="p-3.5">Lección / Minijuego Afectado</th>
-                <th className="p-3.5">Motivo del Reporte</th>
-                <th className="p-3.5">Descripción de la Falla</th>
-                <th className="p-3.5">Fecha</th>
-                <th className="p-3.5">Estado</th>
-                <th className="p-3.5 text-right">Triaje / Acción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-default font-medium">
-              {filteredReports.map((rep) => (
-                <tr key={rep.id} className="hover:bg-card-hover/40 transition-colors">
-                  <td className="p-3.5 font-mono font-bold text-amber-400">{rep.id}</td>
-                  <td className="p-3.5">
-                    <p className="font-bold text-white">{rep.reporterName}</p>
-                    <p className="text-[10px] text-slate-subtle font-mono">{rep.reporterEmail}</p>
-                  </td>
-                  <td className="p-3.5">
-                    <p className="font-semibold text-slate-200">{rep.lessonTitle}</p>
-                    <p className="text-[10px] text-mint-brand font-mono">{rep.itemAffected}</p>
-                  </td>
-                  <td className="p-3.5">{getReasonBadge(rep.reason, rep.badgeColor)}</td>
-                  <td className="p-3.5 text-slate-300 text-xs max-w-xs leading-relaxed">
-                    {rep.description}
-                  </td>
-                  <td className="p-3.5 font-mono text-slate-subtle whitespace-nowrap">
-                    {rep.date}
-                  </td>
-                  <td className="p-3.5 whitespace-nowrap">
-                    {rep.status === "open" ? (
-                      <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-bold text-[10px]">
-                        Abierto (Pendiente)
-                      </span>
-                    ) : rep.status === "reviewing" ? (
-                      <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
-                        En Revisión
-                      </span>
-                    ) : rep.status === "resolved" ? (
-                      <span className="px-2 py-0.5 rounded bg-emerald-brand/20 text-emerald-brand font-mono font-bold text-[10px]">
-                        Resuelto ✓
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">
-                        Descartado
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3.5 text-right whitespace-nowrap">
-                    {rep.status !== "resolved" && (
-                      <button
-                        type="button"
-                        onClick={() => handleResolve(rep.id)}
-                        className="px-2.5 py-1 rounded-lg bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors cursor-pointer mr-1"
-                      >
-                        Resolver
-                      </button>
-                    )}
-                    <Link
-                      href="/moderator/vault"
-                      className="px-2.5 py-1 rounded-lg bg-canvas border border-border-default hover:border-blue-400 text-xs font-semibold text-slate-200 transition-colors inline-block mr-1"
-                    >
-                      Corregir
-                    </Link>
-                    {rep.status === "open" && (
-                      <button
-                        type="button"
-                        onClick={() => handleDismiss(rep.id)}
-                        className="text-xs text-slate-500 hover:text-rose-400 cursor-pointer"
-                      >
-                        Descartar
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {error && (
+        <div
+          role="alert"
+          className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
         </div>
-      </div>
+      )}
+
+      {isInitialLoading || isTableLoading ? (
+        <AuditTableSkeleton />
+      ) : (
+        <>
+          <ContentReportsTable
+            reports={filteredReports}
+            onRequestTriage={(report, action) =>
+              setTriageTarget({ report, action })
+            }
+            onToast={triggerToast}
+          />
+
+          <AuditPagination
+            page={reportsPage}
+            total={reportsTotal}
+            pageSize={pageSize}
+            onPageChange={setReportsPage}
+          />
+        </>
+      )}
+
+      <ReportTriageModal
+        report={triageTarget?.report ?? null}
+        action={triageTarget?.action ?? null}
+        onClose={() => setTriageTarget(null)}
+        onConfirm={handleConfirmTriage}
+      />
     </div>
   );
 }

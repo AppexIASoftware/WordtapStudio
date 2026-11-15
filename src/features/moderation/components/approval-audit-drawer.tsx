@@ -29,7 +29,6 @@ import { PlaytestDrawer } from "@/features/games/components/playtest-drawer";
 import { Lesson } from "@/features/courses/types";
 import { getCourseDetailApi } from "@/services/api";
 import { mapApiLessonToLesson } from "@/features/courses/utils/course-mapper";
-import { COURSES_DATA } from "@/features/courses/data/mock-courses";
 
 const PR_STATUS = {
   OPEN: "open",
@@ -143,13 +142,11 @@ export function ApprovalAuditDrawer({
         if (res.data?.lessons && res.data.lessons.length > 0) {
           setLessons(res.data.lessons.map(mapApiLessonToLesson));
         } else {
-          const fallback = COURSES_DATA[activePr.courseId!]?.lessons || [];
-          setLessons(fallback);
+          setLessons([]);
         }
       } catch {
         if (!isMounted) return;
-        const fallback = COURSES_DATA[activePr.courseId!]?.lessons || [];
-        setLessons(fallback);
+        setLessons([]);
       } finally {
         if (isMounted) setIsLoadingLessons(false);
       }

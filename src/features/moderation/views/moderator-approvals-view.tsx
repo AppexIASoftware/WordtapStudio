@@ -114,7 +114,7 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
                 ? "bg-purple-500/10 text-purple-400 border-purple-500/30"
                 : "bg-blue-500/10 text-blue-400 border-blue-500/30"
             }`}>
-              {isAdmin ? "Supervisión Admin" : "ADR-02 • Cola Abierta"}
+              {isAdmin ? "Supervisión Admin" : "Cola Abierta"}
             </span>
           </div>
           <p className="text-sm text-slate-muted mt-1">

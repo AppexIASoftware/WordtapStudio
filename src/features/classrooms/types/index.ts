@@ -79,6 +79,7 @@ export interface GlobalStudent {
   progress: number;
   payStatus: "subscription" | "trial" | "free" | "course_purchased";
   payLabel: string;
+  isActive?: boolean;
   isDemo?: boolean;
 }
 

@@ -28,6 +28,15 @@ export const GLOBAL_LEVEL_FILTER = {
 export type GlobalLevelFilter =
   (typeof GLOBAL_LEVEL_FILTER)[keyof typeof GLOBAL_LEVEL_FILTER];
 
+export const GLOBAL_STATUS_FILTER = {
+  ALL: "all",
+  ACTIVE: "active",
+  SUSPENDED: "suspended",
+} as const;
+
+export type GlobalStatusFilter =
+  (typeof GLOBAL_STATUS_FILTER)[keyof typeof GLOBAL_STATUS_FILTER];
+
 const PLAN_LABELS: Record<string, string> = {
   subscription: "Suscripción Activa",
   course: "Curso Comprado",
@@ -81,6 +90,7 @@ function mapGlobalStudent(row: ApiGlobalStudentItem): GlobalStudent {
     progress: row.progress_percent ?? 0,
     payStatus,
     payLabel: PLAN_LABELS[planKey] || "Plan Gratuito",
+    isActive: row.is_active ?? true,
     registeredAt: lastAct,
     lastActive: lastAct,
   };
@@ -96,13 +106,14 @@ export function useGlobalStudents(enabled: boolean) {
   const [planFilter, setPlanFilter] = useState<GlobalPlanFilter>(GLOBAL_PLAN_FILTER.ALL);
   const [levelFilter, setLevelFilter] = useState<GlobalLevelFilter>(GLOBAL_LEVEL_FILTER.ALL);
   const [courseFilter, setCourseFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<GlobalStatusFilter>(GLOBAL_STATUS_FILTER.ALL);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, planFilter, levelFilter, courseFilter]);
+  }, [searchQuery, planFilter, levelFilter, courseFilter, statusFilter]);
 
   const loadStudents = useCallback(async () => {
     if (!enabled) return;
@@ -113,6 +124,7 @@ export function useGlobalStudents(enabled: boolean) {
       plan: planFilter,
       level: levelFilter,
       course_id: courseFilter,
+      status: statusFilter,
       limit: GLOBAL_STUDENTS_PAGE_SIZE,
       offset: (page - 1) * GLOBAL_STUDENTS_PAGE_SIZE,
     });
@@ -124,7 +136,7 @@ export function useGlobalStudents(enabled: boolean) {
       if (res.data.courses) setCourses(res.data.courses);
     }
     setIsLoading(false);
-  }, [enabled, searchQuery, planFilter, levelFilter, courseFilter, page]);
+  }, [enabled, searchQuery, planFilter, levelFilter, courseFilter, statusFilter, page]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -148,6 +160,8 @@ export function useGlobalStudents(enabled: boolean) {
     setLevelFilter,
     courseFilter,
     setCourseFilter,
+    statusFilter,
+    setStatusFilter,
     isLoading,
     error,
     refresh: loadStudents,

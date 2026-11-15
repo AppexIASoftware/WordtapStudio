@@ -6,8 +6,10 @@ import { ApiGlobalCourseOption } from "@/services/api";
 import {
   GLOBAL_LEVEL_FILTER,
   GLOBAL_PLAN_FILTER,
+  GLOBAL_STATUS_FILTER,
   GlobalLevelFilter,
   GlobalPlanFilter,
+  GlobalStatusFilter,
 } from "../hooks/use-global-students";
 
 interface GlobalStudentsTableProps {
@@ -26,6 +28,10 @@ interface GlobalStudentsTableProps {
   courseFilter: string;
   onCourseFilterChange: (courseId: string) => void;
   allowCoursePurchaseFilter?: boolean;
+  showStatusColumn?: boolean;
+  statusFilter?: GlobalStatusFilter;
+  onStatusFilterChange?: (status: GlobalStatusFilter) => void;
+  onSelectStudent?: (student: GlobalStudent) => void;
   isLoading?: boolean;
 }
 
@@ -45,6 +51,10 @@ export function GlobalStudentsTable({
   courseFilter,
   onCourseFilterChange,
   allowCoursePurchaseFilter = false,
+  showStatusColumn = false,
+  statusFilter = GLOBAL_STATUS_FILTER.ALL,
+  onStatusFilterChange,
+  onSelectStudent,
   isLoading = false,
 }: GlobalStudentsTableProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -105,6 +115,19 @@ export function GlobalStudentsTable({
               </option>
             ))}
           </select>
+
+          {showStatusColumn && onStatusFilterChange && (
+            <select
+              aria-label="Filtrar por estado"
+              value={statusFilter}
+              onChange={(e) => onStatusFilterChange(e.target.value as GlobalStatusFilter)}
+              className="px-3 py-2 bg-canvas border border-border-default rounded-xl text-xs text-slate-200 outline-none focus:border-emerald-brand cursor-pointer"
+            >
+              <option value={GLOBAL_STATUS_FILTER.ALL}>Todos los estados</option>
+              <option value={GLOBAL_STATUS_FILTER.ACTIVE}>Activos</option>
+              <option value={GLOBAL_STATUS_FILTER.SUSPENDED}>Suspendidos</option>
+            </select>
+          )}
         </div>
 
         <span className="text-xs font-mono text-slate-subtle whitespace-nowrap">
@@ -114,15 +137,50 @@ export function GlobalStudentsTable({
 
       <div className="bg-card border border-border-default rounded-2xl overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="divide-y divide-border-default animate-pulse">
-            {Array.from({ length: 5 }).map((_, idx) => (
-              <div key={idx} className="p-4 flex items-center justify-between gap-4">
-                <div className="h-4 w-44 rounded bg-slate-800/80" />
-                <div className="h-4 w-32 rounded bg-slate-800/70" />
-                <div className="h-4 w-24 rounded bg-slate-800/60" />
-                <div className="h-4 w-28 rounded bg-slate-800/70" />
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-card-hover/80 text-slate-subtle border-b border-border-default font-mono uppercase text-[10px]">
+                <tr>
+                  <th className="p-3.5">Estudiante Global</th>
+                  <th className="p-3.5">Curso Reciente</th>
+                  <th className="p-3.5">Nivel CEFR</th>
+                  <th className="p-3.5">Racha Actual</th>
+                  <th className="p-3.5">Progreso</th>
+                  <th className="p-3.5">Plan de Acceso</th>
+                  {showStatusColumn && <th className="p-3.5">Estado</th>}
+                  <th className="p-3.5 text-right">Última Sesión</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-default animate-pulse">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={idx}>
+                    <td className="p-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-border-default shrink-0" />
+                        <div className="space-y-1.5">
+                          <div className="h-3 w-28 rounded bg-border-default" />
+                          <div className="h-2.5 w-36 rounded bg-card-hover" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3.5"><div className="h-3 w-32 rounded bg-border-default" /></td>
+                    <td className="p-3.5"><div className="h-5 w-20 rounded bg-card-hover" /></td>
+                    <td className="p-3.5"><div className="h-3 w-14 rounded bg-border-default" /></td>
+                    <td className="p-3.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 rounded-full bg-card-hover" />
+                        <div className="h-3 w-8 rounded bg-border-default" />
+                      </div>
+                    </td>
+                    <td className="p-3.5"><div className="h-5 w-24 rounded bg-card-hover" /></td>
+                    {showStatusColumn && (
+                      <td className="p-3.5"><div className="h-5 w-16 rounded bg-card-hover" /></td>
+                    )}
+                    <td className="p-3.5 text-right"><div className="h-3 w-16 rounded bg-border-default ml-auto" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : students.length === 0 ? (
           <div className="p-8 text-center space-y-2">
@@ -145,12 +203,19 @@ export function GlobalStudentsTable({
                   <th className="p-3.5">Racha Actual</th>
                   <th className="p-3.5">Progreso</th>
                   <th className="p-3.5">Plan de Acceso</th>
+                  {showStatusColumn && <th className="p-3.5">Estado</th>}
                   <th className="p-3.5 text-right">Última Sesión</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-default">
                 {students.map((st) => (
-                  <tr key={st.id} className="hover:bg-card-hover/40 transition-colors">
+                  <tr
+                    key={st.id}
+                    onClick={onSelectStudent ? () => onSelectStudent(st) : undefined}
+                    className={`hover:bg-card-hover/40 transition-colors ${
+                      onSelectStudent ? "cursor-pointer" : ""
+                    }`}
+                  >
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs font-mono">
@@ -185,6 +250,19 @@ export function GlobalStudentsTable({
                         {st.payLabel}
                       </span>
                     </td>
+                    {showStatusColumn && (
+                      <td className="p-3.5">
+                        <span
+                          className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] border ${
+                            (st.isActive ?? true)
+                              ? "bg-emerald-brand/10 text-emerald-brand border-emerald-brand/20"
+                              : "bg-red-500/10 text-red-400 border-red-500/20"
+                          }`}
+                        >
+                          {(st.isActive ?? true) ? "Activo" : "Suspendido"}
+                        </span>
+                      </td>
+                    )}
                     <td className="p-3.5 text-slate-muted text-[11px] font-mono text-right">
                       {st.lastActive}
                     </td>

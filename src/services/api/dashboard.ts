@@ -85,6 +85,8 @@ export interface ApiGlobalStudentItem {
   current_streak_days: number;
   progress_percent: number;
   access_tier: "free" | "course" | "subscription" | string;
+  is_active?: boolean;
+  created_at?: string;
   last_activity_date?: string | null;
 }
 
@@ -104,6 +106,7 @@ export async function getTeacherGlobalStudentsApi(params?: {
   plan?: string;
   level?: string;
   course_id?: string;
+  status?: string;
   limit?: number;
   offset?: number;
 }): Promise<{
@@ -115,11 +118,78 @@ export async function getTeacherGlobalStudentsApi(params?: {
   if (params?.plan && params.plan !== "all") qs.set("plan", params.plan);
   if (params?.level && params.level !== "all") qs.set("level", params.level);
   if (params?.course_id && params.course_id !== "all") qs.set("course_id", params.course_id);
+  if (params?.status && params.status !== "all") qs.set("status", params.status);
   if (params?.limit) qs.set("limit", String(params.limit));
   if (params?.offset) qs.set("offset", String(params.offset));
   const query = qs.toString() ? `?${qs.toString()}` : "";
   return apiRequest<ApiGlobalStudentsResponse>(
     `${API_V1_URL}/teacher/global-students${query}`,
     { cache: "no-store" }
+  );
+}
+
+export interface ApiAdminStudentCourseProgress {
+  course_id: string;
+  course_title: string;
+  completed_lessons: number;
+  total_lessons: number;
+  progress_percent: number;
+  last_activity_at?: string | null;
+}
+
+export interface ApiAdminStudentClassroom {
+  classroom_id: string;
+  classroom_name: string;
+  teacher_name: string;
+  enrolled_at: string;
+}
+
+export interface ApiAdminStudentDetail {
+  id: string;
+  name: string;
+  email: string;
+  learning_level: string;
+  access_tier: string;
+  is_active: boolean;
+  created_at: string;
+  current_streak_days: number;
+  total_points: number;
+  lessons_completed: number;
+  words_learned: number;
+  last_activity_date?: string | null;
+  courses: ApiAdminStudentCourseProgress[];
+  classrooms: ApiAdminStudentClassroom[];
+}
+
+export interface ApiAdminStudentStatusResult {
+  id: string;
+  name: string;
+  email: string;
+  is_active: boolean;
+}
+
+export async function getAdminStudentDetailApi(studentId: string): Promise<{
+  data: ApiAdminStudentDetail | null;
+  error: string | null;
+}> {
+  return apiRequest<ApiAdminStudentDetail>(
+    `${API_V1_URL}/admin/students/${encodeURIComponent(studentId)}`,
+    { cache: "no-store" }
+  );
+}
+
+export async function updateAdminStudentStatusApi(
+  studentId: string,
+  isActive: boolean
+): Promise<{
+  data: ApiAdminStudentStatusResult | null;
+  error: string | null;
+}> {
+  return apiRequest<ApiAdminStudentStatusResult>(
+    `${API_V1_URL}/admin/students/${encodeURIComponent(studentId)}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ is_active: isActive }),
+    }
   );
 }

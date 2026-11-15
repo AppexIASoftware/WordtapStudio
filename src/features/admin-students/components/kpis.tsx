@@ -39,10 +39,10 @@ export function StudentKpis({ stats, isLoading }: StudentKpisProps) {
             className="p-4 rounded-2xl bg-card border border-border-default space-y-3"
           >
             <div className="flex items-center justify-between">
-              <div className="h-3 w-24 rounded bg-slate-800/80" />
-              <div className="w-8 h-8 rounded-xl bg-slate-800/70" />
+              <div className="h-3 w-24 rounded bg-border-default" />
+              <div className="w-8 h-8 rounded-xl bg-card-hover" />
             </div>
-            <div className="h-7 w-16 rounded bg-slate-800/80" />
+            <div className="h-7 w-16 rounded bg-border-default" />
           </div>
         ))}
       </div>

@@ -9,8 +9,12 @@ import { EditCourseModal } from "../components/edit-course-modal";
 import { PricingModal } from "../components/builder/pricing-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
 
-export function AdminCoursesCatalogView() {
-  const catalog = useAdminCatalog();
+interface AdminCoursesCatalogViewProps {
+  basePath?: string;
+}
+
+export function AdminCoursesCatalogView({ basePath = "/admin/courses" }: AdminCoursesCatalogViewProps = {}) {
+  const catalog = useAdminCatalog(basePath);
   const editing = catalog.editingDetailsCourse;
 
   return (
@@ -52,6 +56,11 @@ export function AdminCoursesCatalogView() {
         totalCourses={catalog.courses.length}
         courses={catalog.filteredCourses}
         returnUrl={catalog.currentCatalogUrl}
+        editorHref={(course) =>
+          catalog.currentCatalogUrl
+            ? `${basePath}/${course.id}?from=${encodeURIComponent(catalog.currentCatalogUrl)}`
+            : `${basePath}/${course.id}`
+        }
         onChangeTab={catalog.setActiveTab}
         onCreate={() => catalog.setShowNewCourseModal(true)}
         onEditDetails={catalog.setEditingDetailsCourse}

@@ -7,11 +7,13 @@ import { ToastNotification } from "@/components/ui/toast-notification";
 interface CourseBuilderViewProps {
   initialCourseId?: string;
   scope?: "teacher" | "admin";
+  catalogBasePath?: string;
 }
 
 export function CourseBuilderView({
   initialCourseId,
   scope = "teacher",
+  catalogBasePath,
 }: CourseBuilderViewProps = {}) {
   const b = useCourseBuilder(initialCourseId, { scope });
 
@@ -28,6 +30,7 @@ export function CourseBuilderView({
         stepForm={b.stepForm}
         isLoading={b.isLoading}
         isAdmin={b.isAdmin}
+        catalogBasePath={catalogBasePath}
         activeCanvasTab={b.activeCanvasTab}
         simScreen={b.simScreen}
         simTier={b.simTier}

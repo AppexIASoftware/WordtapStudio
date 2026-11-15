@@ -48,6 +48,7 @@ interface CourseBuilderWorkspaceProps {
   showVaultDrawer: boolean;
   showSubmitReviewModal?: boolean;
   isAdmin?: boolean;
+  catalogBasePath?: string;
   onAdminPublish?: () => void;
   onSelectCourse: (id: string) => void;
   onCreateCourse: (course: ApiCourse) => void;
@@ -120,6 +121,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
         currentCourseId={currentCourseId}
         currentCourse={currentCourse}
         isAdmin={props.isAdmin}
+        catalogBasePath={props.catalogBasePath}
         canEditCourse={canEditContent}
         isLoading={isLoading}
         onRefresh={props.onRefresh}

@@ -24,6 +24,7 @@ interface BuilderHeaderProps {
   currentCourseId: string;
   currentCourse: Course | null;
   isAdmin?: boolean;
+  catalogBasePath?: string;
   canEditCourse?: boolean;
   isLoading?: boolean;
   onRefresh?: () => void;
@@ -42,6 +43,7 @@ export function BuilderHeader({
   currentCourseId,
   currentCourse,
   isAdmin = false,
+  catalogBasePath,
   canEditCourse = true,
   isLoading = false,
   onRefresh,
@@ -56,7 +58,7 @@ export function BuilderHeader({
 }: BuilderHeaderProps) {
   const courseList = Object.values(courses);
   const searchParams = useSearchParams();
-  const defaultReturnUrl = isAdmin ? "/admin/courses" : "/teacher/courses";
+  const defaultReturnUrl = catalogBasePath || (isAdmin ? "/admin/courses" : "/teacher/courses");
   const returnCatalogUrl = searchParams?.get("from") || defaultReturnUrl;
 
   const isPublished = currentCourse?.status === "published";

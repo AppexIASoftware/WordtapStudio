@@ -11,7 +11,7 @@ const CATALOG_TABS = ["platform", "teacher"] as const;
 const STATUS_OPTIONS = ["", "published", "draft", "in_review"] as const;
 const LEVEL_OPTIONS = ["", "A1", "A2", "B1", "B2", "C1"] as const;
 
-export function useAdminCatalog() {
+export function useAdminCatalog(basePath = "/admin/courses") {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -28,7 +28,7 @@ export function useAdminCatalog() {
     setTimeout(() => setToastMessage(null), 3500);
   }, []);
   const currentQueryString = searchParams?.toString();
-  const currentCatalogUrl = currentQueryString ? `/admin/courses?${currentQueryString}` : "/admin/courses";
+  const currentCatalogUrl = currentQueryString ? `${basePath}?${currentQueryString}` : basePath;
   const { data: courses = [], isLoading } = useQuery<ApiCourse[]>({
     queryKey: ["admin", "courses"],
     queryFn: async () => {
@@ -61,7 +61,7 @@ export function useAdminCatalog() {
   const handleCourseCreated = (newApiCourse: ApiCourse) => {
     triggerToast(`¡Curso "${newApiCourse.title}" creado con éxito!`);
     queryClient.invalidateQueries({ queryKey: ["admin", "courses"] });
-    router.push(`/admin/courses/${newApiCourse.id}?from=${encodeURIComponent(currentCatalogUrl)}`);
+    router.push(`${basePath}/${newApiCourse.id}?from=${encodeURIComponent(currentCatalogUrl)}`);
   };
   const handleTogglePublish = async (course: ApiCourse) => {
     const nextStatus = course.status === "published" ? "draft" : "published";

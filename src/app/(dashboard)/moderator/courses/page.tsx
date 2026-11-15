@@ -1,13 +1,20 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
-import { ModeratorCoursesView } from "@/features/courses/views/moderator-courses-view";
+import { AdminCoursesCatalogView } from "@/features/courses/views/admin-courses-catalog-view";
+import { CourseBuilderView } from "@/features/courses/views/course-builder-view";
 
 export const metadata: Metadata = {
-  title: "Supervisión de Cursos & Playtest — Wordtap Studio",
-  description: "Supervisión curricular y auditoría de lecciones en simulador móvil.",
+  title: "Gestión y Supervisión de Cursos — Wordtap Studio",
+  description: "Catálogo global, creación de cursos oficiales y auditoría curricular en simulador móvil.",
 };
 
-export default function ModeratorCoursesPage() {
+export default async function ModeratorCoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ courseId?: string }>;
+}) {
+  const { courseId } = await searchParams;
+
   return (
     <Suspense
       fallback={
@@ -16,7 +23,15 @@ export default function ModeratorCoursesPage() {
         </div>
       }
     >
-      <ModeratorCoursesView />
+      {courseId ? (
+        <CourseBuilderView
+          initialCourseId={courseId}
+          scope="admin"
+          catalogBasePath="/moderator/courses"
+        />
+      ) : (
+        <AdminCoursesCatalogView basePath="/moderator/courses" />
+      )}
     </Suspense>
   );
 }

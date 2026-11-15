@@ -377,6 +377,7 @@ export function StudentsProgressView() {
           onLevelFilterChange={globalStudentsState.setLevelFilter}
           courseFilter={globalStudentsState.courseFilter}
           onCourseFilterChange={globalStudentsState.setCourseFilter}
+          allowCoursePurchaseFilter
           isLoading={globalStudentsState.isLoading}
         />
       )}

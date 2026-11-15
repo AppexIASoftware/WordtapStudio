@@ -1,3 +1,5 @@
+import { AdminStudentsView } from "@/features/admin-students/views/students-view";
+
 export default function StudentsPage() {
-  return <div className="min-h-[400px]" />;
+  return <AdminStudentsView />;
 }

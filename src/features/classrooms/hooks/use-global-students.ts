@@ -98,6 +98,7 @@ export function useGlobalStudents(enabled: boolean) {
   const [courseFilter, setCourseFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setPage(1);
@@ -106,6 +107,7 @@ export function useGlobalStudents(enabled: boolean) {
   const loadStudents = useCallback(async () => {
     if (!enabled) return;
     setIsLoading(true);
+    setError(null);
     const res = await getTeacherGlobalStudentsApi({
       q: searchQuery,
       plan: planFilter,
@@ -114,7 +116,9 @@ export function useGlobalStudents(enabled: boolean) {
       limit: GLOBAL_STUDENTS_PAGE_SIZE,
       offset: (page - 1) * GLOBAL_STUDENTS_PAGE_SIZE,
     });
-    if (res.data) {
+    if (res.error) {
+      setError(res.error);
+    } else if (res.data) {
       setStudents((res.data.items ?? []).map(mapGlobalStudent));
       setTotal(res.data.total ?? 0);
       if (res.data.courses) setCourses(res.data.courses);
@@ -145,5 +149,7 @@ export function useGlobalStudents(enabled: boolean) {
     courseFilter,
     setCourseFilter,
     isLoading,
+    error,
+    refresh: loadStudents,
   };
 }

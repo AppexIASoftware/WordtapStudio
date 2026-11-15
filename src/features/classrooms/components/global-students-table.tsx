@@ -25,6 +25,7 @@ interface GlobalStudentsTableProps {
   onLevelFilterChange: (level: GlobalLevelFilter) => void;
   courseFilter: string;
   onCourseFilterChange: (courseId: string) => void;
+  allowCoursePurchaseFilter?: boolean;
   isLoading?: boolean;
 }
 
@@ -43,6 +44,7 @@ export function GlobalStudentsTable({
   onLevelFilterChange,
   courseFilter,
   onCourseFilterChange,
+  allowCoursePurchaseFilter = false,
   isLoading = false,
 }: GlobalStudentsTableProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -72,7 +74,9 @@ export function GlobalStudentsTable({
           >
             <option value={GLOBAL_PLAN_FILTER.ALL}>Todos los planes</option>
             <option value={GLOBAL_PLAN_FILTER.SUBSCRIPTION}>Suscripción Activa</option>
-            <option value={GLOBAL_PLAN_FILTER.COURSE}>Curso Comprado</option>
+            {allowCoursePurchaseFilter && (
+              <option value={GLOBAL_PLAN_FILTER.COURSE}>Curso Comprado</option>
+            )}
             <option value={GLOBAL_PLAN_FILTER.FREE}>Plan Gratuito</option>
           </select>
 

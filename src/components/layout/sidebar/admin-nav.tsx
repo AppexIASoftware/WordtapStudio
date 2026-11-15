@@ -10,6 +10,7 @@ import {
   Shield,
   Activity,
   Bell,
+  GraduationCap,
 } from "lucide-react";
 import { NavItem } from "./nav-item";
 
@@ -105,6 +106,13 @@ export function AdminNav({ collapsed = false }: AdminNavProps) {
             href="/admin/roles"
             label="Roles & Permisos"
             icon={Shield}
+            collapsed={collapsed}
+            roleTheme="admin"
+          />
+          <NavItem
+            href="/admin/students"
+            label="Alumnos"
+            icon={GraduationCap}
             collapsed={collapsed}
             roleTheme="admin"
           />

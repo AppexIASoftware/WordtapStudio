@@ -49,3 +49,18 @@ export async function updateSettingApi(
     }
   );
 }
+
+export interface MyRbacPermissionsResponse {
+  role: string;
+  permissions: Record<string, boolean>;
+}
+
+// GET /api/v1/rbac/me
+export async function getMyRbacPermissionsApi(): Promise<{
+  data: MyRbacPermissionsResponse | null;
+  error: string | null;
+}> {
+  return apiRequest<MyRbacPermissionsResponse>(`${API_V1_URL}/rbac/me`, {
+    cache: "no-store",
+  });
+}

@@ -141,6 +141,7 @@ export function useRbacMatrix(isAdmin: boolean, onNotify: (msg: string) => void)
     setRbacState(targetState);
     setRbacBaseline(JSON.parse(JSON.stringify(targetState)));
     await queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
+    await queryClient.invalidateQueries({ queryKey: ["rbac", "me"] });
     onNotify(
       rbacModalAction === RBAC_MODAL_ACTION.RESET
         ? "Matriz restablecida y sincronizada con el servidor."

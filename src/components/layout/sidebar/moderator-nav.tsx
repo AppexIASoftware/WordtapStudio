@@ -7,11 +7,13 @@ import {
   Boxes,
   Layers,
   AlertTriangle,
+  GraduationCap,
 } from "lucide-react";
 import {
   getAdminContentReportsApi,
   getAdminCourseReviewsApi,
 } from "@/services/api";
+import { RBAC_PERMISSION, useMyPermissions } from "@/hooks/use-my-permissions";
 import { NavItem } from "./nav-item";
 
 interface ModeratorNavProps {
@@ -19,6 +21,8 @@ interface ModeratorNavProps {
 }
 
 export function ModeratorNav({ collapsed = false }: ModeratorNavProps) {
+  const { hasPermission } = useMyPermissions();
+  const canViewStudents = hasPermission(RBAC_PERMISSION.STUDENTS_VIEW_DIRECTORY);
   const { data: reviewsCount = 0 } = useQuery({
     queryKey: ["moderator", "nav", "reviews-count"],
     queryFn: async () => {
@@ -95,6 +99,15 @@ export function ModeratorNav({ collapsed = false }: ModeratorNavProps) {
             collapsed={collapsed}
             roleTheme="moderator"
           />
+          {canViewStudents && (
+            <NavItem
+              href="/moderator/students"
+              label="Alumnos"
+              icon={GraduationCap}
+              collapsed={collapsed}
+              roleTheme="moderator"
+            />
+          )}
         </nav>
       </div>
     </div>

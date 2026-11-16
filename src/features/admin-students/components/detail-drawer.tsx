@@ -25,12 +25,14 @@ import {
 
 interface StudentDetailDrawerProps {
   studentId: string | null;
+  canManageStatus?: boolean;
   onClose: () => void;
   onStatusUpdated: (message: string) => void;
 }
 
 export function StudentDetailDrawer({
   studentId,
+  canManageStatus = true,
   onClose,
   onStatusUpdated,
 }: StudentDetailDrawerProps) {
@@ -251,7 +253,7 @@ export function StudentDetailDrawer({
             ) : null}
           </div>
 
-          {data && (
+          {data && canManageStatus && (
             <div className="p-4 border-t border-border-default bg-card-hover/30 flex items-center justify-between gap-2">
               {data.is_active ? (
                 <button
@@ -279,7 +281,7 @@ export function StudentDetailDrawer({
         </div>
       </div>
 
-      {data && modalAction && (
+      {data && canManageStatus && modalAction && (
         <StudentStatusModal
           studentName={data.name}
           studentEmail={data.email}

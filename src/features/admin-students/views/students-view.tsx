@@ -13,7 +13,13 @@ import { ToastNotification } from "@/components/ui/toast-notification";
 import { StudentKpis } from "../components/kpis";
 import { StudentDetailDrawer } from "../components/detail-drawer";
 
-export function AdminStudentsView() {
+interface AdminStudentsViewProps {
+  canManageStatus?: boolean;
+}
+
+export function AdminStudentsView({
+  canManageStatus = true,
+}: AdminStudentsViewProps = {}) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
     null
@@ -207,6 +213,7 @@ export function AdminStudentsView() {
 
       <StudentDetailDrawer
         studentId={selectedStudentId}
+        canManageStatus={canManageStatus}
         onClose={() => setSelectedStudentId(null)}
         onStatusUpdated={(msg) => {
           triggerToast(msg);

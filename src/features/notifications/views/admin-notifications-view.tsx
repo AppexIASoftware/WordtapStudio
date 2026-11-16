@@ -112,7 +112,7 @@ export function AdminNotificationsView() {
             />
           </div>
 
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 lg:sticky lg:top-6">
             <DevicePreview
               title={title}
               body={body}

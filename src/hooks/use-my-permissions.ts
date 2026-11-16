@@ -7,6 +7,8 @@ import { getMyRbacPermissionsApi } from "@/services/api/settings";
 export const RBAC_PERMISSION = {
   STUDENTS_VIEW_DIRECTORY: "students:view_directory",
   STUDENTS_MANAGE_STATUS: "students:manage_status",
+  NOTIFICATIONS_CLASSROOM_BROADCAST: "notifications:classroom_broadcast",
+  NOTIFICATIONS_GLOBAL_ANNOUNCEMENTS: "notifications:global_announcements",
 } as const;
 
 export type RbacPermissionKey =

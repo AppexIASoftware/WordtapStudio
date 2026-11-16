@@ -8,6 +8,7 @@ import {
   Layers,
   AlertTriangle,
   GraduationCap,
+  Bell,
 } from "lucide-react";
 import {
   getAdminContentReportsApi,
@@ -23,6 +24,9 @@ interface ModeratorNavProps {
 export function ModeratorNav({ collapsed = false }: ModeratorNavProps) {
   const { hasPermission } = useMyPermissions();
   const canViewStudents = hasPermission(RBAC_PERMISSION.STUDENTS_VIEW_DIRECTORY);
+  const canSendNotifications =
+    hasPermission(RBAC_PERMISSION.NOTIFICATIONS_GLOBAL_ANNOUNCEMENTS) ||
+    hasPermission(RBAC_PERMISSION.NOTIFICATIONS_CLASSROOM_BROADCAST);
   const { data: reviewsCount = 0 } = useQuery({
     queryKey: ["moderator", "nav", "reviews-count"],
     queryFn: async () => {
@@ -104,6 +108,15 @@ export function ModeratorNav({ collapsed = false }: ModeratorNavProps) {
               href="/moderator/students"
               label="Alumnos"
               icon={GraduationCap}
+              collapsed={collapsed}
+              roleTheme="moderator"
+            />
+          )}
+          {canSendNotifications && (
+            <NavItem
+              href="/moderator/notifications"
+              label="Notificaciones"
+              icon={Bell}
               collapsed={collapsed}
               roleTheme="moderator"
             />

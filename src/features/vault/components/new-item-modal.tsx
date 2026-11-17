@@ -154,7 +154,7 @@ export function NewVaultItemModal({
   };
 
   return (
-    <div className="fixed top-14 bottom-0 right-0 left-0 lg:left-64 z-30 bg-canvas/98 backdrop-blur-md flex flex-col justify-between animate-in fade-in duration-200 overflow-y-auto border-l border-t border-border-default">
+    <div className="fixed top-14 bottom-0 end-0 start-0 lg:start-[var(--sidebar-offset,12rem)] z-30 bg-canvas/98 backdrop-blur-md flex flex-col justify-between animate-in fade-in duration-200 transition-[inset-inline-start] overflow-y-auto border-s border-t border-border-default">
       <div className="w-full flex-1 flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-10">
         <form onSubmit={handleSubmit} className="w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col flex-1 justify-between space-y-6">
           <div className="space-y-6">

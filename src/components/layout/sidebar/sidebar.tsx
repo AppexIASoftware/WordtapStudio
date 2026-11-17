@@ -20,6 +20,8 @@ export interface SidebarProps {
   onOpenDemoModal?: () => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 /**
@@ -29,9 +31,16 @@ export function Sidebar({
   onOpenDemoModal,
   isMobileOpen = false,
   onCloseMobile,
+  collapsed: controlledCollapsed,
+  onCollapsedChange,
 }: SidebarProps) {
   const { user, currentRole, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = controlledCollapsed ?? internalCollapsed;
+  const setCollapsed = (next: boolean) => {
+    setInternalCollapsed(next);
+    onCollapsedChange?.(next);
+  };
 
   const isModerator = currentRole === "moderator";
   const isAdmin = currentRole === "admin";

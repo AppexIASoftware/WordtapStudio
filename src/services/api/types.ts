@@ -107,14 +107,12 @@ export interface ApiVocabularyItem {
   part_of_speech?: string | null;
   definition?: string | null;
   example_sentence?: string | null;
-  audio_url?: string | null;
 }
 
 export interface ApiPhrase {
   id: string;
   spanish: string;
   english: string;
-  audio_url?: string | null;
   explanation?: string | null;
 }
 
@@ -200,7 +198,6 @@ export interface ApiVaultItem {
   ipa?: string | null;
   cefr_level: string;
   difficulty: number;
-  audio_url?: string | null;
   explanation?: string | null;
   metadata: string;
   status: "draft" | "published" | "archived";
@@ -224,7 +221,6 @@ export interface CreateVaultItemPayload {
   ipa?: string;
   cefr_level?: string;
   difficulty?: number;
-  audio_url?: string;
   explanation?: string;
   metadata?: string;
 }
@@ -237,7 +233,6 @@ export interface UpdateVaultItemPayload {
   ipa?: string;
   cefr_level?: string;
   difficulty?: number;
-  audio_url?: string;
   explanation?: string;
   metadata?: string;
 }

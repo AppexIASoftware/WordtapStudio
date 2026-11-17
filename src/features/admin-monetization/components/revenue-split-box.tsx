@@ -81,7 +81,7 @@ export function RevenueSplitBox({ config, setConfig }: RevenueSplitBoxProps) {
             {config.platformSplit}% del valor neto recaudado
           </p>
           <p className="text-[11px] text-slate-400">
-            Cubre síntesis neural TTS de audio, almacenamiento CDN, pasarelas de pago y soporte.
+            Cubre operación de servidores, base de datos, pasarelas de pago y soporte técnico.
           </p>
         </div>
       </div>

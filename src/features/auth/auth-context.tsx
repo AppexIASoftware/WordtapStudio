@@ -1,170 +1,141 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { UserRole, UserProfile, AuthContextValue } from "./types";
-import { DEMO_ACCOUNTS } from "./hooks/use-login";
 import { useRouter } from "next/navigation";
+import { UserRole, UserProfile, AuthContextValue, USER_ROLE, ROLE_HOME_PATH } from "./types";
+import { DEMO_ACCOUNTS } from "./hooks/use-login";
+import { mapBackendUserToProfile } from "./utils/map-user-profile";
 import {
   loginWithGoogleApi,
   getMeApi,
   devLoginApi,
+  logoutApi,
   clearStoredTokens,
   getStoredAccessToken,
+  getStoredRefreshToken,
   setStoredTokens,
-  getStoredRole,
   setStoredRole,
-  BackendUser,
 } from "@/lib/api-client";
 import { applyTeacherApi } from "@/services/api/teacher-applications";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function mapBackendUserToProfile(backendUser: BackendUser): UserProfile {
-  let role: UserRole = "instructor";
-  if (backendUser.email.includes("admin") || backendUser.access_tier === "admin" || backendUser.role === "admin") {
-    role = "admin";
-  } else if (backendUser.email.includes("moderator") || backendUser.email.includes("elena") || backendUser.role === "moderator") {
-    role = "moderator";
-  } else if (backendUser.role === "student") {
-    role = "candidate";
-  }
-
-  const initials = backendUser.name
-    ? backendUser.name
-        .split(" ")
-        .slice(0, 2)
-        .map((p) => p[0]?.toUpperCase() || "")
-        .join("")
-    : "WT";
-
-  const titles: Record<UserRole, string> = {
-    instructor: "Docente Autorizado",
-    moderator: "Moderadora Oficial (Calidad)",
-    admin: "Super Administrador",
-    candidate: "Postulante Docente (En Revisión)",
-  };
-
-  const scopes: Record<UserRole, string> = {
-    instructor: "Portal Docente: studio.wordtap.app",
-    moderator: "Consola de Revisión: approvals.wordtap.app",
-    admin: "Consola de Gobernanza: admin.wordtap.app",
-    candidate: "En espera de Aprobación",
-  };
-
+function buildFallbackProfile(role: UserRole): UserProfile {
+  const acc = DEMO_ACCOUNTS[role];
   return {
-    id: backendUser.id,
-    name: backendUser.name,
-    email: backendUser.email,
-    role,
-    title: titles[role],
-    avatarInitials: initials,
-    scope: scopes[role],
-    avatarUrl: backendUser.avatar_url,
+    id: acc.id,
+    name: acc.name,
+    email: acc.email,
+    role: acc.id,
+    title: acc.title,
+    avatarInitials: acc.avatarInitials,
+    scope: acc.scope,
   };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [currentRole, setCurrentRole] = useState<UserRole>("instructor");
+  const [currentRole, setCurrentRole] = useState<UserRole>(USER_ROLE.INSTRUCTOR);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<UserProfile>(() => buildFallbackProfile(USER_ROLE.INSTRUCTOR));
 
-  const getProfile = (role: UserRole): UserProfile => {
-    const acc = DEMO_ACCOUNTS[role];
-    return {
-      id: acc.id,
-      name: acc.name,
-      email: acc.email,
-      role: acc.id,
-      title: acc.title,
-      avatarInitials: acc.avatarInitials,
-      scope: acc.scope,
-    };
-  };
-
-  const [user, setUser] = useState<UserProfile>(() => getProfile("instructor"));
-
-  // Sync session on mount when token exists (prevents SSR hydration mismatch)
+  // Verify the stored token against GET /api/v1/users/me before trusting any client state.
   useEffect(() => {
-    const saved = getStoredRole() as UserRole | null;
-    if (saved && (saved === "instructor" || saved === "moderator" || saved === "admin" || saved === "candidate")) {
-      setCurrentRole(saved);
-      setUser(getProfile(saved));
-    }
-
+    let cancelled = false;
     const token = getStoredAccessToken();
     if (!token) {
-      setIsLoading(false);
-      setIsAuthenticated(false);
-      return;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        clearStoredTokens();
+        setIsAuthenticated(false);
+        setIsLoading(false);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
-
-    setIsAuthenticated(true);
-    setIsLoading(false);
 
     getMeApi()
       .then(({ data, error }) => {
+        if (cancelled) return;
         if (data?.user) {
           const profile = mapBackendUserToProfile(data.user);
           setUser(profile);
           setCurrentRole(profile.role);
           setStoredRole(profile.role);
           setIsAuthenticated(true);
-          if (profile.role === "candidate" && typeof window !== "undefined" && !window.location.pathname.startsWith("/pending-approval")) {
-            router.push("/pending-approval");
+          if (
+            profile.role === USER_ROLE.CANDIDATE &&
+            typeof window !== "undefined" &&
+            !window.location.pathname.startsWith(ROLE_HOME_PATH[USER_ROLE.CANDIDATE])
+          ) {
+            router.replace(ROLE_HOME_PATH[USER_ROLE.CANDIDATE]);
           }
-        } else if (error) {
+        } else if (error || !data?.user) {
           clearStoredTokens();
           setIsAuthenticated(false);
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        if (cancelled) return;
+        clearStoredTokens();
+        setIsAuthenticated(false);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
 
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  const applyAuthenticatedUser = (
+    backendUser: Parameters<typeof mapBackendUserToProfile>[0],
+    accessToken: string,
+    refreshToken?: string
+  ): UserProfile => {
+    const profile = mapBackendUserToProfile(backendUser);
+    setStoredTokens(accessToken, refreshToken);
+    setStoredRole(profile.role);
+    setUser(profile);
+    setCurrentRole(profile.role);
+    setIsAuthenticated(true);
+    return profile;
+  };
+
+  // Explicit development demo role switcher (DemoLoginModal).
   const switchRole = (role: UserRole) => {
-    setCurrentRole(role);
-    setUser(getProfile(role));
-    setStoredRole(role);
     const demoEmail = DEMO_ACCOUNTS[role]?.email;
-    devLoginApi(role === "candidate" ? "student" : role, demoEmail)
+    const apiRole = role === USER_ROLE.CANDIDATE ? "student" : role;
+    void devLoginApi(apiRole, demoEmail)
       .then(({ data }) => {
-        if (data?.access_token) {
-          setStoredTokens(data.access_token, data.refresh_token);
+        if (data?.user && data.access_token) {
+          const profile = applyAuthenticatedUser(data.user, data.access_token, data.refresh_token);
+          router.push(ROLE_HOME_PATH[profile.role]);
         }
       })
       .catch(() => {});
-    if (role === "candidate") {
-      router.push("/pending-approval");
-    }
   };
 
-  const login = async (role: UserRole = "instructor"): Promise<{ success: boolean; error?: string }> => {
+  // Explicit development demo login (/login demo selector).
+  const login = async (
+    role: UserRole = USER_ROLE.INSTRUCTOR
+  ): Promise<{ success: boolean; error?: string }> => {
     const demoEmail = DEMO_ACCOUNTS[role]?.email;
-    const { data, error } = await devLoginApi(role === "candidate" ? "student" : role, demoEmail);
-    if (error) {
+    const apiRole = role === USER_ROLE.CANDIDATE ? "student" : role;
+    const { data, error } = await devLoginApi(apiRole, demoEmail);
+    if (error || !data?.user || !data.access_token) {
       clearStoredTokens();
       setIsAuthenticated(false);
-      return { success: false, error };
+      return { success: false, error: error || "No se pudo iniciar la sesión de prueba." };
     }
 
-    if (data?.user) {
-      const profile = mapBackendUserToProfile(data.user);
-      setStoredTokens(data.access_token, data.refresh_token);
-      setStoredRole(profile.role);
-      setUser(profile);
-      setCurrentRole(profile.role);
-      setIsAuthenticated(true);
-    } else {
-      setStoredTokens(`demo-session-${role}`);
-      switchRole(role);
-      setIsAuthenticated(true);
-    }
-
-    if (role === "candidate") {
-      router.push("/pending-approval");
-    } else {
-      router.push(role === "instructor" ? "/teacher" : role === "moderator" ? "/moderator" : "/admin/dashboard");
-    }
+    const profile = applyAuthenticatedUser(data.user, data.access_token, data.refresh_token);
+    router.push(ROLE_HOME_PATH[profile.role]);
     return { success: true };
   };
 
@@ -174,29 +145,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: error || "Falló la autenticación con Google" };
     }
 
-    const profile = mapBackendUserToProfile(data.user);
-    setStoredTokens(data.access_token, data.refresh_token);
-    setStoredRole(profile.role);
-    setUser(profile);
-    setCurrentRole(profile.role);
-    setIsAuthenticated(true);
+    const profile = applyAuthenticatedUser(data.user, data.access_token, data.refresh_token);
 
-    if (profile.role === "candidate") {
+    if (profile.role === USER_ROLE.CANDIDATE) {
       await applyTeacherApi({
         specialty: "Inglés General",
         bio: "Postulante registrado vía Google en Wordtap Studio",
       });
-      router.push("/pending-approval");
-    } else {
-      router.push(profile.role === "instructor" ? "/teacher" : profile.role === "moderator" ? "/moderator" : "/admin/dashboard");
     }
+    router.push(ROLE_HOME_PATH[profile.role]);
     return { success: true };
   };
 
   const logout = () => {
+    const refreshToken = getStoredRefreshToken();
     clearStoredTokens();
     setIsAuthenticated(false);
-    router.push("/login");
+    setCurrentRole(USER_ROLE.INSTRUCTOR);
+    setUser(buildFallbackProfile(USER_ROLE.INSTRUCTOR));
+    void logoutApi(refreshToken);
+    router.replace("/login");
   };
 
   const refreshSession = async (): Promise<UserProfile | null> => {

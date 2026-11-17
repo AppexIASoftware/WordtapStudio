@@ -1,4 +1,10 @@
-import { API_V1_URL, apiRequest, getStoredAccessToken, setStoredTokens } from "./client";
+import {
+  API_V1_URL,
+  apiRequest,
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  setStoredTokens,
+} from "./client";
 import { AuthResponse, BackendUser } from "./types";
 
 export async function loginWithGoogleApi(idToken: string): Promise<{
@@ -56,4 +62,20 @@ export async function devLoginApi(
     setStoredTokens(result.data.access_token, result.data.refresh_token);
   }
   return result;
+}
+
+export async function logoutApi(refreshTokenOverride?: string | null): Promise<void> {
+  const refreshToken = (refreshTokenOverride ?? getStoredRefreshToken())?.trim();
+  if (!refreshToken) return;
+
+  try {
+    await fetch(`${API_V1_URL}/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+      keepalive: true,
+    });
+  } catch {
+    // Los errores de red al revocar la sesión no deben impedir el cierre local.
+  }
 }

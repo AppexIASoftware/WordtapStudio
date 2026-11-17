@@ -1,4 +1,18 @@
-export type UserRole = "instructor" | "moderator" | "admin" | "candidate";
+export const USER_ROLE = {
+  INSTRUCTOR: "instructor",
+  MODERATOR: "moderator",
+  ADMIN: "admin",
+  CANDIDATE: "candidate",
+} as const;
+
+export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE];
+
+export const ROLE_HOME_PATH: Record<UserRole, string> = {
+  [USER_ROLE.INSTRUCTOR]: "/teacher",
+  [USER_ROLE.MODERATOR]: "/moderator",
+  [USER_ROLE.ADMIN]: "/admin/dashboard",
+  [USER_ROLE.CANDIDATE]: "/pending-approval",
+};
 
 export interface UserProfile {
   id: string;

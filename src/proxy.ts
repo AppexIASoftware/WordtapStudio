@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { ROLE_HOME_PATH, USER_ROLE, UserRole } from "@/features/auth/types";
 
 const PUBLIC_PATHS = ["/login", "/api"];
+const VALID_STUDIO_ROLES = new Set<string>(Object.values(USER_ROLE));
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,26 +17,20 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const role = request.cookies.get("wordtap_studio_role")?.value;
+  const rawRole = request.cookies.get("wordtap_studio_role")?.value;
+  const role: UserRole | undefined =
+    rawRole && VALID_STUDIO_ROLES.has(rawRole) ? (rawRole as UserRole) : undefined;
   const token = request.cookies.get("wordtap_studio_access_token")?.value;
   const isAuthenticated = Boolean(role && token);
 
   const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 
   // Redirect authenticated users away from login
-  if (pathname === "/login" && isAuthenticated) {
-    const target =
-      role === "candidate"
-        ? "/pending-approval"
-        : role === "moderator"
-        ? "/moderator"
-        : role === "admin"
-        ? "/admin/dashboard"
-        : "/teacher";
-    return NextResponse.redirect(new URL(target, request.url));
+  if (pathname === "/login" && isAuthenticated && role) {
+    return NextResponse.redirect(new URL(ROLE_HOME_PATH[role], request.url));
   }
 
-  // Redirect unauthenticated requests to login
+  // Redirect unauthenticated (or invalid role cookie) requests to login
   if (!isPublic && !isAuthenticated && pathname !== "/") {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
@@ -43,55 +39,43 @@ export function proxy(request: NextRequest) {
 
   // Route root path based on auth status
   if (pathname === "/") {
-    if (isAuthenticated) {
-      const target =
-        role === "candidate"
-          ? "/pending-approval"
-          : role === "moderator"
-          ? "/moderator"
-          : role === "admin"
-          ? "/admin/dashboard"
-          : "/teacher";
-      return NextResponse.redirect(new URL(target, request.url));
+    if (isAuthenticated && role) {
+      return NextResponse.redirect(new URL(ROLE_HOME_PATH[role], request.url));
     }
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Restricción para postulantes en espera (/pending-approval)
-  if (pathname.startsWith("/pending-approval")) {
-    if (role && role !== "candidate") {
-      const target =
-        role === "moderator" ? "/moderator" : role === "admin" ? "/admin/dashboard" : "/teacher";
-      return NextResponse.redirect(new URL(target, request.url));
+  if (pathname.startsWith(ROLE_HOME_PATH[USER_ROLE.CANDIDATE])) {
+    if (role && role !== USER_ROLE.CANDIDATE) {
+      return NextResponse.redirect(new URL(ROLE_HOME_PATH[role], request.url));
     }
     return NextResponse.next();
   }
 
   // Si el rol es candidato, restringir navegación exclusivamente a /pending-approval
-  if (role === "candidate") {
-    return NextResponse.redirect(new URL("/pending-approval", request.url));
+  if (role === USER_ROLE.CANDIDATE) {
+    return NextResponse.redirect(new URL(ROLE_HOME_PATH[USER_ROLE.CANDIDATE], request.url));
   }
 
   // Enforce role-based path access
   if (pathname.startsWith("/teacher")) {
-    if (role !== "instructor" && role !== "admin") {
-      const target = role === "moderator" ? "/moderator" : "/admin/dashboard";
+    if (role !== USER_ROLE.INSTRUCTOR && role !== USER_ROLE.ADMIN) {
+      const target = role ? ROLE_HOME_PATH[role] : "/login";
       return NextResponse.redirect(new URL(target, request.url));
     }
   }
 
   if (pathname.startsWith("/moderator")) {
-    if (role !== "moderator" && role !== "admin") {
-      const target = role === "instructor" ? "/teacher" : "/admin/dashboard";
+    if (role !== USER_ROLE.MODERATOR && role !== USER_ROLE.ADMIN) {
+      const target = role ? ROLE_HOME_PATH[role] : "/login";
       return NextResponse.redirect(new URL(target, request.url));
     }
   }
 
-  // El área admin vive bajo un único prefijo, así que el prefijo es la regla:
-  // ya no hay una lista de rutas admin que mantener a mano y sincronizar.
   if (pathname.startsWith("/admin")) {
-    if (role !== "admin") {
-      const target = role === "moderator" ? "/moderator" : "/teacher";
+    if (role !== USER_ROLE.ADMIN) {
+      const target = role ? ROLE_HOME_PATH[role] : "/login";
       return NextResponse.redirect(new URL(target, request.url));
     }
   }

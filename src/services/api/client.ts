@@ -14,12 +14,14 @@ const ROLE_KEY = "wordtap_studio_role";
 function setCookie(name: string, value: string, days = 7) {
   if (typeof document === "undefined") return;
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  const secureAttr = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${secureAttr}`;
 }
 
 function deleteCookie(name: string) {
   if (typeof document === "undefined") return;
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+  const secureAttr = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax${secureAttr}`;
 }
 
 export function getStoredAccessToken(): string | null {
@@ -79,18 +81,27 @@ export function clearStoredTokens(): void {
   deleteCookie(ROLE_KEY);
 }
 
-function resolveDevCredentials(url?: string): { role: string; email: string } {
-  const storedRole = getStoredRole();
-  const path = typeof window !== "undefined" ? window.location.pathname : "";
-  const target = `${url || ""} ${path}`;
+async function tryRefreshAccessToken(): Promise<string | null> {
+  const refreshToken = getStoredRefreshToken();
+  if (!refreshToken) return null;
 
-  if (storedRole === "admin" || target.includes("/admin")) {
-    return { role: "admin", email: "admin@wordtap.app" };
+  try {
+    const refreshRes = await fetch(`${API_V1_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!refreshRes.ok) return null;
+
+    const refreshData = await refreshRes.json();
+    if (refreshData?.access_token) {
+      setStoredTokens(refreshData.access_token, refreshData.refresh_token);
+      return refreshData.access_token as string;
+    }
+  } catch {
+    // El error al renovar redirigirá al usuario al flujo explícito de autenticación.
   }
-  if (storedRole === "moderator" || target.includes("/moderator")) {
-    return { role: "moderator", email: "elena.ramos@wordtap.app" };
-  }
-  return { role: "instructor", email: "mateo.silva@wordtap.app" };
+  return null;
 }
 
 export async function apiRequest<T>(
@@ -111,46 +122,7 @@ export async function apiRequest<T>(
     }
     let token = getStoredAccessToken();
     if (!token && typeof window !== "undefined") {
-      const refreshToken = getStoredRefreshToken();
-      if (refreshToken) {
-        try {
-          const refreshRes = await fetch(`${API_V1_URL}/auth/refresh`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refresh_token: refreshToken }),
-          });
-          if (refreshRes.ok) {
-            const refreshData = await refreshRes.json();
-            if (refreshData.access_token) {
-              token = refreshData.access_token;
-              setStoredTokens(refreshData.access_token, refreshData.refresh_token);
-            }
-          }
-        } catch {
-          // Fallback
-        }
-      }
-
-      if (!token) {
-        try {
-          const creds = resolveDevCredentials(url);
-          const devRes = await fetch(`${API_V1_URL}/auth/dev-login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(creds),
-          });
-          if (devRes.ok) {
-            const devData = await devRes.json();
-            if (devData.access_token) {
-              token = devData.access_token;
-              setStoredTokens(devData.access_token, devData.refresh_token);
-              setStoredRole(creds.role);
-            }
-          }
-        } catch {
-          // Fallback silencioso
-        }
-      }
+      token = await tryRefreshAccessToken();
     }
 
     if (token && !headers.has("Authorization")) {
@@ -164,49 +136,7 @@ export async function apiRequest<T>(
 
     if (!res.ok) {
       if (res.status === 401 && typeof window !== "undefined") {
-        let renewedToken: string | null = null;
-
-        const refreshToken = getStoredRefreshToken();
-        if (refreshToken) {
-          try {
-            const refreshRes = await fetch(`${API_V1_URL}/auth/refresh`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ refresh_token: refreshToken }),
-            });
-            if (refreshRes.ok) {
-              const refreshData = await refreshRes.json();
-              if (refreshData.access_token) {
-                renewedToken = refreshData.access_token;
-                setStoredTokens(refreshData.access_token, refreshData.refresh_token);
-              }
-            }
-          } catch {
-            // Fallback silencioso
-          }
-        }
-
-        if (!renewedToken) {
-          try {
-            const creds = resolveDevCredentials(url);
-            const devRes = await fetch(`${API_V1_URL}/auth/dev-login`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(creds),
-            });
-            if (devRes.ok) {
-              const devData = await devRes.json();
-              if (devData.access_token) {
-                renewedToken = devData.access_token;
-                setStoredTokens(devData.access_token, devData.refresh_token);
-                setStoredRole(creds.role);
-              }
-            }
-          } catch {
-            // Fallback
-          }
-        }
-
+        const renewedToken = await tryRefreshAccessToken();
         if (renewedToken) {
           headers.set("Authorization", `Bearer ${renewedToken}`);
           const retryRes = await fetch(url, { ...options, headers });

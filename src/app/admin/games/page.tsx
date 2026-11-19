@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageShellSkeleton } from "@/components/ui/page-skeleton";
 import { Metadata } from "next";
 import { GamificationView } from "@/features/games/views/gamification-view";
 
@@ -10,11 +11,7 @@ export const metadata: Metadata = {
 export default function GamesPage() {
   return (
     <Suspense
-      fallback={
-        <div className="p-8 text-center text-xs font-mono text-slate-muted">
-          Cargando el catálogo de minijuegos...
-        </div>
-      }
+      fallback={<PageShellSkeleton />}
     >
       <GamificationView scope="admin" />
     </Suspense>

@@ -4,7 +4,8 @@ import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../auth-context";
 import { UserRole } from "../types";
-import { ShieldAlert, Loader2 } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
+import { PageShellSkeleton } from "@/components/ui/page-skeleton";
 
 interface RoleGuardProps {
   children: React.ReactNode;
@@ -49,12 +50,7 @@ export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   }, [isAuthenticated, isAuthorized, isLoading, currentRole, pathname, router]);
 
   if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-canvas text-slate-100 gap-3">
-        <Loader2 className="w-7 h-7 text-emerald-brand animate-spin" />
-        <span className="text-xs font-mono text-slate-muted">Verificando credenciales...</span>
-      </div>
-    );
+    return <PageShellSkeleton fullScreen />;
   }
 
   if (!isAuthenticated) {

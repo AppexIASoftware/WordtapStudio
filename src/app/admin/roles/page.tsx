@@ -1,14 +1,11 @@
 import { Suspense } from "react";
+import { PageShellSkeleton } from "@/components/ui/page-skeleton";
 import { RolesView } from "@/features/admin-roles/views/roles-view";
 
 export default function RolesPage() {
   return (
     <Suspense
-      fallback={
-        <div className="p-8 text-center text-xs font-mono text-slate-muted">
-          Cargando roles y permisos...
-        </div>
-      }
+      fallback={<PageShellSkeleton />}
     >
       <RolesView />
     </Suspense>

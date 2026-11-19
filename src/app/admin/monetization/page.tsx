@@ -1,14 +1,11 @@
 import { Suspense } from "react";
+import { PageShellSkeleton } from "@/components/ui/page-skeleton";
 import { MonetizationView } from "@/features/admin-monetization/views/monetization-view";
 
 export default function MonetizationPage() {
   return (
     <Suspense
-      fallback={
-        <div className="p-8 text-center text-xs font-mono text-slate-muted">
-          Cargando monetización...
-        </div>
-      }
+      fallback={<PageShellSkeleton />}
     >
       <MonetizationView />
     </Suspense>

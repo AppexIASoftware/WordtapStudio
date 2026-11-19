@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageShellSkeleton } from "@/components/ui/page-skeleton";
 import { Metadata } from "next";
 import { ModeratorApprovalsView } from "@/features/moderation/views/moderator-approvals-view";
 
@@ -10,11 +11,7 @@ export const metadata: Metadata = {
 export default function ModeratorApprovalsPage() {
   return (
     <Suspense
-      fallback={
-        <div className="p-8 text-center text-xs font-mono text-slate-muted">
-          Cargando cola de moderación...
-        </div>
-      }
+      fallback={<PageShellSkeleton />}
     >
       <ModeratorApprovalsView />
     </Suspense>

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageShellSkeleton } from "@/components/ui/page-skeleton";
 import { Metadata } from "next";
 import { AdminCoursesCatalogView } from "@/features/courses/views/admin-courses-catalog-view";
 import { CourseBuilderView } from "@/features/courses/views/course-builder-view";
@@ -17,11 +18,7 @@ export default async function ModeratorCoursesPage({
 
   return (
     <Suspense
-      fallback={
-        <div className="p-8 text-center text-xs font-mono text-slate-muted">
-          Cargando supervisión curricular...
-        </div>
-      }
+      fallback={<PageShellSkeleton />}
     >
       {courseId ? (
         <CourseBuilderView

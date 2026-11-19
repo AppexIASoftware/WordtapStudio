@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { updateClassroomApi } from "@/services/api/classroom";
-import { useTeacherGames } from "@/features/games/hooks/use-teacher-games";
+import { mapGlobalGameToModeItem, useTeacherGames } from "@/features/games/hooks/use-teacher-games";
 
 interface UseCohortGamesProps {
   classroomId?: string;
@@ -34,16 +33,21 @@ export function useCohortGames({
   isDemo = false,
   onUpdateActiveGames,
 }: UseCohortGamesProps) {
-  const { customGames, isLoading: isLoadingCustomGames } = useTeacherGames();
+  const { customGames, globalGames, isLoading: isLoadingCustomGames } = useTeacherGames();
   const [activeGames, setActiveGames] = useState<string[]>(initialActiveGames);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Keys that still exist: the 12 official archetypes plus the teacher activities.
+  const officialGames = useMemo(
+    () => globalGames.map(mapGlobalGameToModeItem),
+    [globalGames]
+  );
+
+  // Keys that still exist: the official archetypes plus the teacher activities.
   const validGameKeys = useMemo(() => {
-    const keys = new Set<string>(GAMES_DATA.map((game) => game.type));
+    const keys = new Set<string>(officialGames.map((game) => game.type));
     customGames.forEach((game) => keys.add(`custom_${game.id}`));
     return keys;
-  }, [customGames]);
+  }, [officialGames, customGames]);
 
   // A deleted custom activity must not inflate the counter, but while the list is
   // still loading a pending activity is indistinguishable from a deleted one.
@@ -55,7 +59,7 @@ export function useCohortGames({
     [activeGames, isLoadingCustomGames, validGameKeys]
   );
 
-  const totalOptions = GAMES_DATA.length + customGames.length;
+  const totalOptions = officialGames.length + customGames.length;
   const isDemoEntry = isDemo || !classroomId || classroomId === "empty";
 
   const toggleGame = useCallback(
@@ -88,6 +92,7 @@ export function useCohortGames({
 
   return {
     activeGames: visibleActiveGames,
+    officialGames,
     customGames,
     totalOptions,
     toggleGame,

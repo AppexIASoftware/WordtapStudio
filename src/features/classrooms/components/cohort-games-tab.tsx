@@ -2,7 +2,6 @@
 
 import { Gamepad2, Check, Clock, Trophy, Star, Sparkles, Loader2 } from "lucide-react";
 import { GameModeItem } from "@/features/games/types";
-import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { useCohortGames } from "../hooks/use-cohort-games";
 
 interface CohortGamesTabProps {
@@ -31,7 +30,7 @@ export function CohortGamesTab({
   onUpdateActiveGames,
   triggerToast,
 }: CohortGamesTabProps) {
-  const { activeGames, customGames, totalOptions, toggleGame, isSaving } = useCohortGames({
+  const { activeGames, officialGames, customGames, totalOptions, toggleGame, isSaving } = useCohortGames({
     classroomId,
     classroomName,
     initialActiveGames: activeGameSlugs,
@@ -151,7 +150,7 @@ export function CohortGamesTab({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-            Dinámicas Base Oficiales ({GAMES_DATA.length})
+            Dinámicas Base Oficiales ({officialGames.length})
           </span>
           <span className="text-[10px] text-slate-muted">
             Generadas automáticamente con las palabras de tus lecciones
@@ -159,7 +158,7 @@ export function CohortGamesTab({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {GAMES_DATA.map((game: GameModeItem) => {
+          {officialGames.map((game: GameModeItem) => {
             const isEnabled = activeGames.includes(game.type);
             return (
               <div

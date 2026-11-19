@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Sparkles, Plus } from "lucide-react";
-import { GAMES_DATA } from "@/features/games/data/mock-games";
 import { GameModeItem } from "@/features/games/types";
+import { mapGlobalGameToModeItem } from "../hooks/use-teacher-games";
 import { ToastNotification } from "@/components/ui/toast-notification";
 import { TeacherGameDTO } from "@/services/api/types";
 import {
   getTeacherGamesApi,
+  getTeacherGlobalGamesApi,
   createTeacherGameApi,
   updateTeacherGameApi,
   deleteTeacherGameApi,
@@ -39,7 +40,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
   const isAdmin = scope === "admin";
   const { get, setParams } = useUrlParams();
 
-  const [baseGames] = useState<GameModeItem[]>(GAMES_DATA);
+  const [baseGames, setBaseGames] = useState<GameModeItem[]>([]);
   const [customGames, setCustomGames] = useState<TeacherGameDTO[]>([]);
   const [showArchived, setShowArchived] = useState(false);
 
@@ -81,9 +82,15 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
     let cancelled = false;
     (async () => {
       try {
-        const res = await getTeacherGamesApi();
-        if (!cancelled && res.data && Array.isArray(res.data)) {
-          setCustomGames(res.data);
+        const [customRes, globalRes] = await Promise.all([
+          getTeacherGamesApi(),
+          getTeacherGlobalGamesApi(),
+        ]);
+        if (!cancelled && customRes.data && Array.isArray(customRes.data)) {
+          setCustomGames(customRes.data);
+        }
+        if (!cancelled && globalRes.data && Array.isArray(globalRes.data)) {
+          setBaseGames(globalRes.data.map(mapGlobalGameToModeItem));
         }
       } catch {
         // Usar estado local si API no responde

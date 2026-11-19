@@ -13,6 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
+import { GamesSkeleton } from "./skeleton";
 import { ARCHETYPE_LABELS, normalizeArchetype } from "./archetypes";
 
 interface GamificationGlobalPanelProps {
@@ -246,11 +247,7 @@ export function GamificationGlobalPanel({
       </div>
 
       {isLoading ? (
-        <div className="p-8 rounded-2xl bg-card border border-border-default text-center text-xs text-slate-muted">
-          {isArchivedView
-            ? "Cargando los juegos globales archivados..."
-            : "Cargando los juegos globales de la plataforma..."}
-        </div>
+        <GamesSkeleton />
       ) : errorMessage ? (
         <div className="p-8 rounded-2xl bg-card border border-rose-500/30 text-center space-y-3">
           <div className="w-12 h-12 mx-auto rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center">

@@ -3,6 +3,7 @@
 import { Archive, BookOpen, Gamepad2, Heart, Play, RefreshCw, UserRound } from "lucide-react";
 import { TeacherGameDTO } from "@/services/api/types";
 import { ARCHETYPE_LABELS, normalizeArchetype } from "./archetypes";
+import { GamesSkeleton } from "./skeleton";
 
 interface GamificationAdminPanelProps {
   games: TeacherGameDTO[];
@@ -179,11 +180,7 @@ export function GamificationAdminPanel({
       </div>
 
       {isLoading ? (
-        <div className="p-8 rounded-2xl bg-card border border-border-default text-center text-xs text-slate-muted">
-          {isArchivedView
-            ? "Cargando las actividades de docentes archivadas..."
-            : "Cargando las actividades creadas por los docentes..."}
-        </div>
+        <GamesSkeleton />
       ) : errorMessage ? (
         <div className="p-8 rounded-2xl bg-card border border-rose-500/30 text-center space-y-3">
           <div className="w-12 h-12 mx-auto rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center">

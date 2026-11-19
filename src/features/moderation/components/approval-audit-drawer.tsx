@@ -126,17 +126,16 @@ export function ApprovalAuditDrawer({
 
   // Carga asíncrona no-bloqueante del árbol curricular
   useEffect(() => {
-    if (!isOpen || !activePr?.courseId) {
-      setLessons([]);
-      return;
-    }
-
     let isMounted = true;
-    setIsLoadingLessons(true);
 
     const loadCourse = async () => {
+      if (!isOpen || !activePr?.courseId) {
+        setLessons([]);
+        return;
+      }
+      setIsLoadingLessons(true);
       try {
-        const res = await getCourseDetailApi(activePr.courseId!, { audit: true });
+        const res = await getCourseDetailApi(activePr.courseId, { audit: true });
         if (!isMounted) return;
 
         if (res.data?.lessons && res.data.lessons.length > 0) {

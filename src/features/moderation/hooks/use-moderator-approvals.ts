@@ -154,7 +154,14 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
   }, [triggerToast]);
 
   useEffect(() => {
-    refreshReviews();
+    let active = true;
+    (async () => {
+      if (!active) return;
+      await refreshReviews();
+    })();
+    return () => {
+      active = false;
+    };
   }, [refreshReviews]);
 
   const filteredPrs = useMemo(() => {
@@ -168,34 +175,28 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
     return filteredPrs[0] || null;
   }, [filteredPrs, selectedPrId]);
 
-  useEffect(() => {
-    if (filteredPrs.length > 0 && !filteredPrs.some((p) => p.id === selectedPrId)) {
-      setSelectedPrId(filteredPrs[0].id);
-    }
-  }, [filteredPrs, selectedPrId]);
-
-  useEffect(() => {
-    if (!activePr) return;
-    if (activePr.feedback) {
+  const activePrKey = activePr ? `${activePr.id}:${activePr.feedback ?? ""}:${activePr.reviewer}` : "";
+  const [prevActivePrKey, setPrevActivePrKey] = useState("");
+  if (prevActivePrKey !== activePrKey) {
+    setPrevActivePrKey(activePrKey);
+    if (activePr) {
       setThread([
-        {
-          sender: `${activePr.reviewer} (Revisor Oficial)`,
-          text: activePr.feedback,
-          time: activePr.submittedAt,
-          isMod: true,
-        },
-      ]);
-    } else {
-      setThread([
-        {
-          sender: "Equipo Pedagógico",
-          text: "Sin observaciones previas registradas. Utiliza 'Pedir Cambios' o 'Rechazar' para emitir dictamen pedagógico oficial.",
-          time: activePr.submittedAt,
-          isMod: true,
-        },
+        activePr.feedback
+          ? {
+              sender: `${activePr.reviewer} (Revisor Oficial)`,
+              text: activePr.feedback,
+              time: activePr.submittedAt,
+              isMod: true,
+            }
+          : {
+              sender: "Equipo Pedagógico",
+              text: "Sin observaciones previas registradas. Utiliza 'Pedir Cambios' o 'Rechazar' para emitir dictamen pedagógico oficial.",
+              time: activePr.submittedAt,
+              isMod: true,
+            },
       ]);
     }
-  }, [activePr]);
+  }
 
   const handlePublishCourse = async () => {
     if (!activePr) return;

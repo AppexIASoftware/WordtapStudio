@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-context";
@@ -27,7 +27,7 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
   const queryCourse = searchParams?.get("courseId");
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
 
-  const handledDeepLinkRef = useRef<string | null>(null);
+  const [handledDeepLinkKey, setHandledDeepLinkKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentRole === "instructor") {
@@ -65,29 +65,27 @@ export function ModeratorApprovalsView({ isAdmin = false }: ModeratorApprovalsVi
     handleSuspendToReview,
   } = useModeratorApprovals({ isAdmin });
 
-  useEffect(() => {
-    if (prs.length === 0 || (!queryPr && !queryCourse)) return;
+  if (prs.length > 0 && (queryPr || queryCourse)) {
     const deepLinkKey = `${queryPr ?? ""}|${queryCourse ?? ""}`;
-    if (handledDeepLinkRef.current === deepLinkKey) return;
-
-    const match =
-      (queryPr
-        ? prs.find((p) => p.id === queryPr || p.originalId === queryPr)
-        : undefined) ??
-      (queryCourse ? prs.find((p) => p.courseId === queryCourse) : undefined);
-
-    if (match) {
-      handledDeepLinkRef.current = deepLinkKey;
-      if (!belongsToReviewTab(match, activeTab)) {
-        const targetTab = (["open", "my", "approved", "history"] as ReviewTab[]).find(
-          (tab) => belongsToReviewTab(match, tab)
-        );
-        if (targetTab) setActiveTab(targetTab);
+    if (handledDeepLinkKey !== deepLinkKey) {
+      const match =
+        (queryPr
+          ? prs.find((p) => p.id === queryPr || p.originalId === queryPr)
+          : undefined) ??
+        (queryCourse ? prs.find((p) => p.courseId === queryCourse) : undefined);
+      if (match) {
+        setHandledDeepLinkKey(deepLinkKey);
+        if (!belongsToReviewTab(match, activeTab)) {
+          const targetTab = (["open", "my", "approved", "history"] as ReviewTab[]).find(
+            (tab) => belongsToReviewTab(match, tab)
+          );
+          if (targetTab) setActiveTab(targetTab);
+        }
+        setSelectedPrId(match.id);
+        setIsAuditDrawerOpen(true);
       }
-      setSelectedPrId(match.id);
-      setIsAuditDrawerOpen(true);
     }
-  }, [prs, queryPr, queryCourse, activeTab, setActiveTab, setSelectedPrId]);
+  }
 
   if (currentRole === "instructor") {
     return null;

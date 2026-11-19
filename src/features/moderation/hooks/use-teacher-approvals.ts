@@ -110,7 +110,14 @@ export function useTeacherApprovals() {
   }, []);
 
   useEffect(() => {
-    refreshApprovals();
+    let active = true;
+    (async () => {
+      if (!active) return;
+      await refreshApprovals();
+    })();
+    return () => {
+      active = false;
+    };
   }, [refreshApprovals]);
 
   // Dynamic filter according to review status
@@ -142,8 +149,11 @@ export function useTeacherApprovals() {
   }, [filteredPrs, selectedPrId]);
 
   // Sync feedback thread when active PR changes
-  useEffect(() => {
-    if (!activePr) return;
+  const activePrKey = activePr ? `${activePr.id}:${activePr.status}:${activePr.notes ?? ""}` : "";
+  const [prevActivePrKey, setPrevActivePrKey] = useState("");
+  if (prevActivePrKey !== activePrKey) {
+    setPrevActivePrKey(activePrKey);
+    if (activePr) {
     const initialMessages: { sender: string; text: string; time: string; isTeacher: boolean }[] = [];
 
     if (activePr.notes) {
@@ -180,7 +190,8 @@ export function useTeacherApprovals() {
     }
 
     setFeedbackThread(initialMessages);
-  }, [activePr]);
+    }
+  }
 
   const counts = useMemo(() => {
     const corrections = prs.filter((p) => p.status === "changes_requested").length;

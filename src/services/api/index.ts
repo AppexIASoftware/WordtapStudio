@@ -5,7 +5,6 @@ export * from "./auth";
 export * from "./courses";
 export * from "./lessons";
 export * from "./lesson-games";
-export * from "./review-sync";
 export * from "./vault";
 export * from "./classroom";
 export * from "./games";

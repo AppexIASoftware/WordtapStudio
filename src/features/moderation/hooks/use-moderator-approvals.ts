@@ -8,8 +8,6 @@ import {
   decideCourseReviewApi,
   suspendCourseReviewApi,
   ApiCourseReviewRequest,
-  updateSyncedReview,
-  subscribeSyncedReviews,
 } from "@/services/api";
 import { ModeratorPR } from "@/features/moderation/types";
 import { belongsToReviewTab, latestReviewIds, type ReviewTab } from "./review-selection";
@@ -157,10 +155,6 @@ export function useModeratorApprovals(options?: { isAdmin?: boolean }) {
 
   useEffect(() => {
     refreshReviews();
-    const unsubscribe = subscribeSyncedReviews(() => {
-      refreshReviews();
-    });
-    return unsubscribe;
   }, [refreshReviews]);
 
   const filteredPrs = useMemo(() => {

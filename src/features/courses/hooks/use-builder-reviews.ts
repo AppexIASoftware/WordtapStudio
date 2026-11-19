@@ -5,8 +5,6 @@ import { Course } from "@/features/courses/types";
 import {
   submitCourseReviewApi,
   withdrawCourseReviewApi,
-  saveSyncedReview,
-  removeSyncedReview,
 } from "@/services/api";
 
 interface UseBuilderReviewsProps {

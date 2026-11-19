@@ -5,9 +5,6 @@ import {
   getTeacherCourseReviewsApi,
   withdrawCourseReviewApi,
   ApiCourseReviewRequest,
-  getSyncedReviews,
-  removeSyncedReview,
-  subscribeSyncedReviews,
 } from "@/services/api";
 import { ApprovalRequest } from "@/features/moderation/types";
 import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
@@ -82,37 +79,6 @@ export function useTeacherApprovals() {
 
   const refreshApprovals = useCallback(async () => {
     setIsLoading(true);
-    const synced = getSyncedReviews();
-    const statusLabels: Record<string, string> = {
-      open: "En Revisión",
-      pending: "En Revisión",
-      in_review: "En Revisión",
-      approved: "Aprobada & Publicada",
-      rejected: "Rechazada",
-      changes_requested: "Cambios Solicitados",
-    };
-
-    const syncedAsTeacher: ApprovalRequest[] = synced.map((s) => ({
-      id: s.id,
-      courseId: s.courseId,
-      title: s.title,
-      submittedDate: s.submittedAt,
-      reviewer:
-        !s.reviewer || s.reviewer === "Bandeja Abierta"
-          ? "Pendiente de Asignación"
-          : s.reviewer,
-      author: s.author,
-      waitHours: s.waitHours || "0.1h",
-      changesCount: s.changesCount || "Versión enviada",
-      status: s.status === "open" ? "pending" : s.status,
-      statusLabel:
-        statusLabels[s.status] ||
-        (s.statusLabel.includes("Bandeja Abierta") ? "En Revisión" : s.statusLabel),
-      changes: s.summary,
-      notes: s.feedback,
-      changeSummary: s.summary,
-    }));
-
     const res = await getTeacherCourseReviewsApi();
     const courseMap = new Map<string, ApprovalRequest>();
 
@@ -138,26 +104,6 @@ export function useTeacherApprovals() {
       }
     }
 
-    // 2. Consolidar con envíos locales sincronizados
-    for (const s of syncedAsTeacher) {
-      const key = s.courseId || s.id;
-      const existing = courseMap.get(key);
-      if (!existing) {
-        courseMap.set(key, s);
-      } else {
-        if (s.changeSummary && !existing.changeSummary) {
-          existing.changeSummary = s.changeSummary;
-          existing.changes = s.changeSummary;
-        }
-        if (s.notes && !existing.notes && !existing.previousNotes) {
-          existing.previousNotes = s.notes;
-        }
-        if (s.changesCount && s.changesCount.includes("lecciones")) {
-          existing.changesCount = s.changesCount;
-        }
-      }
-    }
-
     const combined = Array.from(courseMap.values());
     setPrs(combined);
     setIsLoading(false);
@@ -165,10 +111,6 @@ export function useTeacherApprovals() {
 
   useEffect(() => {
     refreshApprovals();
-    const unsubscribe = subscribeSyncedReviews(() => {
-      refreshApprovals();
-    });
-    return unsubscribe;
   }, [refreshApprovals]);
 
   // Dynamic filter according to review status
@@ -260,8 +202,6 @@ export function useTeacherApprovals() {
     try {
       const targetId = pr.courseId || pr.id.replace("PR-", "");
       await withdrawCourseReviewApi(targetId);
-      removeSyncedReview(pr.id);
-      if (pr.courseId) removeSyncedReview(pr.courseId);
       setPrs((prev) => prev.filter((p) => p.id !== pr.id));
       triggerToast(`Solicitud de "${pr.title}" retirada. El curso volvió a Borrador.`);
     } catch {

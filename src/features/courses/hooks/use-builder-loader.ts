@@ -8,8 +8,6 @@ import {
   getTeacherCourseReviewsApi,
   getAdminCourseReviewsApi,
   getCourseLessonsApi,
-  getSyncedReviews,
-  subscribeSyncedReviews,
 } from "@/services/api";
 import { mapApiLessonToLesson } from "../utils/course-mapper";
 import { COURSES_DATA } from "../data/mock-courses";
@@ -45,7 +43,6 @@ export function useBuilderLoader({
         fetchCourses().catch(() => ({ data: null, error: "Network error" })),
         fetchReviews().catch(() => ({ data: null, error: "Network error" })),
       ]);
-      const syncedReviews = getSyncedReviews();
 
       if (res.data && res.data.length > 0) {
         const mapped: Record<string, Course> = {};
@@ -56,15 +53,12 @@ export function useBuilderLoader({
               : [];
 
           const apiRev = reviewsRes.data?.find((r) => r.course_id === c.id);
-          const syncRev = syncedReviews.find(
-            (r) => r.courseId === c.id || r.originalId === c.id
-          );
 
-          const revStatus = apiRev?.status || syncRev?.status;
-          const feedback = apiRev?.feedback_notes || syncRev?.feedback;
+          const revStatus = apiRev?.status;
+          const feedback = apiRev?.feedback_notes;
           const reviewer = apiRev?.reviewer_admin_id
             ? `Admin (${apiRev.reviewer_admin_id.slice(0, 6)})`
-            : syncRev?.reviewer;
+            : undefined;
 
           mapped[c.id] = {
             id: c.id,
@@ -133,16 +127,9 @@ export function useBuilderLoader({
       } else {
         const fallback: Record<string, Course> = {};
         for (const [key, val] of Object.entries(COURSES_DATA)) {
-          const syncRev = syncedReviews.find(
-            (r) => r.courseId === key || r.originalId === key
-          );
           fallback[key] = {
             ...val,
-            reviewStatus:
-              (syncRev?.status as any) ||
-              (val.status === "in_review" ? "pending" : undefined),
-            feedbackNotes: syncRev?.feedback,
-            reviewerName: syncRev?.reviewer,
+            reviewStatus: val.status === "in_review" ? "pending" : undefined,
           };
         }
         setCourses(fallback);
@@ -181,10 +168,6 @@ export function useBuilderLoader({
 
   useEffect(() => {
     loadCoursesData();
-    const unsub = subscribeSyncedReviews(() => {
-      loadCoursesData();
-    });
-    return unsub;
   }, [loadCoursesData]);
 
   const handleSelectCourse = (id: string) => {

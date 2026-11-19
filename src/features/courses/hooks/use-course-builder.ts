@@ -11,7 +11,7 @@ import { useCourseCrud } from "./use-course-crud";
 import { useBuilderLoader } from "./use-builder-loader";
 import { useBuilderReviews } from "./use-builder-reviews";
 import { useUrlMirror } from "@/hooks/use-url-params";
-import { updateCourseApi, getSyncedReviews, saveSyncedReview } from "@/services/api";
+import { updateCourseApi } from "@/services/api";
 
 /**
  * Hook orquestador principal del editor y constructor de cursos (Course Builder).
@@ -131,18 +131,6 @@ export function useCourseBuilder(
     if (!currentCourseId || !currentCourse) return;
     const nextStatus = currentCourse.status === "published" ? "draft" : "published";
     try {
-      const synced = getSyncedReviews();
-      const activePr = synced.find(
-        (r) => r.courseId === currentCourseId || r.originalId === currentCourseId
-      );
-      if (activePr) {
-        saveSyncedReview({
-          ...activePr,
-          status: nextStatus === "published" ? "approved" : "open",
-          statusLabel: nextStatus === "published" ? "Aprobado" : "Borrador",
-        });
-      }
-
       const res = await updateCourseApi(currentCourseId, {
         status: nextStatus,
       });

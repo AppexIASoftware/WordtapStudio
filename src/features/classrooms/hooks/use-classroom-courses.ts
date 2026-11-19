@@ -81,15 +81,19 @@ export function useClassroomCourses(classroom: Classroom | null) {
   }, [classroom]);
 
   // 2. Cascading fetch of published lessons when course selection changes
-  useEffect(() => {
+  const [prevCourseId, setPrevCourseId] = useState(selectedCourseId);
+  if (prevCourseId !== selectedCourseId) {
+    setPrevCourseId(selectedCourseId);
+    setSelectedLessonId("");
     if (!selectedCourseId) {
       setLessons([]);
-      setSelectedLessonId("");
-      return;
     }
+  }
+
+  useEffect(() => {
+    if (!selectedCourseId) return;
 
     let isMounted = true;
-    setSelectedLessonId("");
 
     async function loadLessons() {
       setIsLoadingLessons(true);

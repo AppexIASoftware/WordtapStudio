@@ -55,14 +55,16 @@ export function BroadcastClassroomModal({
     setSuccessResult(null);
   };
 
-  // Reset step when modal closes or classroom changes
-  useEffect(() => {
+  // Reset step when modal closes
+  const [prevOpen, setPrevOpen] = useState(isOpen);
+  if (prevOpen !== isOpen) {
+    setPrevOpen(isOpen);
     if (!isOpen) {
       setStep(1);
       setErrorMessage(null);
       setSuccessResult(null);
     }
-  }, [isOpen]);
+  }
 
   // Synchronize browser URL query parameters (?action=broadcast&classId=...)
   useEffect(() => {

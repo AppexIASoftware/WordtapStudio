@@ -41,7 +41,8 @@ export function VaultDrawer({
   onImportItem,
   showPrivateCollection = true,
 }: VaultDrawerProps) {
-  const [activeSource, setActiveSource] = useState<"official" | "private">("official");
+  const [selectedSource, setActiveSource] = useState<"official" | "private">("official");
+  const activeSource = showPrivateCollection ? selectedSource : "official";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -56,13 +57,6 @@ export function VaultDrawer({
     }, 250);
     return () => clearTimeout(timer);
   }, [search]);
-
-  // Sin fuente privada disponible, la única fuente válida es la oficial.
-  useEffect(() => {
-    if (!showPrivateCollection && activeSource !== "official") {
-      setActiveSource("official");
-    }
-  }, [showPrivateCollection, activeSource]);
 
   const { data: categories = [] } = useQuery<ApiVaultCategory[]>({
     queryKey: ["vault-categories"],

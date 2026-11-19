@@ -51,7 +51,14 @@ export function TeacherPipeline({ onNewCourse }: TeacherPipelineProps) {
   }, []);
 
   useEffect(() => {
-    fetchPipeline();
+    let active = true;
+    (async () => {
+      if (!active) return;
+      await fetchPipeline();
+    })();
+    return () => {
+      active = false;
+    };
   }, [fetchPipeline]);
 
   const getStatusBadge = (course: PipelineCourseItem) => {

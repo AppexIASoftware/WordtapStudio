@@ -60,7 +60,10 @@ export function useCohortForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { customGames } = useTeacherGames();
 
-  useEffect(() => {
+  const classroomKey = `${initialClassroom?.id ?? ""}:${initialMode ?? ""}`;
+  const [prevClassroomKey, setPrevClassroomKey] = useState(classroomKey);
+  if (prevClassroomKey !== classroomKey) {
+    setPrevClassroomKey(classroomKey);
     if (initialClassroom) {
       setName(initialClassroom.name || "");
       setLevel(initialClassroom.level || "B1 Intermediate");
@@ -77,14 +80,16 @@ export function useCohortForm({
       setWeeklyGoal(initialClassroom.weeklyGoalWords || 50);
       setIsEditing(initialMode !== "view");
     }
-  }, [initialClassroom, initialMode]);
+  }
 
-  useEffect(() => {
-    const tabFromUrl = searchParams.get("tab") || searchParams.get("step");
+  const tabFromUrl = searchParams.get("tab") || searchParams.get("step");
+  const [prevTabFromUrl, setPrevTabFromUrl] = useState(tabFromUrl);
+  if (prevTabFromUrl !== tabFromUrl) {
+    setPrevTabFromUrl(tabFromUrl);
     if (tabFromUrl) {
       setActiveTab(resolveTab(tabFromUrl));
     }
-  }, [searchParams]);
+  }
 
   const resetScroll = () => {
     if (typeof window === "undefined") return;

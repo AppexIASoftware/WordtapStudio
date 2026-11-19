@@ -64,7 +64,10 @@ export function NewVaultItemModal({
     enabled: isOpen,
   });
 
-  useEffect(() => {
+  const itemSyncKey = `${isOpen}:${initialItem?.id ?? "new"}`;
+  const [prevItemSyncKey, setPrevItemSyncKey] = useState("");
+  if (prevItemSyncKey !== itemSyncKey) {
+    setPrevItemSyncKey(itemSyncKey);
     if (initialItem) {
       setBankType(initialItem.bank_type || "vocabulary");
       setCategoryId(initialItem.category_id || "");
@@ -108,7 +111,7 @@ export function NewVaultItemModal({
       setNoteType("bulb");
     }
     setErrorMessage(null);
-  }, [initialItem, isOpen]);
+  }
 
   if (!isOpen) return null;
 

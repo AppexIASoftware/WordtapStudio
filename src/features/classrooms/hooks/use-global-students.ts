@@ -111,9 +111,12 @@ export function useGlobalStudents(enabled: boolean) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const filterKey = `${searchQuery}\0${planFilter}\0${levelFilter}\0${courseFilter}\0${statusFilter}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey);
     setPage(1);
-  }, [searchQuery, planFilter, levelFilter, courseFilter, statusFilter]);
+  }
 
   const loadStudents = useCallback(async () => {
     if (!enabled) return;

@@ -79,15 +79,15 @@ function buildCards(data: TeacherDashboardData): KpiCardItem[] {
 
 export function TeacherKpiGrid({ period }: TeacherKpiGridProps) {
   const [data, setData] = useState<TeacherDashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadedPeriod, setLoadedPeriod] = useState<string | null>(null);
+  const isLoading = loadedPeriod !== period;
 
   useEffect(() => {
     let active = true;
-    setIsLoading(true);
     getTeacherDashboardApi(period).then((res) => {
       if (!active) return;
       if (res.data) setData(res.data);
-      setIsLoading(false);
+      setLoadedPeriod(period);
     });
     return () => {
       active = false;

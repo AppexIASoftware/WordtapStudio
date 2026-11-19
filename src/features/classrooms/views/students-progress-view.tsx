@@ -53,46 +53,41 @@ export function StudentsProgressView() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const globalStudentsState = useGlobalStudents(mainTab === "global");
 
-  useEffect(() => {
-    const view = searchParams.get("view");
-    if (view === "create") {
+  const urlView = searchParams.get("view");
+  const urlClassId = searchParams.get("classId");
+  const urlAction = searchParams.get("action") || searchParams.get("modal");
+  const urlTab = searchParams.get("tab");
+  const urlBroadcast = searchParams.get("broadcast");
+  const routeSyncKey = `${urlView ?? ""}|${urlClassId ?? ""}|${urlAction ?? ""}|${urlTab ?? ""}|${urlBroadcast ?? ""}|${classrooms.length}|${detailClassroom?.id ?? ""}`;
+  const [prevRouteSyncKey, setPrevRouteSyncKey] = useState(routeSyncKey);
+  if (prevRouteSyncKey !== routeSyncKey) {
+    setPrevRouteSyncKey(routeSyncKey);
+    if (urlView === "create") {
       setDetailClassroom(null);
       setViewMode("create");
-    } else if (view === "detail") {
-      const classId = searchParams.get("classId");
-      if (classId) {
-        const found = classrooms.find((c) => c.id === classId);
-        if (found) {
-          setDetailClassroom(found);
-        }
+    } else if (urlView === "detail") {
+      if (urlClassId) {
+        const found = classrooms.find((c) => c.id === urlClassId);
+        if (found) setDetailClassroom(found);
       }
       setViewMode("detail");
     } else {
       setViewMode("list");
     }
-  }, [searchParams, classrooms]);
 
-  // Two-way synchronization of announcement modal with URL query parameters
-  useEffect(() => {
-    const action = searchParams.get("action") || searchParams.get("modal");
-    const isBroadcast = action === "broadcast" || searchParams.get("tab") === "broadcast";
-    const targetClassId = searchParams.get("classId") || searchParams.get("broadcast");
-
+    const isBroadcast = urlAction === "broadcast" || urlTab === "broadcast";
+    const targetClassId = urlClassId || urlBroadcast;
     if (isBroadcast) {
       if (targetClassId && classrooms.length > 0) {
         const found = classrooms.find((c) => c.id === targetClassId);
-        if (found) {
-          setBroadcastClassroom(found);
-          return;
-        }
+        if (found) setBroadcastClassroom(found);
       } else if (detailClassroom) {
         setBroadcastClassroom(detailClassroom);
-        return;
       }
     } else if (broadcastClassroom) {
       setBroadcastClassroom(null);
     }
-  }, [searchParams, classrooms, detailClassroom]);
+  }
 
   const handleOpenBroadcast = (cls: Classroom) => {
     setBroadcastClassroom(cls);

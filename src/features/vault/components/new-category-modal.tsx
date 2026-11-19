@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, FolderPlus, Loader2, Sparkles } from "lucide-react";
 import { createVaultCategoryApi, ApiVaultCategory } from "@/services/api";
 
@@ -22,13 +22,16 @@ export function NewCategoryModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const openKey = `${isOpen}:${initialName}`;
+  const [prevOpenKey, setPrevOpenKey] = useState(openKey);
+  if (prevOpenKey !== openKey) {
+    setPrevOpenKey(openKey);
     if (isOpen) {
       setName(initialName);
       setDescription("");
       setError(null);
     }
-  }, [isOpen, initialName]);
+  }
 
   if (!isOpen) return null;
 

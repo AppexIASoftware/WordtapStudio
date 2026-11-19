@@ -49,10 +49,12 @@ export function CardsTab({
   const [newCardForm, setNewCardForm] = useState<Omit<LessonItem, "id">>(DEFAULT_NEW_CARD);
 
   // Al cambiar de leccion, activa modo creacion solo si la leccion no tiene tarjetas
-  useEffect(() => {
+  const [prevLessonId, setPrevLessonId] = useState(currentLesson.id);
+  if (prevLessonId !== currentLesson.id) {
+    setPrevLessonId(currentLesson.id);
     setIsCreatingState(currentLesson.items.length === 0);
     setNewCardForm(DEFAULT_NEW_CARD);
-  }, [currentLesson.id]);
+  }
 
   const isCreating = !readOnly && (isCreatingState || currentLesson.items.length === 0);
 

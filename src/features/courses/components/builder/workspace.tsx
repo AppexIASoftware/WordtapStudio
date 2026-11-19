@@ -94,9 +94,11 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
     showSubmitReviewModal,
   } = props;
 
-  useEffect(() => {
+  const [prevCourseId, setPrevCourseId] = useState(currentCourseId);
+  if (prevCourseId !== currentCourseId) {
+    setPrevCourseId(currentCourseId);
     setIsFeedbackExpanded(true);
-  }, [currentCourseId]);
+  }
 
   // Platform courses are edited by administrators; teacher courses belong to
   // their author. Staff may supervise a teacher course but never edit it.

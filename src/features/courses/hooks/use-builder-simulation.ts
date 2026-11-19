@@ -17,14 +17,16 @@ export function useBuilderSimulation(
   // La pestaña activa se restaura desde la URL ya hidratada, para no romper el
   // render estático de la página.
   useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get("canvasTab");
-    if (
-      raw === CANVAS_TAB.GAMES ||
-      raw === CANVAS_TAB.PREVIEW ||
-      raw === CANVAS_TAB.JOURNEY
-    ) {
-      setActiveCanvasTab(raw);
-    }
+    queueMicrotask(() => {
+      const raw = new URLSearchParams(window.location.search).get("canvasTab");
+      if (
+        raw === CANVAS_TAB.GAMES ||
+        raw === CANVAS_TAB.PREVIEW ||
+        raw === CANVAS_TAB.JOURNEY
+      ) {
+        setActiveCanvasTab(raw);
+      }
+    });
   }, []);
 
   const toggleSimTier = () => setSimTier((value) => (value === "free" ? "premium" : "free"));

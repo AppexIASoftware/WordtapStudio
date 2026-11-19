@@ -64,22 +64,28 @@ export function EditCourseModal({
   useEffect(() => {
     if (!isOpen) return;
     let active = true;
-    setCategoriesLoading(true);
-    setCategories([]);
-    setCategoryLoadError(null);
-    getVaultCategoriesApi().then((res) => {
-      if (!active) return;
-      if (res.error || !res.data) setCategoryLoadError("No se pudieron cargar las categorías. Cerrá y volvé a intentar.");
-      else setCategories(res.data);
-    }).catch(() => {
-      if (active) setCategoryLoadError("No se pudieron cargar las categorías. Cerrá y volvé a intentar.");
-    }).finally(() => {
-      if (active) setCategoriesLoading(false);
-    });
+    (async () => {
+      setCategoriesLoading(true);
+      setCategories([]);
+      setCategoryLoadError(null);
+      try {
+        const res = await getVaultCategoriesApi();
+        if (!active) return;
+        if (res.error || !res.data) setCategoryLoadError("No se pudieron cargar las categorías. Cerrá y volvé a intentar.");
+        else setCategories(res.data);
+      } catch {
+        if (active) setCategoryLoadError("No se pudieron cargar las categorías. Cerrá y volvé a intentar.");
+      } finally {
+        if (active) setCategoriesLoading(false);
+      }
+    })();
     return () => { active = false; };
   }, [isOpen]);
 
-  useEffect(() => {
+  const editKey = `${isOpen}:${course.id}`;
+  const [prevEditKey, setPrevEditKey] = useState(editKey);
+  if (prevEditKey !== editKey) {
+    setPrevEditKey(editKey);
     setTitle(course.title);
     setDescription(course.description || "");
     setLevel(course.level || "A1");
@@ -97,7 +103,7 @@ export function EditCourseModal({
     );
     setPrice(course.price || 20.00);
     setError(null);
-  }, [course.id, isOpen, isAdmin, course.tier, course.title, course.description, course.level, course.categoryId, course.sourceLang, course.targetLang, course.price]);
+  }
 
   if (!isOpen) return null;
 

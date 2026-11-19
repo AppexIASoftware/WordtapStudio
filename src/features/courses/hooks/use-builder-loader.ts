@@ -88,7 +88,7 @@ export function useBuilderLoader({
             status: c.status,
             ownerType: c.owner_type,
             reviewStatus:
-              (revStatus as any) || (c.status === "in_review" ? "pending" : undefined),
+              (revStatus as Course["reviewStatus"]) || (c.status === "in_review" ? "pending" : undefined),
             feedbackNotes: feedback || undefined,
             reviewerName: reviewer || undefined,
             lessons: courseLessons,
@@ -167,7 +167,14 @@ export function useBuilderLoader({
   }, [userName, initialCourseId, scope, syncSelectedLesson]);
 
   useEffect(() => {
-    loadCoursesData();
+    let active = true;
+    (async () => {
+      if (!active) return;
+      await loadCoursesData();
+    })();
+    return () => {
+      active = false;
+    };
   }, [loadCoursesData]);
 
   const handleSelectCourse = (id: string) => {

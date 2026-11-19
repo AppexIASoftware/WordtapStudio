@@ -26,12 +26,15 @@ export function EditLessonModal({
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const lessonKey = `${isOpen}:${lesson.id}:${lesson.title}:${lesson.subtitle}:${lesson.duration}`;
+  const [prevLessonKey, setPrevLessonKey] = useState(lessonKey);
+  if (prevLessonKey !== lessonKey) {
+    setPrevLessonKey(lessonKey);
     setTitle(lesson.title);
     setSubtitle(lesson.subtitle);
     setDuration(lesson.duration);
     setError(null);
-  }, [lesson]);
+  }
 
   if (!isOpen) return null;
 

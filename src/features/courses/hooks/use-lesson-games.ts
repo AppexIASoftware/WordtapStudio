@@ -75,7 +75,14 @@ export function useLessonGames({
   }, [enabled, lessonId, includeMine]);
 
   useEffect(() => {
-    void load();
+    let active = true;
+    (async () => {
+      if (!active) return;
+      await load();
+    })();
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const linkedIds = useMemo(

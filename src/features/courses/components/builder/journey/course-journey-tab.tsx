@@ -49,31 +49,37 @@ export function CourseJourneyTab({
   // Cargar o revalidar minijuegos reales de las lecciones del curso
   useEffect(() => {
     let isMounted = true;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     const lessons = course.lessons || [];
-    if (lessons.length === 0) {
-      setGamesByLesson({});
-      setIsLoadingGames(false);
-      return;
-    }
 
-    const missing = lessons.filter((l) => !lessonGamesMemoryCache.has(l.id));
-    if (missing.length === 0) {
-      // Todo disponible en caché: sincronizar de inmediato sin latencia
-      const cachedMap: Record<string, LessonGameDTO[]> = {};
-      lessons.forEach((l) => {
-        cachedMap[l.id] = lessonGamesMemoryCache.get(l.id) || [];
-      });
-      setGamesByLesson(cachedMap);
-      setIsLoadingGames(false);
-      return;
-    }
+    (async () => {
+      if (lessons.length === 0) {
+        if (isMounted) {
+          setGamesByLesson({});
+          setIsLoadingGames(false);
+        }
+        return;
+      }
 
-    setIsLoadingGames(true);
-    const timeout = setTimeout(() => {
-      if (isMounted) setIsLoadingGames(false);
-    }, 2500);
+      const missing = lessons.filter((l) => !lessonGamesMemoryCache.has(l.id));
+      if (missing.length === 0) {
+        const cachedMap: Record<string, LessonGameDTO[]> = {};
+        lessons.forEach((l) => {
+          cachedMap[l.id] = lessonGamesMemoryCache.get(l.id) || [];
+        });
+        if (isMounted) {
+          setGamesByLesson(cachedMap);
+          setIsLoadingGames(false);
+        }
+        return;
+      }
 
-    Promise.all(
+      if (isMounted) setIsLoadingGames(true);
+      timeout = setTimeout(() => {
+        if (isMounted) setIsLoadingGames(false);
+      }, 2500);
+
+      const results = await Promise.all(
       lessons.map(async (lesson) => {
         if (lessonGamesMemoryCache.has(lesson.id)) {
           return { lessonId: lesson.id, games: lessonGamesMemoryCache.get(lesson.id)! };
@@ -88,21 +94,16 @@ export function CourseJourneyTab({
           return { lessonId: lesson.id, games: [] };
         }
       })
-    )
-      .then((results) => {
-        if (!isMounted) return;
-        const map: Record<string, LessonGameDTO[]> = {};
-        results.forEach((r) => {
-          map[r.lessonId] = r.games;
-        });
-        setGamesByLesson(map);
-      })
-      .finally(() => {
-        clearTimeout(timeout);
-        if (isMounted) {
-          setIsLoadingGames(false);
-        }
+      );
+      clearTimeout(timeout);
+      if (!isMounted) return;
+      const map: Record<string, LessonGameDTO[]> = {};
+      results.forEach((r) => {
+        map[r.lessonId] = r.games;
       });
+      setGamesByLesson(map);
+      setIsLoadingGames(false);
+    })();
 
     return () => {
       isMounted = false;
@@ -117,12 +118,6 @@ export function CourseJourneyTab({
   const svgPathD = useMemo(() => generateJourneySvgPath(nodes), [nodes]);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (nodes.length > 0 && !selectedNodeId) {
-      setSelectedNodeId(nodes[0].id);
-    }
-  }, [nodes, selectedNodeId]);
 
   const activeNode = useMemo(() => {
     return nodes.find((n) => n.id === selectedNodeId) || nodes[0] || null;

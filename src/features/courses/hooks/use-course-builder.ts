@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Lesson, LessonItem } from "@/features/courses/types";
 import { useAuth } from "@/features/auth/auth-context";
@@ -80,8 +80,10 @@ export function useCourseBuilder(
   const modals = useBuilderModals(currentCourse?.lessons);
   const sim = useBuilderSimulation(setCurrentLessonId, triggerToast);
   const cards = useCardEditor(currentCourseId, currentLesson, setCourses, triggerToast);
-  handleStepSelectRef.current = cards.handleStepSelect;
-  resetStepFormRef.current = cards.resetStepForm;
+  useEffect(() => {
+    handleStepSelectRef.current = cards.handleStepSelect;
+    resetStepFormRef.current = cards.resetStepForm;
+  });
   const { handleStepSelect, resetStepForm } = cards;
 
   // Reflejo reactivo en URL de la leccion, tarjeta y pestana activa

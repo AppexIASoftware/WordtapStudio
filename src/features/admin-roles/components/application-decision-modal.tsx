@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { CheckCircle, XCircle, RotateCcw, AlertTriangle, X } from "lucide-react";
 import { ApiTeacherApplication } from "@/services/api/teacher-applications";
 
@@ -73,12 +73,14 @@ export function ApplicationDecisionModal({
   onConfirm,
 }: ApplicationDecisionModalProps) {
   const [reason, setReason] = useState("No cumple con los requisitos pedagógicos.");
-
-  useEffect(() => {
+  const modalKey = `${application?.id ?? ""}:${decisionType ?? ""}`;
+  const [prevModalKey, setPrevModalKey] = useState(modalKey);
+  if (prevModalKey !== modalKey) {
+    setPrevModalKey(modalKey);
     if (decisionType === APPLICATION_DECISION_TYPE.REJECT) {
       setReason("No cumple con los requisitos pedagógicos.");
     }
-  }, [decisionType, application?.id]);
+  }
 
   if (!application || !decisionType) return null;
 

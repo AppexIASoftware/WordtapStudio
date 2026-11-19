@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RbacMatrixState } from "../types";
 import {
@@ -17,8 +17,7 @@ const ROLES_ORDER = ["student", "instructor", "moderator", "admin"] as const;
 
 export function useRbacMatrix(isAdmin: boolean, onNotify: (msg: string) => void) {
   const queryClient = useQueryClient();
-  const [rbacState, setRbacState] = useState<RbacMatrixState>(() => buildInitialRbacState());
-  const [rbacBaseline, setRbacBaseline] = useState<RbacMatrixState>(() => buildInitialRbacState());
+  const [localEdits, setLocalEdits] = useState<RbacMatrixState | null>(null);
   const [rbacModalAction, setRbacModalAction] = useState<RbacModalAction | null>(null);
   const [isRbacSubmitting, setIsRbacSubmitting] = useState(false);
   const [rbacError, setRbacError] = useState<string | null>(null);
@@ -31,13 +30,13 @@ export function useRbacMatrix(isAdmin: boolean, onNotify: (msg: string) => void)
     },
   });
 
-  useEffect(() => {
-    if (!platformSettings) return;
+  const rbacBaseline = useMemo<RbacMatrixState>(() => {
+    if (!platformSettings) return buildInitialRbacState();
     const saved = platformSettings.find((s) => s.key === RBAC_SETTING_KEY);
-    const merged = mergeRbacState(saved?.value);
-    setRbacState(merged);
-    setRbacBaseline(JSON.parse(JSON.stringify(merged)));
+    return mergeRbacState(saved?.value);
   }, [platformSettings]);
+
+  const rbacState = localEdits ?? rbacBaseline;
 
   const diffCount = useMemo(() => {
     let count = 0;
@@ -82,16 +81,19 @@ export function useRbacMatrix(isAdmin: boolean, onNotify: (msg: string) => void)
       return;
     }
 
-    setRbacState((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        [role]: {
-          ...prev[key][role],
-          val: checked,
+    setLocalEdits((prev) => {
+      const base = prev ?? rbacBaseline;
+      return {
+        ...base,
+        [key]: {
+          ...base[key],
+          [role]: {
+            ...base[key][role],
+            val: checked,
+          },
         },
-      },
-    }));
+      };
+    });
   };
 
   const requestReset = () => {
@@ -138,8 +140,7 @@ export function useRbacMatrix(isAdmin: boolean, onNotify: (msg: string) => void)
       return;
     }
 
-    setRbacState(targetState);
-    setRbacBaseline(JSON.parse(JSON.stringify(targetState)));
+    setLocalEdits(null);
     await queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
     await queryClient.invalidateQueries({ queryKey: ["rbac", "me"] });
     onNotify(

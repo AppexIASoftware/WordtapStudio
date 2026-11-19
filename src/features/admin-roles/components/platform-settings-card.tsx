@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getPublicSettingsApi,
@@ -44,7 +44,7 @@ function PlatformSettingsSkeleton() {
 
 export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCardProps) {
   const queryClient = useQueryClient();
-  const [formSettings, setFormSettings] = useState<PublicSettings>(DEFAULT_SETTINGS);
+  const [draftSettings, setDraftSettings] = useState<PublicSettings | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -58,11 +58,8 @@ export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCard
     },
   });
 
-  useEffect(() => {
-    if (remoteSettings) {
-      setFormSettings(remoteSettings);
-    }
-  }, [remoteSettings]);
+  const formSettings = draftSettings ?? remoteSettings ?? DEFAULT_SETTINGS;
+  const setFormSettings = (next: PublicSettings) => setDraftSettings(next);
 
   const handleRequestSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +90,7 @@ export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCard
 
       onNotify("Datos institucionales actualizados correctamente.");
       queryClient.invalidateQueries({ queryKey: ["public-settings"] });
+      setDraftSettings(null);
       setIsConfirmOpen(false);
       setIsEditing(false);
     } catch {
@@ -200,7 +198,7 @@ export function PlatformSettingsCard({ onNotify, isAdmin }: PlatformSettingsCard
                 type="button"
                 disabled={isSaving}
                 onClick={() => {
-                  setFormSettings(remoteSettings || DEFAULT_SETTINGS);
+                  setDraftSettings(null);
                   setIsEditing(false);
                 }}
                 className="px-3.5 py-2 rounded-xl text-slate-muted hover:text-white font-semibold text-xs cursor-pointer transition-colors disabled:opacity-50"

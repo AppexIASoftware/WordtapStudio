@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ShieldAlert, X, Loader2, AlertTriangle } from "lucide-react";
 
 interface SuspendTeacherModalProps {
@@ -21,12 +21,13 @@ export function SuspendTeacherModal({
   isLoading,
 }: SuspendTeacherModalProps) {
   const [reason, setReason] = useState("");
-
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (isOpen !== prevOpen) {
+    setPrevOpen(isOpen);
     if (isOpen) {
       setReason("Suspensión administrativa preventiva.");
     }
-  }, [isOpen]);
+  }
 
   if (!isOpen) return null;
 

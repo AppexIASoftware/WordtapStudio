@@ -154,9 +154,12 @@ export function useAdminAudit(
   const [isTableLoading, setIsTableLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const filterKey = `${category}\0${searchQuery}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey);
     setLogsPage(1);
-  }, [category, searchQuery]);
+  }
 
   const loadData = useCallback(async (forceAll = false) => {
     setIsTableLoading(true);

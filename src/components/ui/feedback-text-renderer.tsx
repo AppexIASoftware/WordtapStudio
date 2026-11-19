@@ -8,7 +8,7 @@ interface FeedbackTextRendererProps {
 
 function sanitizeMojibake(input: string): string {
   if (!input) return "";
-  let clean = input
+  const clean = input
     // Reemplazos de secuencias UTF-8 mal interpretadas como Latin-1
     .replace(/Ã¡/g, "á")
     .replace(/Ã©/g, "é")

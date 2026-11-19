@@ -72,7 +72,15 @@ export default function PendingApprovalPage() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    let active = true;
+    (async () => {
+      if (!active) return;
+      await fetchStatus();
+    })();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isApproved = statusData?.status === "approved";

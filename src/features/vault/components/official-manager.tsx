@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { Search, Plus, ShieldCheck, Sparkles } from "lucide-react";
+import { VaultSkeleton } from "@/features/vault/components/skeleton";
 import {
   getOfficialVaultItemsApi,
   getVaultCategoriesApi,
@@ -249,10 +250,7 @@ export function VaultOfficialManager({
 
       {/* Grilla de Ítems */}
       {isLoading ? (
-        <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-muted bg-canvas rounded-2xl border border-border-default">
-          <Loader2 className={`w-6 h-6 animate-spin ${tone.spinner}`} />
-          <span className="text-xs font-mono">{copy.loadingLabel}</span>
-        </div>
+        <VaultSkeleton variant="grid" />
       ) : items.length === 0 ? (
         <div className="p-12 text-center bg-canvas rounded-2xl border border-border-default space-y-2">
           {emptyIcon === "shield" ? (

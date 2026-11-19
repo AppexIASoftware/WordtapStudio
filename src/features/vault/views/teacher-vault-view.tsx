@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, Globe, Lock, Loader2, Sparkles } from "lucide-react";
+import { Search, Plus, Globe, Lock, Sparkles } from "lucide-react";
+import { VaultSkeleton } from "@/features/vault/components/skeleton";
 import { getOfficialVaultItemsApi, getTeacherPrivateVaultApi, ApiVaultItem } from "@/services/api";
 import { NewVaultItemModal } from "@/features/vault/components/new-item-modal";
 import { ToastNotification } from "@/components/ui/toast-notification";
@@ -204,10 +205,7 @@ export function TeacherVaultView() {
 
       {/* Grilla de Tarjetas */}
       {isLoading ? (
-        <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-muted bg-canvas rounded-2xl border border-border-default">
-          <Loader2 className="w-6 h-6 animate-spin text-emerald-brand" />
-          <span className="text-xs font-mono">Cargando unidades del catálogo...</span>
-        </div>
+        <VaultSkeleton variant="grid" />
       ) : items.length === 0 ? (
         <div className="p-12 text-center bg-canvas rounded-2xl border border-border-default space-y-3">
           <Sparkles className="w-8 h-8 text-slate-500 mx-auto" />

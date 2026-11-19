@@ -13,6 +13,7 @@ import {
   Volume2,
   Check,
 } from "lucide-react";
+import { VaultSkeleton } from "@/features/vault/components/skeleton";
 import {
   getOfficialVaultItemsApi,
   getTeacherPrivateVaultApi,
@@ -273,10 +274,7 @@ export function VaultDrawer({
           {/* Lista de Resultados */}
           <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
             {isLoading ? (
-              <div className="p-8 text-center text-xs text-slate-muted flex flex-col items-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin text-emerald-brand" />
-                <span>Cargando unidades del catálogo...</span>
-              </div>
+              <VaultSkeleton variant="list" count={4} />
             ) : items.length === 0 ? (
               <div className="p-8 text-center bg-canvas rounded-xl border border-border-default space-y-1">
                 <p className="text-xs text-slate-muted">No se encontraron términos disponibles.</p>

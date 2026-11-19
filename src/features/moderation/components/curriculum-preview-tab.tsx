@@ -7,11 +7,11 @@ import {
   Smartphone,
   ChevronDown,
   ChevronUp,
-  Loader2,
   Clock,
   Layers,
   Sparkles,
 } from "lucide-react";
+import { CoursesSkeleton } from "@/features/courses/components/skeleton";
 import { Lesson, LessonItem } from "@/features/courses/types";
 
 interface CurriculumPreviewTabProps {
@@ -53,12 +53,7 @@ export function CurriculumPreviewTab({
   };
 
   if (isLoading) {
-    return (
-      <div className="p-12 flex flex-col items-center justify-center gap-3 text-slate-muted bg-canvas rounded-2xl border border-border-default">
-        <Loader2 className="w-7 h-7 animate-spin text-blue-400" />
-        <p className="text-xs font-mono">Cargando árbol curricular y tarjetas del docente...</p>
-      </div>
-    );
+    return <CoursesSkeleton variant="list" count={4} />;
   }
 
   if (lessons.length === 0) {

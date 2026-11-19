@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Info, Loader2, Plus } from "lucide-react";
+import { AlertCircle, Info, Plus } from "lucide-react";
+import { CoursesSkeleton } from "@/features/courses/components/skeleton";
 import { useLessonGames } from "../../hooks/use-lesson-games";
 import { LessonGamesList } from "./lesson-games-list";
 import { LessonGamePicker } from "./lesson-game-picker";
@@ -143,10 +144,7 @@ export function LessonGamesTab({
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2 rounded-2xl border border-border-default bg-card/40 p-8 text-xs text-slate-muted">
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-brand" />
-              Cargando minijuegos...
-            </div>
+            <CoursesSkeleton variant="list" count={3} />
           ) : (
             <LessonGamesList
               games={linkedGames}

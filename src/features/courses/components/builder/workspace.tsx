@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BookOpen, Loader2, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw, CheckCircle2, Crown } from "lucide-react";
+import { BookOpen, Plus, AlertTriangle, ChevronDown, ChevronUp, RotateCcw, CheckCircle2, Crown } from "lucide-react";
+import { CoursesSkeleton } from "@/features/courses/components/skeleton";
 import { Course, Lesson, LessonItem, CANVAS_TAB, CanvasTab } from "@/features/courses/types";
 import { ApiCourse } from "@/services/api";
 import { NewCourseModal } from "../new-course-modal";
@@ -138,10 +139,7 @@ export function CourseBuilderWorkspace(props: CourseBuilderWorkspaceProps) {
       />
 
       {isLoading ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-muted gap-3 bg-canvas">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-brand" />
-          <p className="text-xs font-mono">Cargando cursos y lecciones del docente...</p>
-        </div>
+        <CoursesSkeleton variant="workspace" />
       ) : !currentCourse || Object.keys(courses).length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-canvas">
           <div className="max-w-md w-full bg-card border border-border-default rounded-3xl p-8 space-y-6 shadow-xl animate-in fade-in duration-200">

@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowRight, BookOpen, Crown, GraduationCap, Loader2, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Crown, GraduationCap, Plus, Sparkles } from "lucide-react";
+import { CoursesSkeleton } from "@/features/courses/components/skeleton";
 import { ApiCourse } from "@/services/api";
 import { CourseCard } from "./course-card";
 
@@ -59,12 +60,7 @@ export function CoursesTable({
         </div>
       )}
       {isLoading && totalCourses === 0 ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-muted">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-brand" />
-          <span className="text-xs font-mono">
-            {isTeacher ? "Cargando tus cursos formativos..." : "Cargando catálogo oficial de Wordtap..."}
-          </span>
-        </div>
+        <CoursesSkeleton variant="catalog" />
       ) : courses.length === 0 ? (
         <div className="py-16 p-8 rounded-3xl bg-card border border-border-default flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto shadow-card-soft">
           <div className="w-14 h-14 rounded-2xl bg-emerald-brand/10 border border-emerald-brand/20 flex items-center justify-center text-emerald-brand shadow-inner">

@@ -14,7 +14,7 @@ export function RevenueSplitBox({ config, setConfig }: RevenueSplitBoxProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <span>Política de Reparto de Ingresos (Revenue Split - ADR-05)</span>
+            <span>Política de Reparto de Ingresos</span>
             <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-brand/10 text-emerald-brand font-bold border border-emerald-brand/30">
               {config.teacherSplit}% Docente / {config.platformSplit}% Plataforma
             </span>

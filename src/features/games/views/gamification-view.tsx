@@ -23,6 +23,7 @@ import { GamificationCustomCard } from "../components/gamification-custom-card";
 import { SupermemoSimulator } from "../components/supermemo-simulator";
 import { GameCreationWorkspace } from "../components/game-creation-workspace";
 import { GameSandboxModal } from "../components/game-sandbox-modal";
+import { DeleteGameModal } from "../components/delete-game-modal";
 import { AdminGamificationView } from "./admin-gamification-view";
 import { useUrlParams, useUrlParam } from "@/hooks/use-url-params";
 
@@ -49,6 +50,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
   );
 
   const [activeSandboxGame, setActiveSandboxGame] = useState<GameModeItem | TeacherGameDTO | null>(null);
+  const [pendingDeleteGame, setPendingDeleteGame] = useState<TeacherGameDTO | null>(null);
   const presetArchetype = get("archetype") ?? "match";
 
   // El modo de vista se deriva de la URL (?view= create|edit) con fallback a "list".
@@ -76,8 +78,21 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
 
   useEffect(() => {
     if (isAdmin) return;
-    fetchCustomGames();
-  }, [isAdmin, fetchCustomGames]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getTeacherGamesApi();
+        if (!cancelled && res.data && Array.isArray(res.data)) {
+          setCustomGames(res.data);
+        }
+      } catch {
+        // Usar estado local si API no responde
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
 
   // El juego en edición se resuelve contra la lista ya cargada (id corto de fila).
   const selectedGame: TeacherGameDTO | null =
@@ -123,15 +138,16 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
     await fetchCustomGames();
   };
 
-  const handleDeleteGame = async (id: string) => {
-    if (!window.confirm("¿Seguro que deseas eliminar esta actividad personalizada?")) return;
+  const handleRequestDeleteGame = (id: string) => {
+    const target = customGames.find((g) => g.id === id) ?? null;
+    if (target) setPendingDeleteGame(target);
+  };
+
+  const handleConfirmDeleteGame = async (id: string) => {
     const res = await deleteTeacherGameApi(id);
-    if (res.error) {
-      triggerToast(`Error: ${res.error}`);
-    } else {
-      triggerToast("Actividad eliminada correctamente");
-      await fetchCustomGames();
-    }
+    if (res.error) throw new Error(res.error);
+    triggerToast("Actividad eliminada correctamente");
+    await fetchCustomGames();
   };
 
   // Modo supervisión: la experiencia administrativa completa (juegos globales de
@@ -251,7 +267,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
                   game={game}
                   onPlayTest={(g) => setActiveSandboxGame(g)}
                   onEdit={handleOpenEdit}
-                  onDelete={handleDeleteGame}
+                  onDelete={handleRequestDeleteGame}
                 />
               ))}
             </div>
@@ -303,6 +319,15 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
         <GameSandboxModal
           game={activeSandboxGame}
           onClose={() => setActiveSandboxGame(null)}
+        />
+      )}
+
+      {/* Modal de Confirmación de Eliminación */}
+      {pendingDeleteGame && (
+        <DeleteGameModal
+          game={pendingDeleteGame}
+          onConfirm={handleConfirmDeleteGame}
+          onClose={() => setPendingDeleteGame(null)}
         />
       )}
     </div>

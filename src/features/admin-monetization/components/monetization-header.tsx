@@ -20,7 +20,7 @@ export function MonetizationHeader({ activeTab, onTabChange, onDeployRules }: Mo
               Monetización, Planes & Publicidad
             </h1>
             <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-brand/10 text-emerald-brand border border-emerald-brand/30">
-              ADR-01 • ADR-05 • ADR-07
+              Planes • Regalías • Publicidad
             </span>
           </div>
           <p className="text-sm text-slate-muted mt-1 leading-relaxed">

@@ -21,7 +21,7 @@ export function ModeratorDashboard() {
             Consola de Calidad & Moderación
           </h1>
           <p className="text-sm text-slate-muted mt-1">
-            Bandeja abierta de revisión pedagógica, diffs visuales y aprobación directa (ADR-26, ADR-27).
+            Bandeja abierta de revisión pedagógica, diffs visuales y aprobación directa.
           </p>
         </div>
 
@@ -74,7 +74,7 @@ export function ModeratorDashboard() {
             <span className="text-2xl font-black text-white">28</span>
             <span className="text-xs font-medium text-emerald-brand ml-2">desplegados</span>
           </div>
-          <p className="text-[11px] text-slate-subtle font-mono">Autoridad de deploy directo (ADR-27)</p>
+          <p className="text-[11px] text-slate-subtle font-mono">Autoridad de publicación directa</p>
         </div>
 
         <div className="p-5 rounded-2xl bg-card border border-border-default space-y-3">
@@ -88,7 +88,7 @@ export function ModeratorDashboard() {
             <span className="text-2xl font-black text-white">4.2h</span>
             <span className="text-xs font-medium text-emerald-brand ml-2">SLO &lt; 24h</span>
           </div>
-          <p className="text-[11px] text-slate-subtle font-mono">Feedback focalizado por tarjeta (ADR-26)</p>
+          <p className="text-[11px] text-slate-subtle font-mono">Feedback focalizado por tarjeta</p>
         </div>
       </div>
 

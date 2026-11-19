@@ -36,7 +36,7 @@ export const MODERATOR_KPIS: ModeratorKPI[] = [
     title: "Incidencias Resueltas",
     value: "98.6%",
     subValue: "Resolución < 48h",
-    badgeText: "ADR-21",
+    badgeText: "Resuelto",
     badgeVariant: "amber",
     footerText: "Reportes de alumnos cerrados",
     footerDotColor: "bg-amber-400",

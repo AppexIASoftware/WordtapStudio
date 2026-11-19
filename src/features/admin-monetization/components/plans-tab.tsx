@@ -28,7 +28,7 @@ export function PlansTab({ config, setConfig, selectedGateway, setSelectedGatewa
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <span>Configuración Canónica de Precios & Mapeo de Pasarelas</span>
               <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-brand/20 text-emerald-brand font-bold">
-                ADR-29 Dinámico
+                Dinámico
               </span>
             </h3>
             <p className="text-[11px] text-slate-muted">

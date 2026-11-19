@@ -55,7 +55,7 @@ export function CoursePricingModal({
             <div>
               <h3 className="text-sm font-bold text-white">Comercialización & Precio del Curso</h3>
               <p className="text-[10px] text-slate-muted font-mono">
-                ADR-05: Venta Directa & Split {teacherSplitPct}/{100 - teacherSplitPct}
+                Venta Directa & Split {teacherSplitPct}/{100 - teacherSplitPct}
               </p>
             </div>
           </div>

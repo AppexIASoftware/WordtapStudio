@@ -81,7 +81,7 @@ export function EarningsTab({ config, courses, onSelectCourse, onRequestPayout }
               </span>
             </h3>
             <p className="text-xs text-slate-muted mt-0.5">
-              Precios fijados por vos para venta directa en el catálogo móvil vs regalías por suscripción (ADR-05).
+              Precios fijados por vos para venta directa en el catálogo móvil vs regalías por suscripción.
             </p>
           </div>
         </div>

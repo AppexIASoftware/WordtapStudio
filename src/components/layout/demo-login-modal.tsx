@@ -113,7 +113,7 @@ export function DemoLoginModal({ isOpen, onClose }: DemoLoginModalProps) {
                   {DEMO_ACCOUNTS.moderator.email}
                 </p>
                 <p className="text-[10px] text-slate-subtle mt-0.5">
-                  Cola de revisión abierta, feedback por tarjeta (ADR-26) y deploy directo a producción (ADR-27).
+                  Cola de revisión abierta, feedback por tarjeta y publicación directa a producción.
                 </p>
               </div>
             </div>
@@ -148,7 +148,7 @@ export function DemoLoginModal({ isOpen, onClose }: DemoLoginModalProps) {
                   {DEMO_ACCOUNTS.admin.email}
                 </p>
                 <p className="text-[10px] text-slate-subtle mt-0.5">
-                  Control de políticas RBAC (ADR-30), staff, split 70/30, AdMob y bitácora de auditoría.
+                  Control de permisos y roles, equipo, reparto de ingresos, publicidad y bitácora de auditoría.
                 </p>
               </div>
             </div>
@@ -161,7 +161,7 @@ export function DemoLoginModal({ isOpen, onClose }: DemoLoginModalProps) {
         {/* Pie del modal */}
         <div className="pt-2 border-t border-border-default flex items-center justify-between text-xs">
           <span className="text-slate-subtle text-[11px] font-mono">
-            Entorno emulado local • Tri-Rol RBAC (ADR-30)
+            Entorno emulado local • Control de acceso por rol
           </span>
           <button
             onClick={onClose}

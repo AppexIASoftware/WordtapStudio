@@ -186,7 +186,7 @@ export function AuditInspectorModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 border-t border-border-default flex-shrink-0 text-[11px] font-mono text-slate-subtle">
-          <span>Inmutabilidad de registro garantizada (ADR-20)</span>
+          <span>Inmutabilidad de registro garantizada</span>
           <button
             type="button"
             onClick={onClose}

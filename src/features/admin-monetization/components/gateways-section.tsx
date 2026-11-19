@@ -18,7 +18,7 @@ export function GatewaysSection({ config, setConfig, selectedGateway, setSelecte
         <div>
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <CreditCard size={16} className="text-emerald-brand" />
-            <span>Mapeo Técnico de Pasarelas de Pago & Identificadores de Tienda (ADR-29)</span>
+            <span>Configuración de Pasarelas de Pago & Identificadores de Tienda</span>
           </h3>
           <p className="text-xs text-slate-muted mt-0.5">
             Vinculación entre el precio base canónico (${config.subPrice.toFixed(2)} USD) y los identificadores de producto en cada pasarela.

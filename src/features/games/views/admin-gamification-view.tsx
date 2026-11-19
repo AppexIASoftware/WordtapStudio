@@ -70,7 +70,14 @@ export function AdminGamificationView() {
   }, []);
 
   useEffect(() => {
-    void fetchGames();
+    let active = true;
+    (async () => {
+      if (!active) return;
+      await fetchGames();
+    })();
+    return () => {
+      active = false;
+    };
   }, [fetchGames]);
 
   // El catálogo llega unificado: los juegos de la plataforma se separan de los

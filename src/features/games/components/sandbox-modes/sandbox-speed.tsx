@@ -13,21 +13,15 @@ export function SandboxSpeed({
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentPair = wordPairs[currentIndex] || wordPairs[0];
 
-  // Determinar si la traducción mostrada es la real o una trampa
-  const [isMatchChallenge, setIsMatchChallenge] = useState(true);
-  const [displayedTranslation, setDisplayedTranslation] = useState(currentPair?.translation || "");
-
-  useMemo(() => {
-    if (!currentPair) return;
-    const shouldMatch = Math.random() > 0.45;
-    setIsMatchChallenge(shouldMatch);
-    if (shouldMatch) {
-      setDisplayedTranslation(currentPair.translation);
-    } else {
-      const others = wordPairs.filter((p) => p.term !== currentPair.term);
-      const fallback = others.length > 0 ? others[Math.floor(Math.random() * others.length)].translation : currentPair.translation;
-      setDisplayedTranslation(fallback);
-    }
+  // Determinar si la traducción mostrada es la real o una trampa (determinista y puro)
+  const { isMatchChallenge, displayedTranslation } = useMemo(() => {
+    if (!currentPair) return { isMatchChallenge: true, displayedTranslation: "" };
+    const others = wordPairs.filter((p) => p.term !== currentPair.term);
+    const shouldMatch = others.length === 0 || currentIndex % 2 === 0;
+    const displayedTranslation = shouldMatch
+      ? currentPair.translation
+      : others[currentIndex % others.length].translation;
+    return { isMatchChallenge: shouldMatch, displayedTranslation };
   }, [currentIndex, currentPair, wordPairs]);
 
   const handleAnswer = (userSaysMatch: boolean) => {

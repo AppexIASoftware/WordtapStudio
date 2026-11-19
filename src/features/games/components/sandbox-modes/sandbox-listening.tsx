@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useSpeak } from "@/hooks/use-speak";
-import { SandboxEngineProps } from "./sandbox-types";
+import { SandboxEngineProps, deterministicShuffle } from "./sandbox-types";
 import { Volume2, VolumeX, Sparkles } from "lucide-react";
 
 export function SandboxListening({
@@ -32,8 +32,8 @@ export function SandboxListening({
   const options = useMemo(() => {
     if (!currentPair) return [];
     const others = wordPairs.filter((p) => p.term !== currentPair.term);
-    const shuffledOthers = [...others].sort(() => 0.5 - Math.random()).slice(0, 3);
-    return [currentPair, ...shuffledOthers].sort(() => 0.5 - Math.random());
+    const shuffledOthers = deterministicShuffle(others, (p) => p.term, currentPair.term).slice(0, 3);
+    return deterministicShuffle([currentPair, ...shuffledOthers], (p) => p.translation, currentPair.term);
   }, [wordPairs, currentPair]);
 
   const handleSelect = (translation: string) => {

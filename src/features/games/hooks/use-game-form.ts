@@ -99,7 +99,10 @@ export function useGameForm({
     return () => { active = false; };
   }, [isGlobal]);
 
-  useEffect(() => {
+  const gameSyncKey = `${initialGame?.id ?? ""}:${initialGame?.base_archetype ?? ""}:${initialGame?.access_tier ?? ""}:${defaultArchetype ?? ""}`;
+  const [prevGameSyncKey, setPrevGameSyncKey] = useState(gameSyncKey);
+  if (prevGameSyncKey !== gameSyncKey) {
+    setPrevGameSyncKey(gameSyncKey);
     if (initialGame?.base_archetype) {
       setBaseArchetype(initialGame.base_archetype);
     } else if (defaultArchetype) {
@@ -108,7 +111,7 @@ export function useGameForm({
     if (initialGame?.access_tier) {
       setAccessTier(initialGame.access_tier);
     }
-  }, [defaultArchetype, initialGame]);
+  }
 
   useEffect(() => {
     getVaultCategoriesApi().then((res) => {
@@ -247,7 +250,7 @@ export function useGameForm({
       return;
     }
 
-    let validWordsJson = customWordsText?.trim() || "[]";
+    const validWordsJson = customWordsText?.trim() || "[]";
     try {
       JSON.parse(validWordsJson);
     } catch {

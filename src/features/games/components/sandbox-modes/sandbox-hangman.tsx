@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { SandboxEngineProps } from "./sandbox-types";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -17,9 +17,11 @@ export function SandboxHangman({
   const targetWord = (currentPair?.term || "").toUpperCase().replace(/[^A-Z]/g, "");
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
 
-  useEffect(() => {
+  const [prevIndex, setPrevIndex] = useState(currentIndex);
+  if (prevIndex !== currentIndex) {
+    setPrevIndex(currentIndex);
     setGuessedLetters([]);
-  }, [currentIndex]);
+  }
 
   const isWordRevealed = useMemo(() => {
     return targetWord.split("").every((ch) => guessedLetters.includes(ch));

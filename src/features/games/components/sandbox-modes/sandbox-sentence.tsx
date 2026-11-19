@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { SandboxEngineProps } from "./sandbox-types";
+import { useState, useMemo } from "react";
+import { SandboxEngineProps, deterministicShuffle } from "./sandbox-types";
 import { RotateCcw, Delete, Sparkles } from "lucide-react";
 
 const SAMPLE_SENTENCES = [
@@ -24,17 +24,17 @@ export function SandboxSentence({
   }, [currentSentence]);
 
   const shuffledTokens = useMemo(() => {
-    return targetTokens
-      .map((word, idx) => ({ id: `${word}-${idx}`, word }))
-      .sort(() => 0.5 - Math.random());
-  }, [targetTokens]);
+    const tokens = targetTokens.map((word, idx) => ({ id: `${word}-${idx}`, word }));
+    return deterministicShuffle(tokens, (t) => t.id, currentSentence.target);
+  }, [targetTokens, currentSentence.target]);
 
   const [selectedTokens, setSelectedTokens] = useState<{ id: string; word: string }[]>([]);
   const [mistakeFlash, setMistakeFlash] = useState(false);
-
-  useEffect(() => {
+  const [prevIndex, setPrevIndex] = useState(currentIndex);
+  if (prevIndex !== currentIndex) {
+    setPrevIndex(currentIndex);
     setSelectedTokens([]);
-  }, [currentIndex]);
+  }
 
   const availableTokens = useMemo(() => {
     const selectedIds = new Set(selectedTokens.map((t) => t.id));

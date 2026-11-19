@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SandboxEngineProps } from "./sandbox-types";
+import { SandboxEngineProps, deterministicShuffle } from "./sandbox-types";
 
 export function SandboxTrivia({
   wordPairs,
@@ -15,8 +15,8 @@ export function SandboxTrivia({
   const options = useMemo(() => {
     if (!currentPair) return [];
     const others = wordPairs.filter((p) => p.term !== currentPair.term);
-    const shuffledOthers = [...others].sort(() => 0.5 - Math.random()).slice(0, 3);
-    return [currentPair, ...shuffledOthers].sort(() => 0.5 - Math.random());
+    const shuffledOthers = deterministicShuffle(others, (p) => p.term, currentPair.term).slice(0, 3);
+    return deterministicShuffle([currentPair, ...shuffledOthers], (p) => p.translation, currentPair.term);
   }, [wordPairs, currentPair]);
 
   const handleSelect = (translation: string) => {

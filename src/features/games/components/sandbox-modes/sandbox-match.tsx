@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SandboxEngineProps } from "./sandbox-types";
+import { SandboxEngineProps, deterministicShuffle } from "./sandbox-types";
 
 export function SandboxMatch({
   wordPairs,
@@ -15,7 +15,7 @@ export function SandboxMatch({
   const [mistakeFlash, setMistakeFlash] = useState<string | null>(null);
 
   const shuffledTranslations = useMemo(() => {
-    return [...wordPairs].sort(() => 0.5 - Math.random());
+    return deterministicShuffle(wordPairs, (p) => p.translation, "match");
   }, [wordPairs]);
 
   const verifyMatch = (term: string, translation: string) => {

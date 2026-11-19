@@ -64,15 +64,17 @@ export function GameSandboxModal({ game, onClose }: GameSandboxModalProps) {
   // Temporizador de partida
   useEffect(() => {
     if (gameState !== "playing") return;
-    if (timeLeft <= 0) {
-      setGameState("lost");
-      return;
-    }
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setGameState("lost");
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
-  }, [gameState, timeLeft]);
+  }, [gameState]);
 
   // Handlers del motor activo
   const handleCorrect = (pts = 10) => {

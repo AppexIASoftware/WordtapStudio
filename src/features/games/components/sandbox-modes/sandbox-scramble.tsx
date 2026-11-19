@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { SandboxEngineProps } from "./sandbox-types";
+import { useState, useMemo } from "react";
+import { SandboxEngineProps, deterministicShuffle } from "./sandbox-types";
 import { RotateCcw, Delete } from "lucide-react";
 
 interface LetterTile {
@@ -23,18 +23,19 @@ export function SandboxScramble({
 
   // Crear pool de fichas de letras barajadas
   const letterPool = useMemo<LetterTile[]>(() => {
-    return targetWord
+    const tiles = targetWord
       .split("")
-      .map((char, idx) => ({ id: `${char}-${idx}`, char }))
-      .sort(() => 0.5 - Math.random());
+      .map((char, idx) => ({ id: `${char}-${idx}`, char }));
+    return deterministicShuffle(tiles, (t) => t.id, targetWord);
   }, [targetWord]);
 
   const [selectedTiles, setSelectedTiles] = useState<LetterTile[]>([]);
   const [mistakeFlash, setMistakeFlash] = useState(false);
-
-  useEffect(() => {
+  const [prevIndex, setPrevIndex] = useState(currentIndex);
+  if (prevIndex !== currentIndex) {
+    setPrevIndex(currentIndex);
     setSelectedTiles([]);
-  }, [currentIndex]);
+  }
 
   const availableTiles = useMemo(() => {
     const selectedIds = new Set(selectedTiles.map((t) => t.id));

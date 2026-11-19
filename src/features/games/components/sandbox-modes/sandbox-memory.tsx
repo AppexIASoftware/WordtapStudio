@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { SandboxEngineProps } from "./sandbox-types";
+import { SandboxEngineProps, deterministicShuffle } from "./sandbox-types";
 import { Sparkles } from "lucide-react";
 
 interface MemoryCard {
@@ -26,7 +26,7 @@ export function SandboxMemory({
       cards.push({ id: `term-${idx}`, pairKey: p.term, text: p.term, type: "term" });
       cards.push({ id: `trans-${idx}`, pairKey: p.term, text: p.translation, type: "trans" });
     });
-    return cards.sort(() => 0.5 - Math.random());
+    return deterministicShuffle(cards, (c) => c.id, "memory");
   }, [activePairs]);
 
   const [flippedIds, setFlippedIds] = useState<string[]>([]);

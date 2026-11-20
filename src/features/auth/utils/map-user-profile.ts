@@ -58,5 +58,7 @@ export function mapBackendUserToProfile(backendUser: BackendUser): UserProfile {
     avatarInitials: initials || "WT",
     scope: ROLE_SCOPES[role],
     avatarUrl: backendUser.avatar_url,
+    bio: backendUser.bio ?? null,
+    specialty: backendUser.specialty ?? null,
   };
 }

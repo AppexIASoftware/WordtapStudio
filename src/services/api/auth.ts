@@ -79,3 +79,26 @@ export async function logoutApi(refreshTokenOverride?: string | null): Promise<v
     // Los errores de red al revocar la sesión no deben impedir el cierre local.
   }
 }
+
+export interface UpdateTeacherProfilePayload {
+  bio?: string;
+  specialty?: string;
+}
+
+export async function updateTeacherProfileApi(
+  payload: UpdateTeacherProfilePayload
+): Promise<{
+  data: { user: BackendUser } | null;
+  error: string | null;
+}> {
+  const token = getStoredAccessToken();
+  if (!token) {
+    return { data: null, error: "Sesión no válida. Vuelve a iniciar sesión." };
+  }
+
+  return apiRequest<{ user: BackendUser }>(`${API_V1_URL}/teacher/profile`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}

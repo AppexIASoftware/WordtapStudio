@@ -23,6 +23,8 @@ export interface UserProfile {
   avatarInitials: string;
   scope: string;
   avatarUrl?: string | null;
+  bio?: string | null;
+  specialty?: string | null;
   applicationStatus?: "none" | "pending" | "approved" | "rejected";
 }
 

@@ -4,10 +4,16 @@ import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { RoleGuard } from "@/features/auth/components/role-guard";
+import { useAuth } from "@/features/auth/auth-context";
+import { USER_ROLE } from "@/features/auth/types";
+import { TeacherProfileModal } from "@/features/dashboard/components/teacher-profile-modal";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const { currentRole } = useAuth();
+  const canEditTeacherProfile = currentRole === USER_ROLE.INSTRUCTOR;
 
   return (
     <RoleGuard>
@@ -20,6 +26,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           onCloseMobile={() => setMobileMenuOpen(false)}
           collapsed={sidebarCollapsed}
           onCollapsedChange={setSidebarCollapsed}
+          onOpenProfileModal={canEditTeacherProfile ? () => setProfileModalOpen(true) : undefined}
         />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -28,6 +35,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
+
+        <TeacherProfileModal
+          isOpen={profileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
+        />
       </div>
     </RoleGuard>
   );

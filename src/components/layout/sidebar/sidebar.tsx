@@ -18,6 +18,7 @@ import { UserFooter } from "./user-footer";
 
 export interface SidebarProps {
   onOpenDemoModal?: () => void;
+  onOpenProfileModal?: () => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
   collapsed?: boolean;
@@ -29,6 +30,7 @@ export interface SidebarProps {
  */
 export function Sidebar({
   onOpenDemoModal,
+  onOpenProfileModal,
   isMobileOpen = false,
   onCloseMobile,
   collapsed: controlledCollapsed,
@@ -177,6 +179,7 @@ export function Sidebar({
           currentRole={currentRole}
           collapsed={collapsed}
           onOpenDemoModal={onOpenDemoModal}
+          onOpenProfileModal={onOpenProfileModal}
           onLogout={logout}
         />
       </aside>

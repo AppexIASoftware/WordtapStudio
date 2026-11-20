@@ -7,11 +7,13 @@ export interface UserFooterProps {
   user: {
     name: string;
     title: string;
+    specialty?: string | null;
     avatarInitials: string;
   };
   currentRole: UserRole;
   collapsed: boolean;
   onOpenDemoModal?: () => void;
+  onOpenProfileModal?: () => void;
   onLogout: () => void;
 }
 
@@ -21,15 +23,22 @@ export function UserFooter({
   currentRole,
   collapsed,
   onOpenDemoModal,
+  onOpenProfileModal,
   onLogout,
 }: UserFooterProps) {
+  const handleProfileClick = onOpenProfileModal ?? onOpenDemoModal;
+  const subtitle =
+    currentRole === "instructor" && user.specialty
+      ? user.specialty
+      : user.title;
+
   return (
     <div className="p-2 border-t border-border-default bg-card/60">
       <div className="flex items-center justify-between gap-1.5">
         <div
-          onClick={onOpenDemoModal}
+          onClick={handleProfileClick}
           className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer hover:opacity-85 transition-opacity"
-          title="Ver perfil o cambiar usuario (Login Demo)"
+          title={onOpenProfileModal ? "Editar perfil académico docente" : "Ver perfil o cambiar usuario (Login Demo)"}
         >
           <div
             className={`w-7 h-7 rounded-full flex items-center justify-center text-canvas font-bold text-xs flex-shrink-0 shadow-sm ${
@@ -48,7 +57,7 @@ export function UserFooter({
                 {user.name}
               </p>
               <p className="text-[10px] text-slate-subtle truncate">
-                {user.title}
+                {subtitle}
               </p>
             </div>
           )}

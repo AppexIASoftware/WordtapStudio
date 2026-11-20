@@ -10,6 +10,8 @@ export interface BackendUser {
   email: string;
   name: string;
   avatar_url?: string | null;
+  bio?: string | null;
+  specialty?: string | null;
   role: string;
   access_tier: string;
   preferred_language: string;

@@ -24,8 +24,20 @@ import {
   ExternalLink,
   Sun,
   Moon,
+  ArrowLeft,
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
+import { PendingProfileCard } from "@/features/auth/components/pending-profile-card";
+import { parseSpecialtyTags } from "@/features/dashboard/components/specialty-tags-input";
+
+const DEFAULT_AUTO_BIO = "Postulante registrado vía Google en Wordtap Studio";
+
+function hasCompletedProfile(data: TeacherApplicationStatusResponse | null): boolean {
+  if (!data) return false;
+  const tags = parseSpecialtyTags(data.specialty || "");
+  const bio = (data.bio || "").trim();
+  return tags.length > 0 && bio.length >= 20 && bio !== DEFAULT_AUTO_BIO;
+}
 
 export default function PendingApprovalPage() {
   const { user, logout, refreshSession } = useAuth();
@@ -36,6 +48,8 @@ export default function PendingApprovalPage() {
   const [publicSettings, setPublicSettings] = useState<PublicSettings | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState<1 | 2>(1);
+  const [stepInitialized, setStepInitialized] = useState(false);
 
   const fetchStatus = async () => {
     setIsChecking(true);
@@ -50,6 +64,14 @@ export default function PendingApprovalPage() {
       }
       if (resStatus.data) {
         setStatusData(resStatus.data);
+        if (!stepInitialized) {
+          const skipToStatus =
+            resStatus.data.status === "approved" ||
+            resStatus.data.status === "suspended" ||
+            hasCompletedProfile(resStatus.data);
+          setActiveStep(skipToStatus ? 2 : 1);
+          setStepInitialized(true);
+        }
         if (resStatus.data.status === "approved") {
           setFeedbackMsg("¡Cuenta aprobada! Sincronizando credenciales docentes...");
           setStoredRole("instructor");
@@ -87,10 +109,13 @@ export default function PendingApprovalPage() {
   const isRejected = statusData?.status === "rejected";
   const isSuspended = statusData?.status === "suspended";
 
+  const showProfileEditor = !isApproved && !isSuspended;
+  const currentSlide: 1 | 2 = showProfileEditor ? activeStep : 2;
+
   return (
-    <div className="min-h-screen bg-canvas text-slate-100 flex flex-col justify-center items-center px-4 py-6 select-none relative">
+    <div className="min-h-screen bg-canvas text-slate-100 flex flex-col justify-center items-center px-4 py-4 select-none relative">
       {/* Conmutador de tema discreto en esquina superior derecha */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+      <div className="absolute top-4 right-4 sm:top-5 sm:right-6">
         <button
           onClick={toggleTheme}
           className="px-2.5 py-1 rounded-xl bg-card border border-border-default hover:border-emerald-brand/40 text-xs text-slate-muted hover:text-emerald-brand transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
@@ -101,11 +126,11 @@ export default function PendingApprovalPage() {
         </button>
       </div>
 
-      {/* Contenedor central integrado: Marca + Card + Footer */}
-      <div className="w-full max-w-md space-y-3.5">
+      {/* Contenedor central integrado: Marca + Stepper + Card + Footer */}
+      <div className="w-full max-w-lg space-y-3">
         {/* Identidad de Marca integrada sobre la card */}
         <div className="text-center space-y-1">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-brand to-mint-brand flex items-center justify-center text-canvas font-black text-base shadow-glow-emerald mx-auto">
+          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-brand to-mint-brand flex items-center justify-center text-canvas font-black text-base shadow-glow-emerald mx-auto">
             W
           </div>
           <div className="flex items-center justify-center gap-1.5">
@@ -116,8 +141,59 @@ export default function PendingApprovalPage() {
           </div>
         </div>
 
-        {/* Card Principal de Estado */}
-        <main className="bg-card border border-border-default rounded-3xl p-5 sm:p-6 shadow-2xl space-y-3.5">
+        {/* Indicador de pasos animado */}
+        {showProfileEditor && (
+          <div className="flex items-center justify-center gap-2 text-[11px] font-mono">
+            <button
+              type="button"
+              onClick={() => setActiveStep(1)}
+              className={`px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                currentSlide === 1
+                  ? "bg-emerald-brand/15 border-emerald-brand/40 text-emerald-brand font-bold"
+                  : "bg-card border-border-default text-slate-muted hover:text-white"
+              }`}
+            >
+              1. Perfil Académico
+            </button>
+            <span className="text-slate-subtle">→</span>
+            <button
+              type="button"
+              disabled={!hasCompletedProfile(statusData)}
+              onClick={() => setActiveStep(2)}
+              className={`px-2.5 py-1 rounded-full border transition-all ${
+                currentSlide === 2
+                  ? "bg-emerald-brand/15 border-emerald-brand/40 text-emerald-brand font-bold"
+                  : "bg-card border-border-default text-slate-muted"
+              } disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer`}
+            >
+              2. Postulación
+            </button>
+          </div>
+        )}
+
+        {/* Card Principal con desplazamiento animado entre pasos */}
+        <main className="bg-card border border-border-default rounded-3xl shadow-2xl overflow-hidden">
+          <div
+            className="flex w-[200%] transition-transform duration-300 ease-out"
+            style={{
+              transform: currentSlide === 1 ? "translateX(0%)" : "translateX(-50%)",
+            }}
+          >
+            {/* Paso 1: Completar Perfil Académico */}
+            <div className="w-1/2 p-5 sm:p-6 flex flex-col justify-between">
+              <PendingProfileCard
+                initialSpecialty={statusData?.specialty}
+                initialBio={statusData?.bio}
+                submitLabel="Guardar y Continuar →"
+                onSaved={() => {
+                  void fetchStatus();
+                  setActiveStep(2);
+                }}
+              />
+            </div>
+
+            {/* Paso 2: Estado de Postulación Docente */}
+            <div className="w-1/2 p-5 sm:p-6 space-y-3.5">
           {/* Header del estado */}
           <div className="text-center space-y-1.5">
             <div
@@ -289,6 +365,19 @@ export default function PendingApprovalPage() {
               <LogOut className="w-3.5 h-3.5" />
               <span>Cerrar Sesión</span>
             </button>
+          </div>
+
+          {showProfileEditor && (
+            <button
+              type="button"
+              onClick={() => setActiveStep(1)}
+              className="w-full py-1.5 text-[11px] font-semibold text-slate-muted hover:text-emerald-brand transition-colors flex items-center justify-center gap-1 cursor-pointer"
+            >
+              <ArrowLeft size={12} />
+              <span>Editar mi perfil académico</span>
+            </button>
+          )}
+          </div>
           </div>
         </main>
 

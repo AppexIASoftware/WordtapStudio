@@ -1,17 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calculator } from "lucide-react";
 
-interface SupermemoSimulatorProps {
-  onSaveConfig?: (ef: number, q: number, reps: number) => void;
+export interface ReviewCalibrationConfig {
+  ease_factor: number;
+  quality: number;
+  repetitions: number;
 }
 
-export function SupermemoSimulator({ onSaveConfig }: SupermemoSimulatorProps) {
-  const [easeFactor, setEaseFactor] = useState(2.5);
-  const [quality, setQuality] = useState(4);
-  const [repetitions, setRepetitions] = useState(3);
+interface SupermemoSimulatorProps {
+  initialConfig?: ReviewCalibrationConfig | null;
+  onSaveConfig?: (ef: number, q: number, reps: number) => Promise<boolean> | boolean;
+}
+
+export function SupermemoSimulator({ initialConfig, onSaveConfig }: SupermemoSimulatorProps) {
+  const [easeFactor, setEaseFactor] = useState(initialConfig?.ease_factor ?? 2.5);
+  const [quality, setQuality] = useState(initialConfig?.quality ?? 4);
+  const [repetitions, setRepetitions] = useState(initialConfig?.repetitions ?? 3);
+  const [isSaving, setIsSaving] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
+
+  useEffect(() => {
+    if (initialConfig) {
+      setEaseFactor(initialConfig.ease_factor);
+      setQuality(initialConfig.quality);
+      setRepetitions(initialConfig.repetitions);
+    }
+  }, [initialConfig]);
 
   // Cálculo didáctico de la fórmula SuperMemo SM-2
   // EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
@@ -35,12 +51,17 @@ export function SupermemoSimulator({ onSaveConfig }: SupermemoSimulatorProps) {
     calculatedInterval = Math.round(6 * Math.pow(newEaseFactor, repetitions - 2));
   }
 
-  const handleSave = () => {
-    if (onSaveConfig) {
-      onSaveConfig(easeFactor, quality, repetitions);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const ok = onSaveConfig ? await onSaveConfig(easeFactor, quality, repetitions) : true;
+      if (ok) {
+        setSavedNotice(true);
+        setTimeout(() => setSavedNotice(false), 2500);
+      }
+    } finally {
+      setIsSaving(false);
     }
-    setSavedNotice(true);
-    setTimeout(() => setSavedNotice(false), 2500);
   };
 
   return (
@@ -58,9 +79,10 @@ export function SupermemoSimulator({ onSaveConfig }: SupermemoSimulatorProps) {
         <button
           type="button"
           onClick={handleSave}
-          className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors cursor-pointer"
+          disabled={isSaving}
+          className="px-4 py-2 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors cursor-pointer disabled:opacity-50"
         >
-          {savedNotice ? "¡Parámetros Guardados!" : "Guardar Calibración"}
+          {isSaving ? "Guardando..." : savedNotice ? "¡Parámetros Guardados!" : "Guardar Calibración"}
         </button>
       </div>
 

@@ -15,6 +15,7 @@ import { RefreshCw, UserCheck, Search } from "lucide-react";
 import { SuspendTeacherModal } from "./suspend-teacher-modal";
 import { DeleteTeacherModal } from "./delete-teacher-modal";
 import { TeacherApplicationRow } from "./teacher-application-row";
+import { TeacherApplicationDetailModal } from "./teacher-application-detail-modal";
 import {
   ApplicationDecisionModal,
   ApplicationDecisionType,
@@ -97,6 +98,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
   const [isSuspending, setIsSuspending] = useState(false);
   const [deletingApp, setDeletingApp] = useState<ApiTeacherApplication | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [inspectingApp, setInspectingApp] = useState<ApiTeacherApplication | null>(null);
 
   const {
     data: applications = [],
@@ -319,6 +321,7 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
                   key={app.id}
                   app={app}
                   isItemLoading={actionLoadingId === app.id}
+                  onInspect={(target) => setInspectingApp(target)}
                   onApprove={(target) => openDecisionModal(target, APPLICATION_DECISION_TYPE.APPROVE)}
                   onReject={(target) => openDecisionModal(target, APPLICATION_DECISION_TYPE.REJECT)}
                   onOpenSuspendModal={handleOpenSuspendModal}
@@ -332,6 +335,13 @@ export function TeacherApplicationsTable({ onNotify, isAdmin }: TeacherApplicati
           </table>
         </div>
       )}
+
+      <TeacherApplicationDetailModal
+        application={inspectingApp}
+        onClose={() => setInspectingApp(null)}
+        onApprove={(target) => openDecisionModal(target, APPLICATION_DECISION_TYPE.APPROVE)}
+        onReject={(target) => openDecisionModal(target, APPLICATION_DECISION_TYPE.REJECT)}
+      />
 
       <ApplicationDecisionModal
         application={decisionState?.app ?? null}

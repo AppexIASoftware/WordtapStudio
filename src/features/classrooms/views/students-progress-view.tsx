@@ -1,300 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Plus, Download, Users, BookOpen, Gamepad2 } from "lucide-react";
-import { CLASSROOMS_DATA } from "@/features/classrooms/data/mock-classrooms";
-import { Classroom } from "@/features/classrooms/types";
 import { ToastNotification } from "@/components/ui/toast-notification";
-import { getTeacherClassroomsApi } from "@/services/api/classroom";
-import { useUrlParam } from "@/hooks/use-url-params";
-import { useGlobalStudents } from "../hooks/use-global-students";
+import { useStudentsProgress } from "../hooks/use-students-progress";
 import { CohortCardsGrid } from "../components/cohort-cards-grid";
 import { CohortStumbleCards } from "../components/cohort-stumble-cards";
 import { ClassroomsHeader } from "../components/classrooms-header";
 import { CohortManagementPanel } from "../components/cohort-management-panel";
 import { CohortsSkeleton } from "../components/cohorts-skeleton";
-import { filterClassroomStudents } from "../components/cohort-student-table";
 import { GlobalStudentsTable } from "../components/global-students-table";
 import { CohortCreationWorkspace } from "../components/cohort-creation-workspace";
 import { StumbleReinforcementDrawer } from "../components/stumble-reinforcement-drawer";
 import { BroadcastClassroomModal } from "../components/broadcast-classroom-modal";
 
-const STUDENT_MAIN_TABS = ["cohorts", "global"] as const;
-
 export function StudentsProgressView() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
+  const s = useStudentsProgress();
 
-  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
-  const [isLoadingClassrooms, setIsLoadingClassrooms] = useState(true);
-  const [selectedClassId, setSelectedClassId] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "create" | "detail">(
-    searchParams.get("view") === "create"
-      ? "create"
-      : searchParams.get("view") === "detail"
-      ? "detail"
-      : "list"
-  );
-  const [detailClassroom, setDetailClassroom] = useState<Classroom | null>(null);
-  const [mainTab, setMainTab] = useUrlParam<"cohorts" | "global">(
-    "tab",
-    STUDENT_MAIN_TABS,
-    "cohorts"
-  );
-  const [cohortSubTab, setCohortSubTab] = useState<"students" | "courses" | "games">("students");
-  const [cohortFilter, setCohortFilter] = useState<
-    "all" | "subscription" | "trial" | "free" | "stumbled"
-  >("all");
-  const [cohortSearch, setCohortSearch] = useState("");
-  const [showReinforcementDrawer, setShowReinforcementDrawer] = useState(false);
-  const [broadcastClassroom, setBroadcastClassroom] = useState<Classroom | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const globalStudentsState = useGlobalStudents(mainTab === "global");
-
-  const urlView = searchParams.get("view");
-  const urlClassId = searchParams.get("classId");
-  const urlAction = searchParams.get("action") || searchParams.get("modal");
-  const urlTab = searchParams.get("tab");
-  const urlBroadcast = searchParams.get("broadcast");
-  const routeSyncKey = `${urlView ?? ""}|${urlClassId ?? ""}|${urlAction ?? ""}|${urlTab ?? ""}|${urlBroadcast ?? ""}|${classrooms.length}|${detailClassroom?.id ?? ""}`;
-  const [prevRouteSyncKey, setPrevRouteSyncKey] = useState(routeSyncKey);
-  if (prevRouteSyncKey !== routeSyncKey) {
-    setPrevRouteSyncKey(routeSyncKey);
-    if (urlView === "create") {
-      setDetailClassroom(null);
-      setViewMode("create");
-    } else if (urlView === "detail") {
-      if (urlClassId) {
-        const found = classrooms.find((c) => c.id === urlClassId);
-        if (found) setDetailClassroom(found);
-      }
-      setViewMode("detail");
-    } else {
-      setViewMode("list");
-    }
-
-    const isBroadcast = urlAction === "broadcast" || urlTab === "broadcast";
-    const targetClassId = urlClassId || urlBroadcast;
-    if (isBroadcast) {
-      if (targetClassId && classrooms.length > 0) {
-        const found = classrooms.find((c) => c.id === targetClassId);
-        if (found) setBroadcastClassroom(found);
-      } else if (detailClassroom) {
-        setBroadcastClassroom(detailClassroom);
-      }
-    } else if (broadcastClassroom) {
-      setBroadcastClassroom(null);
-    }
-  }
-
-  const handleOpenBroadcast = (cls: Classroom) => {
-    setBroadcastClassroom(cls);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("action", "broadcast");
-    params.set("classId", cls.id);
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const handleCloseBroadcast = () => {
-    setBroadcastClassroom(null);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("action");
-    params.delete("modal");
-    if (params.get("tab") === "broadcast") {
-      params.set("tab", "history");
-    }
-    if (viewMode === "list") {
-      params.delete("classId");
-    }
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const handleOpenCreate = () => {
-    setDetailClassroom(null);
-    setViewMode("create");
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("view", "create");
-    params.set("tab", "general");
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const handleOpenDetail = (cls: Classroom) => {
-    setSelectedClassId(cls.id);
-    setDetailClassroom(cls);
-    setViewMode("detail");
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("view", "detail");
-    params.set("classId", cls.id);
-    params.set("tab", "general");
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const handleCloseWorkspace = () => {
-    setDetailClassroom(null);
-    setViewMode("list");
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("view");
-    params.delete("classId");
-    params.delete("tab");
-    params.delete("step");
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  useEffect(() => {
-    async function loadClassrooms() {
-      setIsLoadingClassrooms(true);
-      try {
-        const res = await getTeacherClassroomsApi();
-        if (res.data && res.data.length > 0) {
-          // Live database data: strip demo mock flags
-          const liveData: Classroom[] = res.data.map((c) => ({
-            ...c,
-            isDemo: false,
-            stumble: (c.stumble || []).map((s) => ({ ...s, isDemo: false })),
-            students: (c.students || []).map((st) => ({ ...st, isDemo: false })),
-          }));
-          setClassrooms(liveData);
-          setSelectedClassId(liveData[0].id);
-        } else {
-          // Fallback to demo classrooms only when database is empty
-          const demoData = CLASSROOMS_DATA.map((c) => ({ ...c, isDemo: true }));
-          setClassrooms(demoData);
-          setSelectedClassId(demoData[0].id);
-        }
-      } catch {
-        // Fallback in case of network or server failure
-        const demoData = CLASSROOMS_DATA.map((c) => ({ ...c, isDemo: true }));
-        setClassrooms(demoData);
-        setSelectedClassId(demoData[0].id);
-      } finally {
-        setIsLoadingClassrooms(false);
-      }
-    }
-    loadClassrooms();
-  }, []);
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  const selectedClass =
-    classrooms.find((c) => c.id === selectedClassId) ||
-    classrooms[0] || {
-      id: "empty",
-      name: "Sin Aula",
-      code: "WT-0000",
-      courseId: "",
-      courseTitle: "Sin Curso",
-      assignedCourses: ["c-3"],
-      activeGames: ["match", "memory", "listening", "multiple_choice"],
-      level: "B1 Intermediate",
-      created: "Hoy",
-      studentsCount: 0,
-      stats: { sub: 0, trial: 0, free: 0, scholar: 0 },
-      stumble: [],
-      students: [],
-    };
-
-  const copyCode = (code: string) => {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(code);
-      triggerToast(`¡Código ${code} copiado al portapapeles!`);
-    } else {
-      triggerToast(`Código: ${code}`);
-    }
-  };
-
-  const shareWhatsApp = (name: string, code: string) => {
-    const text = `¡Hola! Únete a mi aula privada "${name}" en WordTap con el código: ${code}`;
-    if (typeof window !== "undefined") {
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
-    }
-  };
-
-  const filteredStudents = filterClassroomStudents(
-    selectedClass.students,
-    cohortFilter,
-    cohortSearch
-  );
-
-  const handleExportCsv = () => {
-    const rows =
-      mainTab === "global"
-        ? [
-            ["Nombre", "Correo", "Curso", "Nivel", "Racha", "Progreso", "Plan", "Ultima Sesion"],
-            ...globalStudentsState.students.map((st) => [
-              st.name,
-              st.email,
-              st.course,
-              st.cefr,
-              st.streak,
-              `${st.progress}%`,
-              st.payLabel,
-              st.lastActive,
-            ]),
-          ]
-        : [
-            ["Nombre", "Correo", "Nivel", "Racha", "Precision", "Plan", "Ultima Actividad"],
-            ...filteredStudents.map((st) => [
-              st.name,
-              st.email,
-              st.level,
-              st.streak,
-              st.accuracy,
-              st.payLabel,
-              st.lastActive,
-            ]),
-          ];
-    const csv = rows
-      .map((line) => line.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = mainTab === "global" ? "wordtap-global-students.csv" : "wordtap-cohort-students.csv";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    triggerToast("Descarga iniciada: Lista de estudiantes en formato CSV");
-  };
-
-  if (viewMode === "create" || viewMode === "detail") {
+  if (s.viewMode === "create" || s.viewMode === "detail") {
     return (
       <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-        <ToastNotification message={toastMessage} variant="emerald" />
+        <ToastNotification message={s.toastMessage} variant="emerald" />
         <CohortCreationWorkspace
-          initialClassroom={viewMode === "detail" ? detailClassroom : null}
-          initialMode={viewMode === "detail" ? "view" : "create"}
-          onCancel={handleCloseWorkspace}
+          initialClassroom={s.viewMode === "detail" ? s.detailClassroom : null}
+          initialMode={s.viewMode === "detail" ? "view" : "create"}
+          onCancel={s.handleCloseWorkspace}
           onClassroomCreated={(newCls) => {
-            setClassrooms((prev) => {
-              // Purge any remaining demo classrooms once real classrooms exist
-              const realClassrooms = prev.filter((c) => !c.isDemo);
-              return [newCls, ...realClassrooms];
-            });
-            setSelectedClassId(newCls.id);
-            handleCloseWorkspace();
+            s.setClassrooms((prev) => [newCls, ...prev]);
+            s.setSelectedClassId(newCls.id);
+            s.handleCloseWorkspace();
           }}
           onClassroomUpdated={(updatedCls) => {
-            setClassrooms((prev) =>
+            s.setClassrooms((prev) =>
               prev.map((c) => (c.id === updatedCls.id ? updatedCls : c))
             );
-            setDetailClassroom(updatedCls);
-            triggerToast(`¡Aula "${updatedCls.name}" actualizada con éxito!`);
+            s.setDetailClassroom(updatedCls);
+            s.triggerToast(`¡Aula "${updatedCls.name}" actualizada con éxito!`);
           }}
-          triggerToast={triggerToast}
+          triggerToast={s.triggerToast}
         />
 
         <BroadcastClassroomModal
-          classroom={broadcastClassroom}
-          isOpen={!!broadcastClassroom}
-          onClose={handleCloseBroadcast}
-          onSuccess={() => triggerToast("¡Aviso publicado con éxito a los alumnos!")}
+          classroom={s.broadcastClassroom}
+          isOpen={!!s.broadcastClassroom}
+          onClose={s.handleCloseBroadcast}
+          onSuccess={() => s.triggerToast("¡Aviso publicado con éxito a los alumnos!")}
         />
       </div>
     );
@@ -302,95 +50,97 @@ export function StudentsProgressView() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-      <ToastNotification message={toastMessage} variant="emerald" />
+      <ToastNotification message={s.toastMessage} variant="emerald" />
       <ClassroomsHeader
-        classroomsCount={classrooms.length}
-        mainTab={mainTab}
-        onTabChange={(tab) => setMainTab(tab)}
-        onCreateClassroom={handleOpenCreate}
-        onExportCsv={handleExportCsv}
+        classroomsCount={s.classrooms.length}
+        mainTab={s.mainTab}
+        onTabChange={s.setMainTab}
+        onCreateClassroom={s.handleOpenCreate}
+        onExportCsv={s.handleExportCsv}
       />
 
-      {/* Contenido según pestaña */}
-      {mainTab === "cohorts" && (
-        isLoadingClassrooms ? (
+      {s.mainTab === "cohorts" && (
+        s.isLoadingClassrooms ? (
           <CohortsSkeleton />
         ) : (
-        <div className="space-y-6">
-          <CohortCardsGrid
-            classrooms={classrooms}
-            selectedClassId={selectedClassId}
-            onSelectClassroom={(id) => setSelectedClassId(id)}
-            onCopyCode={copyCode}
-            onShareWhatsApp={shareWhatsApp}
-            onOpenClassroomDetail={handleOpenDetail}
-            onBroadcast={handleOpenBroadcast}
-          />
+          <div className="space-y-6">
+            <CohortCardsGrid
+              classrooms={s.classrooms}
+              selectedClassId={s.selectedClassId}
+              onSelectClassroom={s.setSelectedClassId}
+              onCopyCode={s.copyCode}
+              onShareWhatsApp={s.shareWhatsApp}
+              onOpenClassroomDetail={s.handleOpenDetail}
+              onBroadcast={s.handleOpenBroadcast}
+            />
 
-          <CohortStumbleCards
-            stumbles={selectedClass.stumble}
-            studentsCount={selectedClass.studentsCount}
-            isDemo={selectedClass.isDemo}
-            onOpenReinforcementDrawer={() => setShowReinforcementDrawer(true)}
-          />
+            {s.classrooms.length > 0 && (
+              <>
+                <CohortStumbleCards
+                  stumbles={s.selectedClass.stumble}
+                  studentsCount={s.selectedClass.studentsCount}
+                  isDemo={s.selectedClass.isDemo}
+                  onOpenReinforcementDrawer={() => s.setShowReinforcementDrawer(true)}
+                />
 
-
-          <CohortManagementPanel
-            selectedClass={selectedClass}
-            cohortSubTab={cohortSubTab}
-            onSubTabChange={setCohortSubTab}
-            filteredStudents={filteredStudents}
-            cohortFilter={cohortFilter}
-            onFilterChange={setCohortFilter}
-            cohortSearch={cohortSearch}
-            onSearchChange={setCohortSearch}
-            onAssignMoreCourses={handleOpenCreate}
-            onUpdateActiveGames={(games) => {
-              setClassrooms((prev) =>
-                prev.map((c) => (c.id === selectedClass.id ? { ...c, activeGames: games } : c))
-              );
-            }}
-            triggerToast={triggerToast}
-          />
-        </div>
+                <CohortManagementPanel
+                  selectedClass={s.selectedClass}
+                  cohortSubTab={s.cohortSubTab}
+                  onSubTabChange={s.setCohortSubTab}
+                  filteredStudents={s.filteredStudents}
+                  cohortFilter={s.cohortFilter}
+                  onFilterChange={s.setCohortFilter}
+                  cohortSearch={s.cohortSearch}
+                  onSearchChange={s.setCohortSearch}
+                  onAssignMoreCourses={s.handleOpenCreate}
+                  onUpdateActiveGames={(games) => {
+                    s.setClassrooms((prev) =>
+                      prev.map((c) => (c.id === s.selectedClass.id ? { ...c, activeGames: games } : c))
+                    );
+                  }}
+                  triggerToast={s.triggerToast}
+                />
+              </>
+            )}
+          </div>
         )
       )}
 
-      {mainTab === "global" && (
+      {s.mainTab === "global" && (
         <GlobalStudentsTable
-          students={globalStudentsState.students}
-          courses={globalStudentsState.courses}
-          total={globalStudentsState.total}
-          page={globalStudentsState.page}
-          pageSize={globalStudentsState.pageSize}
-          onPageChange={globalStudentsState.setPage}
-          searchQuery={globalStudentsState.searchQuery}
-          onSearchChange={globalStudentsState.setSearchQuery}
-          planFilter={globalStudentsState.planFilter}
-          onPlanFilterChange={globalStudentsState.setPlanFilter}
-          levelFilter={globalStudentsState.levelFilter}
-          onLevelFilterChange={globalStudentsState.setLevelFilter}
-          courseFilter={globalStudentsState.courseFilter}
-          onCourseFilterChange={globalStudentsState.setCourseFilter}
+          students={s.globalStudentsState.students}
+          courses={s.globalStudentsState.courses}
+          total={s.globalStudentsState.total}
+          page={s.globalStudentsState.page}
+          pageSize={s.globalStudentsState.pageSize}
+          onPageChange={s.globalStudentsState.setPage}
+          searchQuery={s.globalStudentsState.searchQuery}
+          onSearchChange={s.globalStudentsState.setSearchQuery}
+          planFilter={s.globalStudentsState.planFilter}
+          onPlanFilterChange={s.globalStudentsState.setPlanFilter}
+          levelFilter={s.globalStudentsState.levelFilter}
+          onLevelFilterChange={s.globalStudentsState.setLevelFilter}
+          courseFilter={s.globalStudentsState.courseFilter}
+          onCourseFilterChange={s.globalStudentsState.setCourseFilter}
           allowCoursePurchaseFilter
-          isLoading={globalStudentsState.isLoading}
+          isLoading={s.globalStudentsState.isLoading}
         />
       )}
 
       <StumbleReinforcementDrawer
-        isOpen={showReinforcementDrawer}
-        onClose={() => setShowReinforcementDrawer(false)}
-        stumbles={selectedClass.stumble}
-        classroomName={selectedClass.name}
-        studentsCount={selectedClass.studentsCount}
-        triggerToast={triggerToast}
+        isOpen={s.showReinforcementDrawer}
+        onClose={() => s.setShowReinforcementDrawer(false)}
+        stumbles={s.selectedClass.stumble}
+        classroomName={s.selectedClass.name}
+        studentsCount={s.selectedClass.studentsCount}
+        triggerToast={s.triggerToast}
       />
 
       <BroadcastClassroomModal
-        classroom={broadcastClassroom}
-        isOpen={!!broadcastClassroom}
-        onClose={handleCloseBroadcast}
-        onSuccess={() => triggerToast("¡Aviso publicado con éxito a los alumnos!")}
+        classroom={s.broadcastClassroom}
+        isOpen={!!s.broadcastClassroom}
+        onClose={s.handleCloseBroadcast}
+        onSuccess={() => s.triggerToast("¡Aviso publicado con éxito a los alumnos!")}
       />
     </div>
   );

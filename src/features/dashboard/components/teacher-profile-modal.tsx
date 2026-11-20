@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, GraduationCap, Check, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { X, GraduationCap, Check, AlertCircle, ExternalLink } from "lucide-react";
 import { useAuth } from "@/features/auth/auth-context";
 import { updateTeacherProfileApi } from "@/services/api/auth";
+import { SpecialtyTagsInput, MAX_SPECIALTY_LENGTH } from "./specialty-tags-input";
 
 const MAX_BIO_LENGTH = 500;
-const MAX_SPECIALTY_LENGTH = 120;
 
 interface TeacherProfileModalProps {
   isOpen: boolean;
@@ -103,25 +104,11 @@ export function TeacherProfileModal({ isOpen, onClose }: TeacherProfileModalProp
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="teacher-specialty" className="text-xs font-semibold text-slate-200">
-                Especialidad Académica
-              </label>
-              <span className={`text-[11px] font-mono ${specialtyTooLong ? "text-rose-400" : "text-slate-subtle"}`}>
-                {trimmedSpecialty.length}/{MAX_SPECIALTY_LENGTH}
-              </span>
-            </div>
-            <input
-              id="teacher-specialty"
-              type="text"
-              value={specialty}
-              onChange={(e) => setSpecialty(e.target.value)}
-              placeholder="Ej. Inglés de Negocios, Fonética y Preparación IELTS"
-              disabled={isSubmitting}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-canvas border border-border-default text-sm text-white placeholder:text-slate-subtle focus:outline-none focus:border-emerald-brand transition-colors disabled:opacity-60"
-            />
-          </div>
+          <SpecialtyTagsInput
+            value={specialty}
+            onChange={setSpecialty}
+            disabled={isSubmitting}
+          />
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -143,23 +130,33 @@ export function TeacherProfileModal({ isOpen, onClose }: TeacherProfileModalProp
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border-default">
-            <button
-              type="button"
+          <div className="flex items-center justify-between gap-2.5 pt-2 border-t border-border-default">
+            <Link
+              href="/teacher/profile"
               onClick={onClose}
-              disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-card-hover border border-border-default transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-brand hover:underline"
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || bioTooLong || specialtyTooLong}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-brand text-canvas hover:bg-mint-brand transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <Check size={14} />
-              <span>{isSubmitting ? "Guardando..." : "Guardar Perfil"}</span>
-            </button>
+              <span>Abrir vista completa</span>
+              <ExternalLink size={12} />
+            </Link>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-card-hover border border-border-default transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || bioTooLong || specialtyTooLong}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-brand text-canvas hover:bg-mint-brand transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Check size={14} />
+                <span>{isSubmitting ? "Guardando..." : "Guardar Perfil"}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

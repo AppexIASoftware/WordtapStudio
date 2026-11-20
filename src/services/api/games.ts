@@ -161,3 +161,32 @@ export async function deleteGlobalGameApi(
   );
   return unwrapResponse(res);
 }
+
+export interface ReviewCalibrationDTO {
+  ease_factor: number;
+  quality: number;
+  repetitions: number;
+}
+
+export async function getReviewCalibrationApi(): Promise<{
+  data: ReviewCalibrationDTO | null;
+  error: string | null;
+}> {
+  const res = await apiRequest<ReviewCalibrationDTO>(
+    `${API_V1_URL}/teacher/review-calibration`
+  );
+  return unwrapResponse(res);
+}
+
+export async function saveReviewCalibrationApi(
+  payload: ReviewCalibrationDTO
+): Promise<{ data: ReviewCalibrationDTO | null; error: string | null }> {
+  const res = await apiRequest<ReviewCalibrationDTO>(
+    `${API_V1_URL}/teacher/review-calibration`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }
+  );
+  return unwrapResponse(res);
+}

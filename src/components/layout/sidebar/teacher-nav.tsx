@@ -8,6 +8,7 @@ import {
   Users,
   Flame,
   GitPullRequest,
+  UserCircle,
 } from "lucide-react";
 import { NavItem } from "./nav-item";
 
@@ -105,6 +106,13 @@ export function TeacherNav({ collapsed = false }: TeacherNavProps) {
             href="/teacher/approvals"
             label="Mis Solicitudes"
             icon={GitPullRequest}
+            collapsed={collapsed}
+            roleTheme="instructor"
+          />
+          <NavItem
+            href="/teacher/profile"
+            label="Mi Perfil Académico"
+            icon={UserCircle}
             collapsed={collapsed}
             roleTheme="instructor"
           />

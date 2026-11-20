@@ -12,6 +12,9 @@ import {
   createTeacherGameApi,
   updateTeacherGameApi,
   deleteTeacherGameApi,
+  getReviewCalibrationApi,
+  saveReviewCalibrationApi,
+  ReviewCalibrationDTO,
 } from "@/services/api/games";
 
 import { GamificationHeader } from "../components/gamification-header";
@@ -42,6 +45,7 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
 
   const [baseGames, setBaseGames] = useState<GameModeItem[]>([]);
   const [customGames, setCustomGames] = useState<TeacherGameDTO[]>([]);
+  const [reviewCalibration, setReviewCalibration] = useState<ReviewCalibrationDTO | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
   const [activeFilter, setActiveFilter] = useUrlParam<GamificationFilter>(
@@ -82,15 +86,19 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
     let cancelled = false;
     (async () => {
       try {
-        const [customRes, globalRes] = await Promise.all([
+        const [customRes, globalRes, calRes] = await Promise.all([
           getTeacherGamesApi(),
           getTeacherGlobalGamesApi(),
+          getReviewCalibrationApi(),
         ]);
         if (!cancelled && customRes.data && Array.isArray(customRes.data)) {
           setCustomGames(customRes.data);
         }
         if (!cancelled && globalRes.data && Array.isArray(globalRes.data)) {
           setBaseGames(globalRes.data.map(mapGlobalGameToModeItem));
+        }
+        if (!cancelled && calRes.data) {
+          setReviewCalibration(calRes.data);
         }
       } catch {
         // Usar estado local si API no responde
@@ -316,7 +324,17 @@ export function GamificationView({ scope = "teacher" }: GamificationViewProps = 
       {showSimulator && (
         <div className="pt-2">
           <SupermemoSimulator
-            onSaveConfig={() => triggerToast("¡Parámetros pedagógicos calibrados con éxito!")}
+            initialConfig={reviewCalibration}
+            onSaveConfig={async (ease_factor, quality, repetitions) => {
+              const res = await saveReviewCalibrationApi({ ease_factor, quality, repetitions });
+              if (res.error || !res.data) {
+                triggerToast(res.error || "No se pudo guardar la calibración pedagógica.");
+                return false;
+              }
+              setReviewCalibration(res.data);
+              triggerToast("¡Parámetros pedagógicos calibrados y guardados en el servidor!");
+              return true;
+            }}
           />
         </div>
       )}

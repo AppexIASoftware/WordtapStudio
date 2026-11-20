@@ -1,17 +1,20 @@
 "use client";
 
 import { ApiTeacherApplication } from "@/services/api/teacher-applications";
+import { parseSpecialtyTags } from "@/features/dashboard/components/specialty-tags-input";
 import {
   CheckCircle,
   XCircle,
   ShieldAlert,
   Trash2,
   RotateCcw,
+  Eye,
 } from "lucide-react";
 
 interface TeacherApplicationRowProps {
   app: ApiTeacherApplication;
   isItemLoading: boolean;
+  onInspect: (app: ApiTeacherApplication) => void;
   onApprove: (app: ApiTeacherApplication) => void;
   onReject: (app: ApiTeacherApplication) => void;
   onOpenSuspendModal: (app: ApiTeacherApplication) => void;
@@ -41,16 +44,30 @@ const STATUS_DISPLAY: Record<
   },
 };
 
+export function isTeacherProfileComplete(app: ApiTeacherApplication): boolean {
+  const tags = parseSpecialtyTags(app.specialty || "");
+  const bio = (app.bio || "").trim();
+  return (
+    tags.length > 0 &&
+    bio.length >= 20 &&
+    bio !== "Postulante registrado vía Google en Wordtap Studio"
+  );
+}
+
 /** Fila individual de postulacion docente con badges de estado y acciones contextuales. */
 export function TeacherApplicationRow({
   app,
   isItemLoading,
+  onInspect,
   onApprove,
   onReject,
   onOpenSuspendModal,
   onReactivate,
   onOpenDeleteModal,
 }: TeacherApplicationRowProps) {
+  const tags = parseSpecialtyTags(app.specialty || "");
+  const profileComplete = isTeacherProfileComplete(app);
+
   return (
       <tr key={app.id} className="hover:bg-card-hover/40 transition-colors">
         <td className="py-3 px-4">
@@ -66,8 +83,35 @@ export function TeacherApplicationRow({
         </td>
 
         <td className="py-3 px-4 max-w-xs">
-          <p className="font-semibold text-white truncate">{app.specialty || "Inglés General"}</p>
-          <p className="text-[11px] text-slate-subtle truncate">{app.bio || "Registrado vía Google OAuth"}</p>
+          <button
+            type="button"
+            onClick={() => onInspect(app)}
+            className="text-left w-full group cursor-pointer space-y-1"
+            title="Ver especialidad y biografía completa"
+          >
+            {tags.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {tags.slice(0, 2).map((tag, idx) => (
+                  <span
+                    key={`${tag}-${idx}`}
+                    className="px-2 py-0.5 rounded-md bg-emerald-brand/10 border border-emerald-brand/25 text-emerald-brand text-[10px] font-semibold"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {tags.length > 2 && (
+                  <span className="px-1.5 py-0.5 rounded-md bg-card border border-border-default text-slate-300 text-[10px] font-mono">
+                    +{tags.length - 2}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <p className="font-semibold text-white truncate">Inglés General</p>
+            )}
+            <p className="text-[11px] text-slate-subtle truncate group-hover:text-slate-200 transition-colors">
+              {app.bio || "Registrado vía Google OAuth"}
+            </p>
+          </button>
         </td>
 
         <td className="py-3 px-4 font-mono text-slate-subtle text-[11px]">
@@ -100,12 +144,25 @@ export function TeacherApplicationRow({
             <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
-                disabled={isItemLoading}
+                onClick={() => onInspect(app)}
+                className="p-1.5 rounded-xl bg-card border border-border-default text-slate-300 hover:text-white hover:border-emerald-brand/50 transition-colors cursor-pointer"
+                title="Ver perfil completo"
+              >
+                <Eye size={13} />
+              </button>
+              <button
+                type="button"
+                disabled={isItemLoading || !profileComplete}
                 onClick={() => onApprove(app)}
-                className="px-3 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1 cursor-pointer shadow-glow-emerald disabled:opacity-50"
+                title={
+                  profileComplete
+                    ? "Aprobar postulación docente"
+                    : "El postulante aún debe completar su especialidad y biografía (mín. 20 caracteres)"
+                }
+                className="px-3 py-1.5 rounded-xl bg-emerald-brand text-canvas font-bold text-xs hover:bg-mint-brand transition-colors flex items-center gap-1 cursor-pointer shadow-glow-emerald disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <CheckCircle size={13} />
-                <span>Aprobar</span>
+                <span>{profileComplete ? "Aprobar" : "Perfil incompleto"}</span>
               </button>
 
               <button
